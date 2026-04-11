@@ -75,7 +75,7 @@ const AuthPage = () => {
               className="rounded-xl"
             />
           </div>
-          <Button type="submit" className="w-full h-11 rounded-2xl gradient-primary font-semibold" disabled={loading}>
+          <Button type="submit" className="w-full h-11 rounded-2xl btn-primary" disabled={loading}>
             {loading ? "অপেক্ষা করুন..." : isLogin ? "লগইন" : "সাইন আপ"}
           </Button>
         </form>

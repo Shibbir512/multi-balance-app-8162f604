@@ -168,7 +168,7 @@ const LedgerDetailPage = () => {
 
       <div className="max-w-lg mx-auto px-4">
         {/* Hero Balance Card - floating */}
-        <div className="glass rounded-2xl p-4 -mt-2 mb-4 shadow-hero animate-fade-in-up" style={{ transform: 'translateY(-2px)' }}>
+        <div className="hero-card p-4 -mt-2 mb-4 animate-fade-in-up" style={{ transform: 'translateY(-2px)' }}>
           <p className="text-muted-foreground text-[11px] font-medium uppercase tracking-wider mb-0.5">মোট ব্যালেন্স</p>
           <p className="text-2xl font-extrabold text-foreground mb-3">৳{totalBalance.toLocaleString("bn-BD")}</p>
           <div className="grid grid-cols-2 gap-2.5">
@@ -397,7 +397,7 @@ const LedgerDetailPage = () => {
               <Label>নোট (ঐচ্ছিক)</Label>
               <Input value={txNote} onChange={(e) => setTxNote(e.target.value)} placeholder="নোট লিখুন..." className="rounded-xl" />
             </div>
-            <Button type="submit" className="w-full h-11 rounded-2xl text-base font-semibold gradient-primary shadow-md shadow-indigo-500/20" disabled={addTransaction.isPending}>
+            <Button type="submit" className="w-full h-11 rounded-2xl text-base btn-primary" disabled={addTransaction.isPending}>
               {addTransaction.isPending ? "যোগ হচ্ছে..." : "যোগ করুন"}
             </Button>
           </form>

@@ -124,7 +124,7 @@ const LedgerListPage = () => {
           <h2 className="text-base font-bold text-foreground">আমার খাতাসমূহ</h2>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="gap-1.5 rounded-xl gradient-primary shadow-md font-semibold text-xs h-8">
+              <Button size="sm" className="gap-1.5 rounded-xl btn-primary text-xs h-8">
                 <Plus className="w-3.5 h-3.5" /> নতুন খাতা
               </Button>
             </DialogTrigger>
@@ -138,7 +138,7 @@ const LedgerListPage = () => {
                   required
                   className="rounded-xl"
                 />
-                <Button type="submit" className="w-full h-11 rounded-2xl gradient-primary shadow-md font-semibold" disabled={createLedger.isPending}>
+                <Button type="submit" className="w-full h-11 rounded-2xl btn-primary" disabled={createLedger.isPending}>
                   {createLedger.isPending ? "তৈরি হচ্ছে..." : "তৈরি করুন"}
                 </Button>
               </form>
