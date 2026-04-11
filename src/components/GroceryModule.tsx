@@ -213,13 +213,32 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
       const { error: itemsError } = await supabase.from("grocery_batch_items").insert(batchItems);
       if (itemsError) throw itemsError;
 
-      // 4. Update master items last_purchase_date
+      // 4. Update master items: last_purchase_date + recalculate average_interval
       const masterIds = selectedItems.filter((i) => i.masterId).map((i) => i.masterId!);
       if (masterIds.length > 0) {
-        await supabase
+        const today = new Date().toISOString().split("T")[0];
+        // Fetch current master items to calculate new interval
+        const { data: currentMasters } = await supabase
           .from("grocery_master_items")
-          .update({ last_purchase_date: new Date().toISOString().split("T")[0] })
+          .select("id, last_purchase_date, average_interval")
           .in("id", masterIds);
+
+        if (currentMasters) {
+          for (const master of currentMasters) {
+            const updates: Record<string, any> = { last_purchase_date: today };
+            if (master.last_purchase_date) {
+              const lastDate = new Date(master.last_purchase_date);
+              const todayDate = new Date(today);
+              const daysBetween = Math.floor((todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+              if (daysBetween > 0) {
+                // Weighted average: 70% old interval + 30% new interval (or just new if no old)
+                const oldInterval = master.average_interval ?? daysBetween;
+                updates.average_interval = Math.round(oldInterval * 0.7 + daysBetween * 0.3);
+              }
+            }
+            await supabase.from("grocery_master_items").update(updates).eq("id", master.id);
+          }
+        }
       }
 
       // 5. Add new inline items to master list
