@@ -13,6 +13,8 @@ import {
   Plus, ShoppingCart, Package, Minus, Check, ArrowRight, ArrowLeft, List, X
 } from "lucide-react";
 import { toast } from "sonner";
+import { useGroceryReminders } from "@/hooks/useGroceryReminders";
+import GroceryReminders from "@/components/GroceryReminders";
 
 interface ShoppingItem {
   masterId: string | null;
@@ -57,6 +59,8 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
       return data;
     },
   });
+
+  const { data: reminders } = useGroceryReminders(ledgerId);
 
   const { data: batches } = useQuery({
     queryKey: ["grocery-batches", ledgerId],
@@ -209,13 +213,37 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
       const { error: itemsError } = await supabase.from("grocery_batch_items").insert(batchItems);
       if (itemsError) throw itemsError;
 
-      // 4. Update master items last_purchase_date
+      // 4. Update master items: last_purchase_date + recalculate average_interval
       const masterIds = selectedItems.filter((i) => i.masterId).map((i) => i.masterId!);
       if (masterIds.length > 0) {
-        await supabase
+        const today = new Date().toISOString().split("T")[0];
+        // Fetch current master items to calculate new interval
+        const { data: currentMasters } = await supabase
           .from("grocery_master_items")
-          .update({ last_purchase_date: new Date().toISOString().split("T")[0] })
+          .select("id, last_purchase_date, average_interval")
           .in("id", masterIds);
+
+        if (currentMasters) {
+          for (const master of currentMasters) {
+            let newInterval = master.average_interval;
+            if (master.last_purchase_date) {
+              const lastDate = new Date(master.last_purchase_date);
+              const todayDate = new Date(today);
+              const daysBetween = Math.floor((todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+              if (daysBetween > 0) {
+                const oldInterval = master.average_interval ?? daysBetween;
+                newInterval = Math.round(oldInterval * 0.7 + daysBetween * 0.3);
+              }
+            }
+            await supabase
+              .from("grocery_master_items")
+              .update({
+                last_purchase_date: today,
+                average_interval: newInterval,
+              })
+              .eq("id", master.id);
+          }
+        }
       }
 
       // 5. Add new inline items to master list
@@ -237,6 +265,7 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
       queryClient.invalidateQueries({ queryKey: ["grocery-batches", ledgerId] });
       queryClient.invalidateQueries({ queryKey: ["transactions", ledgerId] });
       queryClient.invalidateQueries({ queryKey: ["ledger-balances"] });
+      queryClient.invalidateQueries({ queryKey: ["grocery-reminders", ledgerId] });
 
       toast.success(`বাজার সেভ হয়েছে! মোট: ৳${grandTotal.toLocaleString("bn-BD")}`);
       setStep("master");
@@ -264,6 +293,11 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
             </Button>
           </div>
         </div>
+
+        {/* Reminders */}
+        {reminders && reminders.length > 0 && (
+          <GroceryReminders reminders={reminders} />
+        )}
 
         {isLoading ? (
           <div className="space-y-2">

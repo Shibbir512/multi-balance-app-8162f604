@@ -13,6 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ArrowLeft, Plus, TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { toast } from "sonner";
 import GroceryModule from "@/components/GroceryModule";
+import { useGroceryReminders } from "@/hooks/useGroceryReminders";
+import GroceryReminders from "@/components/GroceryReminders";
 
 const LedgerDetailPage = () => {
   const { ledgerId } = useParams<{ ledgerId: string }>();
@@ -84,6 +86,8 @@ const LedgerDetailPage = () => {
   const totalBalance = totalIncome - totalExpense;
 
   const filteredCategories = categories?.filter((c) => c.type === txType) ?? [];
+
+  const { data: reminders } = useGroceryReminders(ledgerId);
 
   const addTransaction = useMutation({
     mutationFn: async () => {
@@ -162,6 +166,13 @@ const LedgerDetailPage = () => {
             <ArrowDownRight className="w-4 h-4" /> খরচ যোগ করুন
           </Button>
         </div>
+
+        {/* Grocery Reminders on Dashboard */}
+        {reminders && reminders.length > 0 && (
+          <div className="mb-4">
+            <GroceryReminders reminders={reminders} compact />
+          </div>
+        )}
 
         <Tabs defaultValue="transactions">
           <TabsList className="w-full">
