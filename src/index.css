@@ -5,7 +5,76 @@
 @tailwind utilities;
 
 @layer base {
+  /* ─── Light Mode ─── */
   :root {
+    --background: 210 40% 98%;
+    --foreground: 222 84% 5%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 84% 5%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 84% 5%;
+
+    --primary: 252 56% 57%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 214 32% 91%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 210 40% 96%;
+    --accent-foreground: 222 47% 11%;
+
+    --destructive: 0 62% 48%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 152 55% 38%;
+    --success-foreground: 0 0% 100%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 252 56% 57%;
+
+    --radius: 1rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 222 84% 5%;
+    --sidebar-primary: 252 56% 57%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 252 56% 57%;
+
+    /* Premium tokens - Light */
+    --gradient-primary: linear-gradient(135deg, #4F46E5, #7C3AED);
+    --gradient-header: linear-gradient(180deg, #4F46E5, #6366F1);
+    --gradient-primary-soft: linear-gradient(135deg, rgba(79,70,229,0.08), rgba(124,58,237,0.03));
+    --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+    --shadow-card-hover: 0 4px 12px -2px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+    --shadow-hero: 0 4px 20px -6px rgba(79, 70, 229, 0.15);
+    --glass-bg: rgba(255, 255, 255, 0.8);
+    --glass-border: rgba(0, 0, 0, 0.08);
+    --income-bg: rgba(5, 150, 105, 0.08);
+    --income-border: rgba(5, 150, 105, 0.15);
+    --income-text: #047857;
+    --income-text-soft: #059669;
+    --expense-bg: rgba(220, 38, 38, 0.08);
+    --expense-border: rgba(220, 38, 38, 0.15);
+    --expense-text: #B91C1C;
+    --expense-text-soft: #DC2626;
+    --action-btn-bg: rgba(0, 0, 0, 0.03);
+    --action-btn-border: rgba(0, 0, 0, 0.08);
+    --action-btn-hover: rgba(0, 0, 0, 0.06);
+    --tab-inactive: #94A3B8;
+    --tab-inactive-hover: rgba(0, 0, 0, 0.04);
+  }
+
+  /* ─── Dark Mode ─── */
+  .dark {
     --background: 229 84% 5%;
     --foreground: 210 40% 98%;
 
@@ -37,8 +106,6 @@
     --input: 230 25% 13%;
     --ring: 252 56% 57%;
 
-    --radius: 1rem;
-
     --sidebar-background: 230 50% 8%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 252 56% 57%;
@@ -48,17 +115,28 @@
     --sidebar-border: 230 30% 16%;
     --sidebar-ring: 252 56% 57%;
 
-    /* Premium dark tokens */
+    /* Premium tokens - Dark */
     --gradient-primary: linear-gradient(135deg, #4F46E5, #7C3AED);
     --gradient-header: linear-gradient(180deg, #1E1B4B, #312E81);
     --gradient-primary-soft: linear-gradient(135deg, rgba(79,70,229,0.15), rgba(124,58,237,0.05));
-    --gradient-income: linear-gradient(135deg, #059669, #34D399);
-    --gradient-expense: linear-gradient(135deg, #DC2626, #F87171);
     --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.3);
     --shadow-card-hover: 0 4px 12px -2px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
-    --shadow-hero: 0 4px 20px -6px rgba(0, 0, 0, 0.4);
-    --glass-bg: rgba(255, 255, 255, 0.04);
-    --glass-border: rgba(255, 255, 255, 0.08);
+    --shadow-hero: 0 4px 24px -6px rgba(99, 102, 241, 0.25);
+    --glass-bg: rgba(255, 255, 255, 0.06);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --income-bg: rgba(16, 185, 129, 0.1);
+    --income-border: rgba(16, 185, 129, 0.18);
+    --income-text: #6EE7B7;
+    --income-text-soft: #34D399;
+    --expense-bg: rgba(239, 68, 68, 0.1);
+    --expense-border: rgba(239, 68, 68, 0.18);
+    --expense-text: #FCA5A5;
+    --expense-text-soft: #F87171;
+    --action-btn-bg: rgba(255, 255, 255, 0.04);
+    --action-btn-border: rgba(255, 255, 255, 0.08);
+    --action-btn-hover: rgba(255, 255, 255, 0.07);
+    --tab-inactive: rgba(255, 255, 255, 0.4);
+    --tab-inactive-hover: rgba(255, 255, 255, 0.04);
   }
 }
 
@@ -87,14 +165,6 @@
 
   .gradient-header {
     background: var(--gradient-header);
-  }
-
-  .gradient-income {
-    background: var(--gradient-income);
-  }
-
-  .gradient-expense {
-    background: var(--gradient-expense);
   }
 
   .shadow-card {
@@ -149,6 +219,16 @@
 
   .stagger-item {
     @apply animate-fade-in-up;
+  }
+
+  .income-zone {
+    background: var(--income-bg);
+    border-color: var(--income-border);
+  }
+
+  .expense-zone {
+    background: var(--expense-bg);
+    border-color: var(--expense-border);
   }
 
   .no-scrollbar::-webkit-scrollbar {
