@@ -330,6 +330,92 @@ export type Database = {
           },
         ]
       }
+      zakat_calculations: {
+        Row: {
+          bank_balance: number
+          business_assets: number
+          cash: number
+          created_at: string
+          gold_grams: number
+          gold_value: number
+          id: string
+          is_zakat_due: boolean
+          ledger_id: string
+          loans: number
+          mobile_banking: number
+          net_wealth: number
+          nisab_amount: number
+          payables: number
+          receivables: number
+          silver_grams: number
+          silver_value: number
+          total_assets: number
+          total_liabilities: number
+          updated_at: string
+          user_id: string
+          year: number
+          zakat_amount: number
+        }
+        Insert: {
+          bank_balance?: number
+          business_assets?: number
+          cash?: number
+          created_at?: string
+          gold_grams?: number
+          gold_value?: number
+          id?: string
+          is_zakat_due?: boolean
+          ledger_id: string
+          loans?: number
+          mobile_banking?: number
+          net_wealth?: number
+          nisab_amount?: number
+          payables?: number
+          receivables?: number
+          silver_grams?: number
+          silver_value?: number
+          total_assets?: number
+          total_liabilities?: number
+          updated_at?: string
+          user_id: string
+          year: number
+          zakat_amount?: number
+        }
+        Update: {
+          bank_balance?: number
+          business_assets?: number
+          cash?: number
+          created_at?: string
+          gold_grams?: number
+          gold_value?: number
+          id?: string
+          is_zakat_due?: boolean
+          ledger_id?: string
+          loans?: number
+          mobile_banking?: number
+          net_wealth?: number
+          nisab_amount?: number
+          payables?: number
+          receivables?: number
+          silver_grams?: number
+          silver_value?: number
+          total_assets?: number
+          total_liabilities?: number
+          updated_at?: string
+          user_id?: string
+          year?: number
+          zakat_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zakat_calculations_ledger_id_fkey"
+            columns: ["ledger_id"]
+            isOneToOne: false
+            referencedRelation: "ledgers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
