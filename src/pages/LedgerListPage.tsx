@@ -151,7 +151,7 @@ const LedgerListPage = () => {
             {[1, 2].map((i) => <div key={i} className="h-20 bg-muted/50 animate-pulse rounded-2xl" />)}
           </div>
         ) : ledgers?.length === 0 ? (
-          <div className="premium-card p-10 text-center border-dashed border-white/10">
+          <div className="premium-card p-10 text-center border-dashed">
             <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-3">
               <BookOpen className="w-6 h-6 text-muted-foreground" />
             </div>
@@ -179,14 +179,14 @@ const LedgerListPage = () => {
                     </div>
                     <div className="flex items-center gap-2.5">
                       <div className="text-right">
-                        <p className={`font-bold text-base ${balance >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                        <p className="font-bold text-base" style={{ color: balance >= 0 ? 'var(--income-text)' : 'var(--expense-text)' }}>
                           ৳{balance.toLocaleString("bn-BD")}
                         </p>
                         <div className="flex items-center gap-0.5 justify-end">
                           {balance >= 0 ? (
-                            <TrendingUp className="w-2.5 h-2.5 text-emerald-400" />
+                            <TrendingUp className="w-2.5 h-2.5" style={{ color: 'var(--income-text-soft)' }} />
                           ) : (
-                            <TrendingDown className="w-2.5 h-2.5 text-red-400" />
+                            <TrendingDown className="w-2.5 h-2.5" style={{ color: 'var(--expense-text-soft)' }} />
                           )}
                           <span className="text-[10px] text-muted-foreground">ব্যালেন্স</span>
                         </div>
