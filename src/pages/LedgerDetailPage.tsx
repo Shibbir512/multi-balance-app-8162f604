@@ -207,6 +207,15 @@ const LedgerDetailPage = () => {
             )}
           </TabsContent>
 
+
+          <TabsContent value="grocery" className="mt-4">
+            <GroceryModule
+              ledgerId={ledgerId!}
+              accounts={accounts ?? []}
+              categories={categories ?? []}
+            />
+          </TabsContent>
+
           <TabsContent value="accounts" className="mt-4 space-y-2">
             {accounts?.map((acc) => (
               <Card key={acc.id} className="animate-fade-in">
