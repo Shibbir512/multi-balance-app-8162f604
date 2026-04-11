@@ -13,6 +13,8 @@ import {
   Plus, ShoppingCart, Package, Minus, Check, ArrowRight, ArrowLeft, List, X
 } from "lucide-react";
 import { toast } from "sonner";
+import { useGroceryReminders } from "@/hooks/useGroceryReminders";
+import GroceryReminders from "@/components/GroceryReminders";
 
 interface ShoppingItem {
   masterId: string | null;
