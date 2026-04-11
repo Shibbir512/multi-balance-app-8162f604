@@ -62,6 +62,7 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
 
   const { data: reminders } = useGroceryReminders(ledgerId);
 
+  const { data: batches } = useQuery({
     queryKey: ["grocery-batches", ledgerId],
     queryFn: async () => {
       const { data, error } = await supabase
