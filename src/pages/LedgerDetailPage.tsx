@@ -167,6 +167,13 @@ const LedgerDetailPage = () => {
           </Button>
         </div>
 
+        {/* Grocery Reminders on Dashboard */}
+        {reminders && reminders.length > 0 && (
+          <div className="mb-4">
+            <GroceryReminders reminders={reminders} compact />
+          </div>
+        )}
+
         <Tabs defaultValue="transactions">
           <TabsList className="w-full">
             <TabsTrigger value="transactions" className="flex-1 text-xs">লেনদেন</TabsTrigger>
