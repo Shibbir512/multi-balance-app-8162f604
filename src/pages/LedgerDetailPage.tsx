@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import GroceryModule from "@/components/GroceryModule";
 import { useGroceryReminders } from "@/hooks/useGroceryReminders";
 import GroceryReminders from "@/components/GroceryReminders";
+import ZakatCalculator from "@/components/ZakatCalculator";
 
 const LedgerDetailPage = () => {
   const { ledgerId } = useParams<{ ledgerId: string }>();
