@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ArrowLeft, Plus, TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, Pencil, ShoppingCart, Calculator, CreditCard, Tag } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 import { toast } from "sonner";
 import GroceryModule from "@/components/GroceryModule";
 import { useGroceryReminders } from "@/hooks/useGroceryReminders";
@@ -161,6 +162,7 @@ const LedgerDetailPage = () => {
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <h1 className="text-base font-bold text-white/90 truncate flex-1">{ledger?.name ?? "..."}</h1>
+          <ThemeToggle />
         </div>
       </div>
 

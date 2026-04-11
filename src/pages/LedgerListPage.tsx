@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Plus, Wallet, LogOut, BookOpen, Trash2, TrendingUp, TrendingDown } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 import { toast } from "sonner";
 
 const LedgerListPage = () => {
@@ -104,14 +105,17 @@ const LedgerListPage = () => {
             </div>
             <h1 className="text-lg font-extrabold text-white tracking-tight">FinTrack</h1>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={signOut}
-            className="text-white/60 hover:text-white hover:bg-white/10 rounded-xl h-8 w-8"
-          >
-            <LogOut className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={signOut}
+              className="text-white/60 hover:text-white hover:bg-white/10 rounded-xl h-8 w-8"
+            >
+              <LogOut className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
