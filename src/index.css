@@ -221,7 +221,7 @@
   }
 
   .pill-tab {
-    @apply rounded-xl px-4 py-2 text-sm font-medium transition-all duration-250 ease-out;
+    @apply rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ease-out;
     background: var(--tab-inactive-bg);
     color: var(--tab-inactive);
   }
