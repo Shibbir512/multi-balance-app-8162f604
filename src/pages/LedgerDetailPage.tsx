@@ -87,7 +87,8 @@ const LedgerDetailPage = () => {
 
   const filteredCategories = categories?.filter((c) => c.type === txType) ?? [];
 
-  const addTransaction = useMutation({
+  const { data: reminders } = useGroceryReminders(ledgerId);
+
     mutationFn: async () => {
       const { error } = await supabase.from("transactions").insert({
         ledger_id: ledgerId!,
