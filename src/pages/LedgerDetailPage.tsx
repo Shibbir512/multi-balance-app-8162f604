@@ -150,17 +150,17 @@ const LedgerDetailPage = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Compact Dark Header */}
-      <div className="sticky top-0 z-10 gradient-header px-4 pt-3 pb-4">
+      <div className="sticky top-0 z-10 gradient-header px-4 pt-3 pb-4 shadow-lg shadow-black/20">
         <div className="max-w-lg mx-auto flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate("/")}
-            className="text-white/70 hover:text-white hover:bg-white/10 rounded-xl h-9 w-9"
+            className="text-white/50 hover:text-white hover:bg-white/10 rounded-xl h-9 w-9"
           >
             <ArrowLeft className="w-4 h-4" />
           </Button>
-          <h1 className="text-base font-bold text-white truncate flex-1">{ledger?.name ?? "..."}</h1>
+          <h1 className="text-base font-bold text-white/90 truncate flex-1">{ledger?.name ?? "..."}</h1>
         </div>
       </div>
 
@@ -170,22 +170,22 @@ const LedgerDetailPage = () => {
           <p className="text-muted-foreground text-[11px] font-medium uppercase tracking-wider mb-0.5">মোট ব্যালেন্স</p>
           <p className="text-2xl font-extrabold text-foreground mb-3">৳{totalBalance.toLocaleString("bn-BD")}</p>
           <div className="grid grid-cols-2 gap-2.5">
-            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-2.5 flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+            <div className="bg-emerald-500/8 border border-emerald-500/15 rounded-xl p-2.5 flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-emerald-500/15 flex items-center justify-center">
+                <TrendingUp className="w-3.5 h-3.5 text-emerald-500/80" />
               </div>
               <div>
-                <p className="text-[10px] text-emerald-400/70 font-medium">আয়</p>
-                <p className="text-xs font-bold text-emerald-400">৳{totalIncome.toLocaleString("bn-BD")}</p>
+                <p className="text-[10px] text-emerald-400/60 font-medium">আয়</p>
+                <p className="text-xs font-bold text-emerald-400/90">৳{totalIncome.toLocaleString("bn-BD")}</p>
               </div>
             </div>
-            <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-2.5 flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-red-500/20 flex items-center justify-center">
-                <TrendingDown className="w-3.5 h-3.5 text-red-400" />
+            <div className="bg-red-500/8 border border-red-500/15 rounded-xl p-2.5 flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-red-500/15 flex items-center justify-center">
+                <TrendingDown className="w-3.5 h-3.5 text-red-500/80" />
               </div>
               <div>
-                <p className="text-[10px] text-red-400/70 font-medium">খরচ</p>
-                <p className="text-xs font-bold text-red-400">৳{totalExpense.toLocaleString("bn-BD")}</p>
+                <p className="text-[10px] text-red-400/60 font-medium">খরচ</p>
+                <p className="text-xs font-bold text-red-400/90">৳{totalExpense.toLocaleString("bn-BD")}</p>
               </div>
             </div>
           </div>
@@ -195,14 +195,14 @@ const LedgerDetailPage = () => {
         <div className="grid grid-cols-2 gap-2.5 mb-4">
           <Button
             onClick={() => openTxDialog("income")}
-            className="gap-2 h-11 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 font-semibold"
+            className="gap-2 h-11 rounded-2xl bg-white/[0.04] text-emerald-400/80 border border-white/[0.08] hover:bg-white/[0.07] font-semibold"
             variant="ghost"
           >
             <ArrowUpRight className="w-4 h-4" /> আয় যোগ
           </Button>
           <Button
             onClick={() => openTxDialog("expense")}
-            className="gap-2 h-11 rounded-2xl bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 font-semibold"
+            className="gap-2 h-11 rounded-2xl bg-white/[0.04] text-red-400/80 border border-white/[0.08] hover:bg-white/[0.07] font-semibold"
             variant="ghost"
           >
             <ArrowDownRight className="w-4 h-4" /> খরচ যোগ
@@ -224,7 +224,7 @@ const LedgerDetailPage = () => {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`pill-tab flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 justify-center min-w-0 px-3 ${
-                  activeTab === tab.id ? "pill-tab-active" : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                  activeTab === tab.id ? "pill-tab-active" : "text-white/40 hover:text-white/60 hover:bg-white/[0.04]"
                 }`}
               >
                 <Icon className="w-3.5 h-3.5 shrink-0" />
@@ -269,8 +269,8 @@ const LedgerDetailPage = () => {
                     <div className="flex items-center gap-2.5">
                       <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
                         tx.type === "income"
-                          ? "bg-emerald-500/15 text-emerald-400"
-                          : "bg-red-500/15 text-red-400"
+                          ? "bg-emerald-500/10 text-emerald-500/70"
+                          : "bg-red-500/10 text-red-500/70"
                       }`}>
                         {tx.type === "income" ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
                       </div>
@@ -282,7 +282,7 @@ const LedgerDetailPage = () => {
                         {tx.note && <p className="text-[11px] text-muted-foreground mt-0.5">{tx.note}</p>}
                       </div>
                     </div>
-                    <p className={`text-sm font-bold ${tx.type === "income" ? "text-emerald-400" : "text-red-400"}`}>
+                    <p className={`text-sm font-bold ${tx.type === "income" ? "text-emerald-400/85" : "text-red-400/85"}`}>
                       {tx.type === "income" ? "+" : "-"}৳{tx.amount.toLocaleString("bn-BD")}
                     </p>
                   </div>
@@ -393,7 +393,7 @@ const LedgerDetailPage = () => {
               <Label>নোট (ঐচ্ছিক)</Label>
               <Input value={txNote} onChange={(e) => setTxNote(e.target.value)} placeholder="নোট লিখুন..." className="rounded-xl" />
             </div>
-            <Button type="submit" className="w-full h-11 rounded-2xl text-base font-semibold gradient-primary shadow-md" disabled={addTransaction.isPending}>
+            <Button type="submit" className="w-full h-11 rounded-2xl text-base font-semibold gradient-primary shadow-md shadow-indigo-500/20" disabled={addTransaction.isPending}>
               {addTransaction.isPending ? "যোগ হচ্ছে..." : "যোগ করুন"}
             </Button>
           </form>
