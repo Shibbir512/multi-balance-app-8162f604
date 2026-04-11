@@ -93,7 +93,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-sm rounded-2xl">
+        <DialogContent className="max-w-sm rounded-2xl bg-popover border-white/10">
           <DialogHeader>
             <DialogTitle className="text-lg">লেনদেন সম্পাদনা</DialogTitle>
           </DialogHeader>
@@ -148,7 +148,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
       </Dialog>
 
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <AlertDialogContent className="rounded-2xl">
+        <AlertDialogContent className="rounded-2xl bg-popover border-white/10">
           <AlertDialogHeader>
             <AlertDialogTitle>লেনদেন মুছে ফেলবেন?</AlertDialogTitle>
             <AlertDialogDescription>এই লেনদেন স্থায়ীভাবে মুছে যাবে।</AlertDialogDescription>

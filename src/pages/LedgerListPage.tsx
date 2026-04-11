@@ -95,36 +95,36 @@ const LedgerListPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Premium Header */}
-      <div className="gradient-primary px-4 pt-6 pb-10 shadow-hero">
+      {/* Compact Dark Header */}
+      <div className="gradient-header px-4 pt-4 pb-5">
         <div className="flex items-center justify-between max-w-lg mx-auto">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              <Wallet className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 rounded-xl gradient-primary flex items-center justify-center">
+              <Wallet className="w-4 h-4 text-white" />
             </div>
-            <h1 className="text-xl font-extrabold text-white tracking-tight">FinTrack</h1>
+            <h1 className="text-lg font-extrabold text-white tracking-tight">FinTrack</h1>
           </div>
           <Button
             variant="ghost"
             size="icon"
             onClick={signOut}
-            className="text-white/80 hover:text-white hover:bg-white/15 rounded-xl"
+            className="text-white/60 hover:text-white hover:bg-white/10 rounded-xl h-8 w-8"
           >
             <LogOut className="w-4 h-4" />
           </Button>
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 -mt-5 pb-8">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-bold">আমার খাতাসমূহ</h2>
+      <div className="max-w-lg mx-auto px-4 pt-4 pb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-bold text-foreground">আমার খাতাসমূহ</h2>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="gap-1.5 rounded-xl gradient-primary shadow-md font-semibold">
-                <Plus className="w-4 h-4" /> নতুন খাতা
+              <Button size="sm" className="gap-1.5 rounded-xl gradient-primary shadow-md font-semibold text-xs h-8">
+                <Plus className="w-3.5 h-3.5" /> নতুন খাতা
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-sm rounded-2xl">
+            <DialogContent className="max-w-sm rounded-2xl bg-popover border-white/10">
               <DialogHeader><DialogTitle>নতুন খাতা তৈরি করুন</DialogTitle></DialogHeader>
               <form onSubmit={handleCreate} className="space-y-4">
                 <Input
@@ -143,46 +143,46 @@ const LedgerListPage = () => {
         </div>
 
         {isLoading ? (
-          <div className="space-y-3">
-            {[1, 2].map((i) => <div key={i} className="h-24 bg-muted animate-pulse rounded-2xl" />)}
+          <div className="space-y-2.5">
+            {[1, 2].map((i) => <div key={i} className="h-20 bg-muted/50 animate-pulse rounded-2xl" />)}
           </div>
         ) : ledgers?.length === 0 ? (
-          <div className="premium-card p-10 text-center border-dashed">
-            <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-              <BookOpen className="w-7 h-7 text-muted-foreground" />
+          <div className="premium-card p-10 text-center border-dashed border-white/10">
+            <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-3">
+              <BookOpen className="w-6 h-6 text-muted-foreground" />
             </div>
-            <p className="font-semibold text-foreground">কোনো খাতা নেই</p>
-            <p className="text-sm text-muted-foreground mt-1">নতুন খাতা তৈরি করে শুরু করুন</p>
+            <p className="font-semibold text-foreground text-sm">কোনো খাতা নেই</p>
+            <p className="text-xs text-muted-foreground mt-1">নতুন খাতা তৈরি করে শুরু করুন</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {ledgers?.map((ledger) => {
               const balance = ledgerBalances?.[ledger.id] ?? 0;
               return (
-                <div key={ledger.id} className="premium-card p-4 group">
+                <div key={ledger.id} className="premium-card p-3.5 group">
                   <div className="flex items-center justify-between">
                     <div
-                      className="flex items-center gap-3.5 flex-1 cursor-pointer"
+                      className="flex items-center gap-3 flex-1 cursor-pointer"
                       onClick={() => navigate(`/ledger/${ledger.id}`)}
                     >
-                      <div className="w-11 h-11 rounded-xl gradient-primary flex items-center justify-center shadow-sm">
-                        <BookOpen className="w-5 h-5 text-white" />
+                      <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shadow-sm">
+                        <BookOpen className="w-4 h-4 text-white" />
                       </div>
                       <div>
-                        <p className="font-semibold text-sm">{ledger.name}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{ledger.currency}</p>
+                        <p className="font-semibold text-sm text-foreground">{ledger.name}</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">{ledger.currency}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2.5">
                       <div className="text-right">
-                        <p className={`font-bold text-lg ${balance >= 0 ? "text-emerald-600" : "text-red-500"}`}>
+                        <p className={`font-bold text-base ${balance >= 0 ? "text-emerald-400" : "text-red-400"}`}>
                           ৳{balance.toLocaleString("bn-BD")}
                         </p>
                         <div className="flex items-center gap-0.5 justify-end">
                           {balance >= 0 ? (
-                            <TrendingUp className="w-3 h-3 text-emerald-500" />
+                            <TrendingUp className="w-2.5 h-2.5 text-emerald-400" />
                           ) : (
-                            <TrendingDown className="w-3 h-3 text-red-400" />
+                            <TrendingDown className="w-2.5 h-2.5 text-red-400" />
                           )}
                           <span className="text-[10px] text-muted-foreground">ব্যালেন্স</span>
                         </div>
@@ -190,10 +190,10 @@ const LedgerListPage = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-red-50"
+                        className="h-7 w-7 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300 hover:bg-red-500/10"
                         onClick={(e) => { e.stopPropagation(); setDeleteTarget({ id: ledger.id, name: ledger.name }); }}
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </Button>
                     </div>
                   </div>
@@ -205,7 +205,7 @@ const LedgerListPage = () => {
       </div>
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent className="rounded-2xl">
+        <AlertDialogContent className="rounded-2xl bg-popover border-white/10">
           <AlertDialogHeader>
             <AlertDialogTitle>"{deleteTarget?.name}" মুছে ফেলবেন?</AlertDialogTitle>
             <AlertDialogDescription>এই হিসাব খাতা ও এর সব ডাটা মুছে যাবে। এটি পূর্বাবস্থায় ফেরানো যাবে না।</AlertDialogDescription>
