@@ -228,8 +228,9 @@ const LedgerDetailPage = () => {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`pill-tab flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 justify-center min-w-0 px-3 ${
-                  activeTab === tab.id ? "pill-tab-active" : "text-white/40 hover:text-white/60 hover:bg-white/[0.04]"
+                  activeTab === tab.id ? "pill-tab-active" : ""
                 }`}
+                style={activeTab !== tab.id ? { color: 'var(--tab-inactive)' } : undefined}
               >
                 <Icon className="w-3.5 h-3.5 shrink-0" />
                 <span className="text-xs truncate">{tab.label}</span>
@@ -272,11 +273,9 @@ const LedgerDetailPage = () => {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                        tx.type === "income"
-                          ? "bg-emerald-500/10 text-emerald-500/70"
-                          : "bg-red-500/10 text-red-500/70"
-                      }`}>
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+                        style={{ background: tx.type === "income" ? 'var(--income-bg)' : 'var(--expense-bg)', color: tx.type === "income" ? 'var(--income-text-soft)' : 'var(--expense-text-soft)' }}
+                      >
                         {tx.type === "income" ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
                       </div>
                       <div>
@@ -287,7 +286,7 @@ const LedgerDetailPage = () => {
                         {tx.note && <p className="text-[11px] text-muted-foreground mt-0.5">{tx.note}</p>}
                       </div>
                     </div>
-                    <p className={`text-sm font-bold ${tx.type === "income" ? "text-emerald-400/85" : "text-red-400/85"}`}>
+                    <p className="text-sm font-bold" style={{ color: tx.type === "income" ? 'var(--income-text)' : 'var(--expense-text)' }}>
                       {tx.type === "income" ? "+" : "-"}৳{tx.amount.toLocaleString("bn-BD")}
                     </p>
                   </div>
