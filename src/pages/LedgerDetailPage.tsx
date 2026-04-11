@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import GroceryModule from "@/components/GroceryModule";
 import { useGroceryReminders } from "@/hooks/useGroceryReminders";
 import GroceryReminders from "@/components/GroceryReminders";
+import ZakatCalculator from "@/components/ZakatCalculator";
 
 const LedgerDetailPage = () => {
   const { ledgerId } = useParams<{ ledgerId: string }>();
@@ -178,6 +179,7 @@ const LedgerDetailPage = () => {
           <TabsList className="w-full">
             <TabsTrigger value="transactions" className="flex-1 text-xs">লেনদেন</TabsTrigger>
             <TabsTrigger value="grocery" className="flex-1 text-xs">বাজার</TabsTrigger>
+            <TabsTrigger value="zakat" className="flex-1 text-xs">যাকাত</TabsTrigger>
             <TabsTrigger value="accounts" className="flex-1 text-xs">অ্যাকাউন্ট</TabsTrigger>
             <TabsTrigger value="categories" className="flex-1 text-xs">ক্যাটাগরি</TabsTrigger>
           </TabsList>
@@ -225,6 +227,10 @@ const LedgerDetailPage = () => {
               accounts={accounts ?? []}
               categories={categories ?? []}
             />
+          </TabsContent>
+
+          <TabsContent value="zakat" className="mt-4">
+            <ZakatCalculator ledgerId={ledgerId!} />
           </TabsContent>
 
           <TabsContent value="accounts" className="mt-4 space-y-2">
