@@ -211,7 +211,6 @@ const LedgerDetailPage = () => {
           >
             <ArrowDownRight className="w-4 h-4" /> খরচ যোগ
           </Button>
-          </Button>
         </div>
 
         {reminders && reminders.length > 0 && (
