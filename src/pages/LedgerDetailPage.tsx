@@ -168,26 +168,26 @@ const LedgerDetailPage = () => {
 
       <div className="max-w-lg mx-auto px-4">
         {/* Hero Balance Card - floating */}
-        <div className="glass rounded-2xl p-4 -mt-2 mb-4 animate-fade-in-up" style={{ boxShadow: '0 4px 24px -6px rgba(99,102,241,0.15)', transform: 'translateY(-2px)' }}>
+        <div className="glass rounded-2xl p-4 -mt-2 mb-4 shadow-hero animate-fade-in-up" style={{ transform: 'translateY(-2px)' }}>
           <p className="text-muted-foreground text-[11px] font-medium uppercase tracking-wider mb-0.5">মোট ব্যালেন্স</p>
           <p className="text-2xl font-extrabold text-foreground mb-3">৳{totalBalance.toLocaleString("bn-BD")}</p>
           <div className="grid grid-cols-2 gap-2.5">
-            <div className="bg-emerald-500/8 border border-emerald-500/15 rounded-xl p-2.5 flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-emerald-500/15 flex items-center justify-center">
-                <TrendingUp className="w-3.5 h-3.5 text-emerald-500/80" />
+            <div className="income-zone border rounded-xl p-2.5 flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--income-bg)' }}>
+                <TrendingUp className="w-3.5 h-3.5" style={{ color: 'var(--income-text-soft)' }} />
               </div>
               <div>
-                <p className="text-[10px] text-emerald-400/60 font-medium">আয়</p>
-                <p className="text-xs font-bold text-emerald-400/90">৳{totalIncome.toLocaleString("bn-BD")}</p>
+                <p className="text-[10px] font-medium" style={{ color: 'var(--income-text-soft)', opacity: 0.7 }}>আয়</p>
+                <p className="text-xs font-bold" style={{ color: 'var(--income-text)' }}>৳{totalIncome.toLocaleString("bn-BD")}</p>
               </div>
             </div>
-            <div className="bg-red-500/8 border border-red-500/15 rounded-xl p-2.5 flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-red-500/15 flex items-center justify-center">
-                <TrendingDown className="w-3.5 h-3.5 text-red-500/80" />
+            <div className="expense-zone border rounded-xl p-2.5 flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--expense-bg)' }}>
+                <TrendingDown className="w-3.5 h-3.5" style={{ color: 'var(--expense-text-soft)' }} />
               </div>
               <div>
-                <p className="text-[10px] text-red-400/60 font-medium">খরচ</p>
-                <p className="text-xs font-bold text-red-400/90">৳{totalExpense.toLocaleString("bn-BD")}</p>
+                <p className="text-[10px] font-medium" style={{ color: 'var(--expense-text-soft)', opacity: 0.7 }}>খরচ</p>
+                <p className="text-xs font-bold" style={{ color: 'var(--expense-text)' }}>৳{totalExpense.toLocaleString("bn-BD")}</p>
               </div>
             </div>
           </div>
@@ -197,17 +197,20 @@ const LedgerDetailPage = () => {
         <div className="grid grid-cols-2 gap-2.5 mb-4 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
           <Button
             onClick={() => openTxDialog("income")}
-            className="gap-2 h-11 rounded-2xl bg-white/[0.04] text-emerald-400/80 border border-white/[0.08] hover:bg-white/[0.07] font-semibold btn-press"
+            className="gap-2 h-11 rounded-2xl font-semibold btn-press"
             variant="ghost"
+            style={{ background: 'var(--action-btn-bg)', borderColor: 'var(--action-btn-border)', color: 'var(--income-text-soft)', border: '1px solid var(--action-btn-border)' }}
           >
             <ArrowUpRight className="w-4 h-4" /> আয় যোগ
           </Button>
           <Button
             onClick={() => openTxDialog("expense")}
-            className="gap-2 h-11 rounded-2xl bg-white/[0.04] text-red-400/80 border border-white/[0.08] hover:bg-white/[0.07] font-semibold btn-press"
+            className="gap-2 h-11 rounded-2xl font-semibold btn-press"
             variant="ghost"
+            style={{ background: 'var(--action-btn-bg)', borderColor: 'var(--action-btn-border)', color: 'var(--expense-text-soft)', border: '1px solid var(--action-btn-border)' }}
           >
             <ArrowDownRight className="w-4 h-4" /> খরচ যোগ
+          </Button>
           </Button>
         </div>
 
