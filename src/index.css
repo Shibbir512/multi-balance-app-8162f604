@@ -123,13 +123,32 @@
     transform: translateY(-1px);
   }
 
+  .premium-card:active {
+    transform: scale(0.98);
+  }
+
   .pill-tab {
     @apply rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200;
   }
 
   .pill-tab-active {
-    @apply gradient-primary shadow-md;
+    @apply gradient-primary;
     color: white;
+    box-shadow: 0 2px 8px -2px rgba(79, 70, 229, 0.3);
+  }
+
+  .btn-press {
+    @apply transition-transform duration-100;
+  }
+  .btn-press:active {
+    transform: scale(0.96);
+  }
+  .btn-press:hover {
+    transform: translateY(-1px);
+  }
+
+  .stagger-item {
+    @apply animate-fade-in-up;
   }
 
   .no-scrollbar::-webkit-scrollbar {
