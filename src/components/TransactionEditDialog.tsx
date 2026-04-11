@@ -93,9 +93,9 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm rounded-2xl">
           <DialogHeader>
-            <DialogTitle>লেনদেন সম্পাদনা</DialogTitle>
+            <DialogTitle className="text-lg">লেনদেন সম্পাদনা</DialogTitle>
           </DialogHeader>
           <form
             onSubmit={(e) => { e.preventDefault(); updateMutation.mutate(); }}
@@ -108,7 +108,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
             <div className="space-y-2">
               <Label>ক্যাটাগরি (ঐচ্ছিক)</Label>
               <Select value={categoryId} onValueChange={setCategoryId}>
-                <SelectTrigger><SelectValue placeholder="বাছুন" /></SelectTrigger>
+                <SelectTrigger className="rounded-xl"><SelectValue placeholder="বাছুন" /></SelectTrigger>
                 <SelectContent>
                   {filteredCategories.map((c) => (
                     <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
@@ -119,7 +119,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
             <div className="space-y-2">
               <Label>অ্যাকাউন্ট (ঐচ্ছিক)</Label>
               <Select value={accountId} onValueChange={setAccountId}>
-                <SelectTrigger><SelectValue placeholder="বাছুন" /></SelectTrigger>
+                <SelectTrigger className="rounded-xl"><SelectValue placeholder="বাছুন" /></SelectTrigger>
                 <SelectContent>
                   {accounts.map((a) => (
                     <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
@@ -129,17 +129,17 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
             </div>
             <div className="space-y-2">
               <Label>তারিখ</Label>
-              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="rounded-xl" />
             </div>
             <div className="space-y-2">
               <Label>নোট (ঐচ্ছিক)</Label>
-              <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="নোট..." />
+              <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="নোট..." className="rounded-xl" />
             </div>
             <div className="flex gap-2">
-              <Button type="submit" className="flex-1" disabled={updateMutation.isPending}>
+              <Button type="submit" className="flex-1 h-11 rounded-2xl gradient-primary shadow-md font-semibold" disabled={updateMutation.isPending}>
                 {updateMutation.isPending ? "আপডেট হচ্ছে..." : "আপডেট"}
               </Button>
-              <Button type="button" variant="destructive" onClick={() => setDeleteOpen(true)}>
+              <Button type="button" variant="destructive" onClick={() => setDeleteOpen(true)} className="rounded-2xl h-11">
                 মুছুন
               </Button>
             </div>
@@ -148,14 +148,14 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
       </Dialog>
 
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle>লেনদেন মুছে ফেলবেন?</AlertDialogTitle>
             <AlertDialogDescription>এই লেনদেন স্থায়ীভাবে মুছে যাবে।</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>বাতিল</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogCancel className="rounded-xl">বাতিল</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl">
               {deleteMutation.isPending ? "মুছছে..." : "মুছে ফেলুন"}
             </AlertDialogAction>
           </AlertDialogFooter>

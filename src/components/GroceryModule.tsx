@@ -74,7 +74,6 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
     },
   });
 
-  // Recent batch items for quick access
   const { data: recentItems } = useQuery({
     queryKey: ["grocery-recent-items", ledgerId],
     queryFn: async () => {
@@ -85,7 +84,6 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
         .order("created_at", { ascending: false })
         .limit(20);
       if (error) throw error;
-      // Deduplicate by name
       const seen = new Set<string>();
       return (data || []).filter((item) => {
         if (seen.has(item.name)) return false;
@@ -227,7 +225,6 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
       const { error: itemsError } = await supabase.from("grocery_batch_items").insert(batchItems);
       if (itemsError) throw itemsError;
 
-      // Update master items
       const masterIds = selectedItems.filter((i) => i.masterId).map((i) => i.masterId!);
       if (masterIds.length > 0) {
         const today = new Date().toISOString().split("T")[0];
@@ -247,7 +244,6 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
         }
       }
 
-      // Add new inline items to master list
       const newItems = selectedItems.filter((i) => !i.masterId);
       if (newItems.length > 0) {
         await supabase.from("grocery_master_items").insert(
@@ -271,14 +267,14 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
   // === MASTER LIST VIEW ===
   if (step === "master") {
     return (
-      <div className="space-y-4">
+      <div className="space-y-5">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold">মাস্টার আইটেম</h3>
+          <h3 className="text-sm font-bold">মাস্টার আইটেম</h3>
           <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={() => setAddItemOpen(true)} className="gap-1">
+            <Button size="sm" variant="outline" onClick={() => setAddItemOpen(true)} className="gap-1.5 rounded-xl">
               <Plus className="w-3 h-3" /> যোগ
             </Button>
-            <Button size="sm" onClick={startShopping} disabled={!masterItems?.length} className="gap-1">
+            <Button size="sm" onClick={startShopping} disabled={!masterItems?.length} className="gap-1.5 rounded-xl gradient-primary shadow-sm font-semibold">
               <ShoppingCart className="w-3 h-3" /> বাজার করুন
             </Button>
           </div>
@@ -287,51 +283,57 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
         {reminders && reminders.length > 0 && <GroceryReminders reminders={reminders} />}
 
         {isLoading ? (
-          <div className="space-y-2">{[1, 2, 3].map((i) => <div key={i} className="h-12 bg-muted animate-pulse rounded-lg" />)}</div>
+          <div className="space-y-2">{[1, 2, 3].map((i) => <div key={i} className="h-14 bg-muted animate-pulse rounded-2xl" />)}</div>
         ) : !masterItems?.length ? (
-          <Card className="border-dashed">
-            <CardContent className="py-8 text-center text-muted-foreground">
-              <Package className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              কোনো আইটেম নেই। আইটেম যোগ করুন।
-            </CardContent>
-          </Card>
+          <div className="premium-card p-10 text-center border-dashed">
+            <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-3">
+              <Package className="w-6 h-6 text-muted-foreground" />
+            </div>
+            <p className="text-muted-foreground font-medium">কোনো আইটেম নেই</p>
+            <p className="text-xs text-muted-foreground mt-1">আইটেম যোগ করুন</p>
+          </div>
         ) : (
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {masterItems.map((item) => (
-              <Card key={item.id} className="animate-fade-in group">
-                <CardContent className="flex items-center justify-between p-3">
-                  <div>
-                    <p className="text-sm font-medium">{item.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {item.default_quantity} {item.unit}
-                      {item.last_purchase_date && ` • শেষ কেনা: ${item.last_purchase_date}`}
-                    </p>
+              <div key={item.id} className="premium-card p-3.5 group">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
+                      <Package className="w-4 h-4 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">{item.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {item.default_quantity} {item.unit}
+                        {item.last_purchase_date && ` • শেষ কেনা: ${item.last_purchase_date}`}
+                      </p>
+                    </div>
                   </div>
                   <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={() => { setEditItem(item); setNewName(item.name); setNewUnit(item.unit); setNewQty(item.default_quantity.toString()); }}>
                       <Pencil className="w-3.5 h-3.5" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive"
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-red-50"
                       onClick={() => setDeleteItemId(item.id)}>
                       <Trash2 className="w-3.5 h-3.5" />
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
         )}
 
         {/* Recent items quick access */}
         {recentItems && recentItems.length > 0 && step === "master" && (
-          <div className="mt-4">
-            <h3 className="text-sm font-semibold mb-2 flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5" /> সাম্প্রতিক বাজার আইটেম
+          <div className="mt-5">
+            <h3 className="text-sm font-bold mb-2.5 flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-muted-foreground" /> সাম্প্রতিক বাজার আইটেম
             </h3>
             <div className="flex flex-wrap gap-2">
               {recentItems.map((item, i) => (
-                <Button key={i} variant="outline" size="sm" className="text-xs h-7"
+                <Button key={i} variant="outline" size="sm" className="text-xs h-8 rounded-xl gap-1"
                   onClick={() => {
                     if (!masterItems?.some((m) => m.name === item.name)) {
                       supabase.from("grocery_master_items").insert({
@@ -342,7 +344,7 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
                       toast.info("এই আইটেম আগে থেকেই মাস্টার লিস্টে আছে");
                     }
                   }}>
-                  <Plus className="w-3 h-3 mr-1" /> {item.name}
+                  <Plus className="w-3 h-3" /> {item.name}
                 </Button>
               ))}
             </div>
@@ -351,16 +353,14 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
 
         {/* Recent batches */}
         {batches && batches.length > 0 && (
-          <div className="mt-4">
-            <h3 className="text-sm font-semibold mb-2">সাম্প্রতিক বাজার</h3>
-            <div className="space-y-1.5">
+          <div className="mt-5">
+            <h3 className="text-sm font-bold mb-2.5">সাম্প্রতিক বাজার</h3>
+            <div className="space-y-2">
               {batches.map((b) => (
-                <Card key={b.id}>
-                  <CardContent className="flex items-center justify-between p-3">
-                    <p className="text-sm">{b.batch_date}</p>
-                    <p className="text-sm font-semibold text-destructive">৳{b.total_amount.toLocaleString("bn-BD")}</p>
-                  </CardContent>
-                </Card>
+                <div key={b.id} className="premium-card p-3.5 flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">{b.batch_date}</p>
+                  <p className="text-sm font-bold text-red-500">৳{b.total_amount.toLocaleString("bn-BD")}</p>
+                </div>
               ))}
             </div>
           </div>
@@ -368,27 +368,27 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
 
         {/* Add Item Dialog */}
         <Dialog open={addItemOpen} onOpenChange={setAddItemOpen}>
-          <DialogContent className="max-w-sm">
+          <DialogContent className="max-w-sm rounded-2xl">
             <DialogHeader><DialogTitle>নতুন আইটেম যোগ করুন</DialogTitle></DialogHeader>
             <form onSubmit={(e) => { e.preventDefault(); addMasterItem.mutate(); }} className="space-y-4">
               <div className="space-y-2">
                 <Label>নাম</Label>
-                <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="যেমন: চাল, তেল, ডাল..." required />
+                <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="যেমন: চাল, তেল, ডাল..." required className="rounded-xl" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label>একক</Label>
                   <Select value={newUnit} onValueChange={setNewUnit}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
                     <SelectContent>{UNITS.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>ডিফল্ট পরিমাণ</Label>
-                  <Input type="number" value={newQty} onChange={(e) => setNewQty(e.target.value)} min="0.1" step="0.1" />
+                  <Input type="number" value={newQty} onChange={(e) => setNewQty(e.target.value)} min="0.1" step="0.1" className="rounded-xl" />
                 </div>
               </div>
-              <Button type="submit" className="w-full" disabled={addMasterItem.isPending}>
+              <Button type="submit" className="w-full h-11 rounded-2xl gradient-primary shadow-md font-semibold" disabled={addMasterItem.isPending}>
                 {addMasterItem.isPending ? "যোগ হচ্ছে..." : "যোগ করুন"}
               </Button>
             </form>
@@ -397,7 +397,7 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
 
         {/* Edit Item Dialog */}
         <Dialog open={!!editItem} onOpenChange={(open) => !open && setEditItem(null)}>
-          <DialogContent className="max-w-sm">
+          <DialogContent className="max-w-sm rounded-2xl">
             <DialogHeader><DialogTitle>আইটেম সম্পাদনা</DialogTitle></DialogHeader>
             <form onSubmit={(e) => {
               e.preventDefault();
@@ -405,22 +405,22 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
             }} className="space-y-4">
               <div className="space-y-2">
                 <Label>নাম</Label>
-                <Input value={newName} onChange={(e) => setNewName(e.target.value)} required />
+                <Input value={newName} onChange={(e) => setNewName(e.target.value)} required className="rounded-xl" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label>একক</Label>
                   <Select value={newUnit} onValueChange={setNewUnit}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
                     <SelectContent>{UNITS.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>ডিফল্ট পরিমাণ</Label>
-                  <Input type="number" value={newQty} onChange={(e) => setNewQty(e.target.value)} min="0.1" step="0.1" />
+                  <Input type="number" value={newQty} onChange={(e) => setNewQty(e.target.value)} min="0.1" step="0.1" className="rounded-xl" />
                 </div>
               </div>
-              <Button type="submit" className="w-full" disabled={updateMasterItem.isPending}>
+              <Button type="submit" className="w-full h-11 rounded-2xl gradient-primary shadow-md font-semibold" disabled={updateMasterItem.isPending}>
                 {updateMasterItem.isPending ? "আপডেট হচ্ছে..." : "আপডেট করুন"}
               </Button>
             </form>
@@ -429,14 +429,14 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
 
         {/* Delete Confirmation */}
         <AlertDialog open={!!deleteItemId} onOpenChange={(open) => !open && setDeleteItemId(null)}>
-          <AlertDialogContent>
+          <AlertDialogContent className="rounded-2xl">
             <AlertDialogHeader>
               <AlertDialogTitle>আইটেম মুছে ফেলবেন?</AlertDialogTitle>
               <AlertDialogDescription>এই আইটেম মাস্টার লিস্ট থেকে মুছে যাবে।</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>বাতিল</AlertDialogCancel>
-              <AlertDialogAction onClick={() => deleteItemId && deleteMasterItem.mutate(deleteItemId)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              <AlertDialogCancel className="rounded-xl">বাতিল</AlertDialogCancel>
+              <AlertDialogAction onClick={() => deleteItemId && deleteMasterItem.mutate(deleteItemId)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl">
                 মুছে ফেলুন
               </AlertDialogAction>
             </AlertDialogFooter>
@@ -451,65 +451,76 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <Button size="sm" variant="ghost" onClick={() => setStep("master")} className="gap-1">
+          <Button size="sm" variant="ghost" onClick={() => setStep("master")} className="gap-1 rounded-xl">
             <ArrowLeft className="w-3 h-3" /> ফিরে যান
           </Button>
-          <h3 className="text-sm font-semibold">বাজারের তালিকা</h3>
-          <Button size="sm" onClick={() => setStep("pricing")} disabled={selectedItems.length === 0} className="gap-1">
+          <h3 className="text-sm font-bold">বাজারের তালিকা</h3>
+          <Button size="sm" onClick={() => setStep("pricing")} disabled={selectedItems.length === 0} className="gap-1 rounded-xl gradient-primary shadow-sm font-semibold">
             পরবর্তী <ArrowRight className="w-3 h-3" />
           </Button>
         </div>
 
-        <p className="text-xs text-muted-foreground text-center">{selectedItems.length} টি আইটেম সিলেক্ট করা হয়েছে</p>
+        <div className="bg-muted/50 rounded-xl px-3 py-2 text-center">
+          <p className="text-xs text-muted-foreground font-medium">{selectedItems.length} টি আইটেম সিলেক্ট করা হয়েছে</p>
+        </div>
 
         {/* Recent items quick add in shopping */}
         {recentItems && recentItems.length > 0 && (
           <div>
-            <p className="text-xs font-medium text-muted-foreground mb-1.5">সাম্প্রতিক আইটেম দ্রুত যোগ:</p>
+            <p className="text-xs font-semibold text-muted-foreground mb-1.5">সাম্প্রতিক আইটেম দ্রুত যোগ:</p>
             <div className="flex flex-wrap gap-1.5">
               {recentItems.slice(0, 5).map((item, i) => (
-                <Button key={i} variant="outline" size="sm" className="text-xs h-7" onClick={() => addRecentItemToShopping(item)}>
-                  <Plus className="w-3 h-3 mr-1" /> {item.name}
+                <Button key={i} variant="outline" size="sm" className="text-xs h-8 rounded-xl gap-1" onClick={() => addRecentItemToShopping(item)}>
+                  <Plus className="w-3 h-3" /> {item.name}
                 </Button>
               ))}
             </div>
           </div>
         )}
 
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           {shoppingItems.map((item, index) => (
-            <Card key={index} className={`transition-colors ${item.selected ? "border-primary/50 bg-primary/5" : ""}`}>
-              <CardContent className="flex items-center gap-3 p-3">
-                <Checkbox checked={item.selected} onCheckedChange={() => toggleItem(index)} className="shrink-0" />
+            <div
+              key={index}
+              className={`premium-card p-3.5 transition-all duration-200 ${
+                item.selected
+                  ? "border-emerald-300 bg-emerald-50/50 shadow-card-hover ring-1 ring-emerald-200"
+                  : ""
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Checkbox
+                  checked={item.selected}
+                  onCheckedChange={() => toggleItem(index)}
+                  className="shrink-0 w-5 h-5 rounded-md border-2 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{item.name}</p>
+                  <p className={`text-sm font-semibold truncate ${item.selected ? "text-emerald-700" : ""}`}>{item.name}</p>
                   <p className="text-xs text-muted-foreground">{item.unit}</p>
                 </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  <Button size="icon" variant="outline" className="w-7 h-7" onClick={() => adjustQty(index, -0.5)}>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Button size="icon" variant="outline" className="w-8 h-8 rounded-lg" onClick={() => adjustQty(index, -0.5)}>
                     <Minus className="w-3 h-3" />
                   </Button>
-                  <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
-                  <Button size="icon" variant="outline" className="w-7 h-7" onClick={() => adjustQty(index, 0.5)}>
+                  <span className="w-9 text-center text-sm font-bold">{item.quantity}</span>
+                  <Button size="icon" variant="outline" className="w-8 h-8 rounded-lg" onClick={() => adjustQty(index, 0.5)}>
                     <Plus className="w-3 h-3" />
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
 
-        <Card className="border-dashed">
-          <CardContent className="p-3">
-            <div className="flex gap-2">
-              <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="নতুন আইটেম..."
-                className="flex-1" onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addInlineItem())} />
-              <Button size="icon" variant="outline" onClick={addInlineItem} disabled={!newName.trim()}>
-                <Plus className="w-4 h-4" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="premium-card p-3.5 border-dashed">
+          <div className="flex gap-2">
+            <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="নতুন আইটেম..."
+              className="flex-1 rounded-xl" onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addInlineItem())} />
+            <Button size="icon" variant="outline" onClick={addInlineItem} disabled={!newName.trim()} className="rounded-xl">
+              <Plus className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -518,69 +529,66 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <Button size="sm" variant="ghost" onClick={() => setStep("shopping")} className="gap-1">
+        <Button size="sm" variant="ghost" onClick={() => setStep("shopping")} className="gap-1 rounded-xl">
           <ArrowLeft className="w-3 h-3" /> পিছনে
         </Button>
-        <h3 className="text-sm font-semibold">দাম লিখুন</h3>
+        <h3 className="text-sm font-bold">দাম লিখুন</h3>
         <div className="w-16" />
       </div>
 
-      <div className="space-y-1.5">
+      <div className="space-y-2">
         {selectedItems.map((item, idx) => {
           const originalIndex = shoppingItems.findIndex((si) => si.name === item.name && si.masterId === item.masterId);
           const subtotal = item.useDirectTotal ? item.directTotal : item.quantity * item.pricePerUnit;
           return (
-            <Card key={idx} className="animate-fade-in">
-              <CardContent className="p-3 space-y-2">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium">{item.name}</p>
-                    <p className="text-xs text-muted-foreground">{item.quantity} {item.unit}</p>
-                  </div>
-                  {subtotal > 0 && <p className="text-sm font-semibold">৳{subtotal.toLocaleString("bn-BD")}</p>}
+            <div key={idx} className="premium-card p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-bold">{item.name}</p>
+                  <p className="text-xs text-muted-foreground">{item.quantity} {item.unit}</p>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span>একক দাম</span>
-                  <Switch checked={item.useDirectTotal} onCheckedChange={() => togglePriceMode(originalIndex)} className="h-4 w-8" />
-                  <span>মোট দাম</span>
-                </div>
-                {item.useDirectTotal ? (
-                  <CalculatorInput
-                    placeholder="মোট দাম (৳)"
-                    value={item.directTotal ? item.directTotal.toString() : ""}
-                    onChange={(v) => setDirectTotalPrice(originalIndex, v)}
-                    className="h-9"
-                  />
-                ) : (
-                  <CalculatorInput
-                    placeholder="প্রতি একক দাম (৳)"
-                    value={item.pricePerUnit ? item.pricePerUnit.toString() : ""}
-                    onChange={(v) => setPrice(originalIndex, v)}
-                    className="h-9"
-                  />
-                )}
-              </CardContent>
-            </Card>
+                {subtotal > 0 && <p className="text-base font-bold text-emerald-600">৳{subtotal.toLocaleString("bn-BD")}</p>}
+              </div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span className={!item.useDirectTotal ? "font-semibold text-foreground" : ""}>একক দাম</span>
+                <Switch checked={item.useDirectTotal} onCheckedChange={() => togglePriceMode(originalIndex)} className="h-5 w-9" />
+                <span className={item.useDirectTotal ? "font-semibold text-foreground" : ""}>মোট দাম</span>
+              </div>
+              {item.useDirectTotal ? (
+                <CalculatorInput
+                  placeholder="মোট দাম (৳)"
+                  value={item.directTotal ? item.directTotal.toString() : ""}
+                  onChange={(v) => setDirectTotalPrice(originalIndex, v)}
+                  className="h-10 rounded-xl"
+                />
+              ) : (
+                <CalculatorInput
+                  placeholder="প্রতি একক দাম (৳)"
+                  value={item.pricePerUnit ? item.pricePerUnit.toString() : ""}
+                  onChange={(v) => setPrice(originalIndex, v)}
+                  className="h-10 rounded-xl"
+                />
+              )}
+            </div>
           );
         })}
       </div>
 
-      <Card className="bg-primary/5 border-primary/20">
-        <CardContent className="p-4 text-center">
-          <p className="text-sm text-muted-foreground">মোট বাজার</p>
-          <p className="text-2xl font-bold text-foreground">৳{grandTotal.toLocaleString("bn-BD")}</p>
-        </CardContent>
-      </Card>
+      {/* Grand total hero */}
+      <div className="gradient-primary rounded-2xl p-5 text-center shadow-hero">
+        <p className="text-white/70 text-xs font-medium">মোট বাজার</p>
+        <p className="text-3xl font-extrabold text-white">৳{grandTotal.toLocaleString("bn-BD")}</p>
+      </div>
 
       <div className="space-y-2">
-        <Label>পেমেন্ট অ্যাকাউন্ট</Label>
+        <Label className="font-semibold">পেমেন্ট অ্যাকাউন্ট</Label>
         <Select value={selectedAccount} onValueChange={setSelectedAccount}>
-          <SelectTrigger><SelectValue placeholder="অ্যাকাউন্ট বাছুন" /></SelectTrigger>
+          <SelectTrigger className="rounded-xl"><SelectValue placeholder="অ্যাকাউন্ট বাছুন" /></SelectTrigger>
           <SelectContent>{accounts.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}</SelectContent>
         </Select>
       </div>
 
-      <Button onClick={saveBatch} className="w-full h-12 gap-2" disabled={saving || grandTotal <= 0 || !selectedAccount}>
+      <Button onClick={saveBatch} className="w-full h-12 rounded-2xl gap-2 gradient-primary shadow-md text-base font-semibold" disabled={saving || grandTotal <= 0 || !selectedAccount}>
         {saving ? "সেভ হচ্ছে..." : <><Check className="w-4 h-4" /> বাজার সেভ করুন</>}
       </Button>
     </div>
