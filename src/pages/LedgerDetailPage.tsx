@@ -8,9 +8,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, Plus, TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, Pencil } from "lucide-react";
+import { ArrowLeft, Plus, TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, Pencil, ShoppingCart, Calculator, CreditCard, Tag } from "lucide-react";
 import { toast } from "sonner";
 import GroceryModule from "@/components/GroceryModule";
 import { useGroceryReminders } from "@/hooks/useGroceryReminders";
@@ -33,6 +32,7 @@ const LedgerDetailPage = () => {
   const [txAccount, setTxAccount] = useState("");
   const [txDate, setTxDate] = useState(new Date().toISOString().split("T")[0]);
   const [txNote, setTxNote] = useState("");
+  const [activeTab, setActiveTab] = useState("transactions");
 
   // Filters
   const [filterMonth, setFilterMonth] = useState("all");
@@ -143,61 +143,106 @@ const LedgerDetailPage = () => {
     setTxDialogOpen(true);
   };
 
+  const tabs = [
+    { id: "transactions", label: "লেনদেন", icon: CreditCard },
+    { id: "grocery", label: "বাজার", icon: ShoppingCart },
+    { id: "zakat", label: "যাকাত", icon: Calculator },
+    { id: "accounts", label: "অ্যাকাউন্ট", icon: Wallet },
+    { id: "categories", label: "ক্যাটাগরি", icon: Tag },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-primary px-4 py-4">
+      {/* Premium Gradient Header */}
+      <div className="sticky top-0 z-10 gradient-primary px-4 pt-5 pb-8 shadow-hero">
         <div className="max-w-lg mx-auto">
-          <div className="flex items-center gap-3 mb-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="text-primary-foreground hover:bg-primary/80">
+          <div className="flex items-center gap-3 mb-5">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/")}
+              className="text-white/90 hover:text-white hover:bg-white/15 rounded-xl"
+            >
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-lg font-bold text-primary-foreground truncate flex-1">{ledger?.name ?? "..."}</h1>
+            <h1 className="text-lg font-bold text-white truncate flex-1">{ledger?.name ?? "..."}</h1>
           </div>
-          <div className="grid grid-cols-3 gap-2">
-            <div className="bg-primary-foreground/15 rounded-lg p-2.5 text-center backdrop-blur-sm">
-              <p className="text-xs text-primary-foreground/70">ব্যালেন্স</p>
-              <p className="text-sm font-bold text-primary-foreground">৳{totalBalance.toLocaleString("bn-BD")}</p>
-            </div>
-            <div className="bg-primary-foreground/15 rounded-lg p-2.5 text-center backdrop-blur-sm">
-              <p className="text-xs text-primary-foreground/70">আয়</p>
-              <p className="text-sm font-bold text-primary-foreground">৳{totalIncome.toLocaleString("bn-BD")}</p>
-            </div>
-            <div className="bg-primary-foreground/15 rounded-lg p-2.5 text-center backdrop-blur-sm">
-              <p className="text-xs text-primary-foreground/70">খরচ</p>
-              <p className="text-sm font-bold text-primary-foreground">৳{totalExpense.toLocaleString("bn-BD")}</p>
+
+          {/* Hero Balance Card */}
+          <div className="bg-white/15 backdrop-blur-md rounded-2xl p-5 border border-white/20">
+            <p className="text-white/70 text-xs font-medium uppercase tracking-wider mb-1">মোট ব্যালেন্স</p>
+            <p className="text-3xl font-extrabold text-white mb-4">৳{totalBalance.toLocaleString("bn-BD")}</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-white/10 rounded-xl p-3 flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                  <TrendingUp className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-white/60 font-medium">আয়</p>
+                  <p className="text-sm font-bold text-white">৳{totalIncome.toLocaleString("bn-BD")}</p>
+                </div>
+              </div>
+              <div className="bg-white/10 rounded-xl p-3 flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                  <TrendingDown className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-white/60 font-medium">খরচ</p>
+                  <p className="text-sm font-bold text-white">৳{totalExpense.toLocaleString("bn-BD")}</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto p-4">
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <Button onClick={() => openTxDialog("income")} variant="outline" className="gap-2 h-12 border-success/30 text-success hover:bg-success/10">
-            <ArrowUpRight className="w-4 h-4" /> আয় যোগ করুন
+      <div className="max-w-lg mx-auto px-4 -mt-3">
+        {/* Action Buttons */}
+        <div className="grid grid-cols-2 gap-3 mb-5">
+          <Button
+            onClick={() => openTxDialog("income")}
+            className="gap-2 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100 shadow-card font-semibold"
+            variant="ghost"
+          >
+            <ArrowUpRight className="w-4 h-4" /> আয় যোগ
           </Button>
-          <Button onClick={() => openTxDialog("expense")} variant="outline" className="gap-2 h-12 border-destructive/30 text-destructive hover:bg-destructive/10">
-            <ArrowDownRight className="w-4 h-4" /> খরচ যোগ করুন
+          <Button
+            onClick={() => openTxDialog("expense")}
+            className="gap-2 h-12 rounded-2xl bg-red-50 text-red-500 border border-red-200 hover:bg-red-100 shadow-card font-semibold"
+            variant="ghost"
+          >
+            <ArrowDownRight className="w-4 h-4" /> খরচ যোগ
           </Button>
         </div>
 
         {reminders && reminders.length > 0 && (
-          <div className="mb-4">
+          <div className="mb-5">
             <GroceryReminders reminders={reminders} compact />
           </div>
         )}
 
-        <Tabs defaultValue="transactions">
-          <TabsList className="w-full">
-            <TabsTrigger value="transactions" className="flex-1 text-xs">লেনদেন</TabsTrigger>
-            <TabsTrigger value="grocery" className="flex-1 text-xs">বাজার</TabsTrigger>
-            <TabsTrigger value="zakat" className="flex-1 text-xs">যাকাত</TabsTrigger>
-            <TabsTrigger value="accounts" className="flex-1 text-xs">অ্যাকাউন্ট</TabsTrigger>
-            <TabsTrigger value="categories" className="flex-1 text-xs">ক্যাটাগরি</TabsTrigger>
-          </TabsList>
+        {/* Pill-style Tabs */}
+        <div className="bg-muted/60 rounded-2xl p-1.5 flex gap-1 mb-5 overflow-x-auto no-scrollbar">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`pill-tab flex items-center gap-1.5 whitespace-nowrap flex-1 justify-center min-w-0 ${
+                  activeTab === tab.id ? "pill-tab-active" : "text-muted-foreground hover:text-foreground hover:bg-background/60"
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5 shrink-0" />
+                <span className="text-xs truncate">{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
 
-          <TabsContent value="transactions" className="mt-4 space-y-3">
-            {/* Filters & PDF */}
+        {/* Tab Content */}
+        {activeTab === "transactions" && (
+          <div className="space-y-3 pb-8">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <TransactionFilters
                 month={filterMonth}
@@ -212,95 +257,114 @@ const LedgerDetailPage = () => {
             </div>
 
             {!filteredTransactions.length ? (
-              <Card className="border-dashed">
-                <CardContent className="py-8 text-center text-muted-foreground">
-                  কোনো লেনদেন নেই। আয় বা খরচ যোগ করুন।
-                </CardContent>
-              </Card>
+              <div className="premium-card p-10 text-center border-dashed">
+                <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-3">
+                  <CreditCard className="w-6 h-6 text-muted-foreground" />
+                </div>
+                <p className="text-muted-foreground font-medium">কোনো লেনদেন নেই</p>
+                <p className="text-xs text-muted-foreground mt-1">আয় বা খরচ যোগ করুন</p>
+              </div>
             ) : (
               filteredTransactions.map((tx) => (
-                <Card
+                <div
                   key={tx.id}
-                  className="animate-fade-in cursor-pointer hover:shadow-sm transition-shadow"
+                  className="premium-card p-4 cursor-pointer"
                   onClick={() => { setEditTx(tx); setEditOpen(true); }}
                 >
-                  <CardContent className="flex items-center justify-between p-3">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${tx.type === "income" ? "bg-success/10" : "bg-destructive/10"}`}>
-                        {tx.type === "income" ? <TrendingUp className="w-4 h-4 text-success" /> : <TrendingDown className="w-4 h-4 text-destructive" />}
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                        tx.type === "income"
+                          ? "bg-emerald-100 text-emerald-600"
+                          : "bg-red-100 text-red-500"
+                      }`}>
+                        {tx.type === "income" ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                       </div>
                       <div>
-                        <p className="text-sm font-medium">{(tx.categories as any)?.name || "—"}</p>
+                        <p className="text-sm font-semibold">{(tx.categories as any)?.name || "—"}</p>
                         <p className="text-xs text-muted-foreground">
                           {(tx.accounts as any)?.name || "—"} • {tx.date}
                         </p>
                         {tx.note && <p className="text-xs text-muted-foreground mt-0.5">{tx.note}</p>}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <p className={`font-semibold ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
+                    <div className="text-right">
+                      <p className={`text-base font-bold ${tx.type === "income" ? "text-emerald-600" : "text-red-500"}`}>
                         {tx.type === "income" ? "+" : "-"}৳{tx.amount.toLocaleString("bn-BD")}
                       </p>
-                      <Pencil className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100" />
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </TabsContent>
-
-          <TabsContent value="grocery" className="mt-4">
-            <GroceryModule ledgerId={ledgerId!} accounts={accounts ?? []} categories={categories ?? []} />
-          </TabsContent>
-
-          <TabsContent value="zakat" className="mt-4">
-            <ZakatCalculator ledgerId={ledgerId!} />
-          </TabsContent>
-
-          <TabsContent value="accounts" className="mt-4 space-y-2">
-            {accounts?.map((acc) => (
-              <Card key={acc.id} className="animate-fade-in">
-                <CardContent className="flex items-center justify-between p-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-                      <Wallet className="w-4 h-4 text-secondary-foreground" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">{acc.name}</p>
-                      <p className="text-xs text-muted-foreground capitalize">{acc.type.replace("_", " ")}</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </TabsContent>
+                </div>
+              ))
+            )}
+          </div>
+        )}
 
-          <TabsContent value="categories" className="mt-4 space-y-4">
+        {activeTab === "grocery" && (
+          <div className="pb-8">
+            <GroceryModule ledgerId={ledgerId!} accounts={accounts ?? []} categories={categories ?? []} />
+          </div>
+        )}
+
+        {activeTab === "zakat" && (
+          <div className="pb-8">
+            <ZakatCalculator ledgerId={ledgerId!} />
+          </div>
+        )}
+
+        {activeTab === "accounts" && (
+          <div className="space-y-3 pb-8">
+            {accounts?.map((acc) => (
+              <div key={acc.id} className="premium-card p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+                    <Wallet className="w-4 h-4 text-secondary-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold">{acc.name}</p>
+                    <p className="text-xs text-muted-foreground capitalize">{acc.type.replace("_", " ")}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {activeTab === "categories" && (
+          <div className="space-y-5 pb-8">
             <div>
-              <h3 className="text-sm font-semibold text-success mb-2">আয়ের ক্যাটাগরি</h3>
-              <div className="space-y-1">
+              <h3 className="text-sm font-bold text-emerald-600 mb-2.5 flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-emerald-500" /> আয়ের ক্যাটাগরি
+              </h3>
+              <div className="space-y-2">
                 {categories?.filter((c) => c.type === "income").map((c) => (
-                  <Card key={c.id}><CardContent className="p-3"><p className="text-sm">{c.name}</p></CardContent></Card>
+                  <div key={c.id} className="premium-card p-3.5">
+                    <p className="text-sm font-medium">{c.name}</p>
+                  </div>
                 ))}
               </div>
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-destructive mb-2">খরচের ক্যাটাগরি</h3>
-              <div className="space-y-1">
+              <h3 className="text-sm font-bold text-red-500 mb-2.5 flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-red-500" /> খরচের ক্যাটাগরি
+              </h3>
+              <div className="space-y-2">
                 {categories?.filter((c) => c.type === "expense").map((c) => (
-                  <Card key={c.id}><CardContent className="p-3"><p className="text-sm">{c.name}</p></CardContent></Card>
+                  <div key={c.id} className="premium-card p-3.5">
+                    <p className="text-sm font-medium">{c.name}</p>
+                  </div>
                 ))}
               </div>
             </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+        )}
       </div>
 
       {/* Add Transaction Dialog */}
       <Dialog open={txDialogOpen} onOpenChange={setTxDialogOpen}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm rounded-2xl">
           <DialogHeader>
-            <DialogTitle>{txType === "income" ? "আয় যোগ করুন" : "খরচ যোগ করুন"}</DialogTitle>
+            <DialogTitle className="text-lg">{txType === "income" ? "আয় যোগ করুন" : "খরচ যোগ করুন"}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleAddTx} className="space-y-4">
             <div className="space-y-2">
@@ -310,7 +374,7 @@ const LedgerDetailPage = () => {
             <div className="space-y-2">
               <Label>ক্যাটাগরি (ঐচ্ছিক)</Label>
               <Select value={txCategory} onValueChange={setTxCategory}>
-                <SelectTrigger><SelectValue placeholder="ক্যাটাগরি বাছুন" /></SelectTrigger>
+                <SelectTrigger className="rounded-xl"><SelectValue placeholder="ক্যাটাগরি বাছুন" /></SelectTrigger>
                 <SelectContent>
                   {filteredCategories.map((c) => (
                     <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
@@ -321,7 +385,7 @@ const LedgerDetailPage = () => {
             <div className="space-y-2">
               <Label>অ্যাকাউন্ট (ঐচ্ছিক)</Label>
               <Select value={txAccount} onValueChange={setTxAccount}>
-                <SelectTrigger><SelectValue placeholder="অ্যাকাউন্ট বাছুন" /></SelectTrigger>
+                <SelectTrigger className="rounded-xl"><SelectValue placeholder="অ্যাকাউন্ট বাছুন" /></SelectTrigger>
                 <SelectContent>
                   {accounts?.map((a) => (
                     <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
@@ -331,13 +395,13 @@ const LedgerDetailPage = () => {
             </div>
             <div className="space-y-2">
               <Label>তারিখ</Label>
-              <Input type="date" value={txDate} onChange={(e) => setTxDate(e.target.value)} required />
+              <Input type="date" value={txDate} onChange={(e) => setTxDate(e.target.value)} required className="rounded-xl" />
             </div>
             <div className="space-y-2">
               <Label>নোট (ঐচ্ছিক)</Label>
-              <Input value={txNote} onChange={(e) => setTxNote(e.target.value)} placeholder="নোট লিখুন..." />
+              <Input value={txNote} onChange={(e) => setTxNote(e.target.value)} placeholder="নোট লিখুন..." className="rounded-xl" />
             </div>
-            <Button type="submit" className="w-full" disabled={addTransaction.isPending}>
+            <Button type="submit" className="w-full h-12 rounded-2xl text-base font-semibold gradient-primary shadow-md" disabled={addTransaction.isPending}>
               {addTransaction.isPending ? "যোগ হচ্ছে..." : "যোগ করুন"}
             </Button>
           </form>

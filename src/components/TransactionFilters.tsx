@@ -23,7 +23,7 @@ const TransactionFilters = ({ month, year, onMonthChange, onYearChange, onClear 
   return (
     <div className="flex items-center gap-2">
       <Select value={month} onValueChange={onMonthChange}>
-        <SelectTrigger className="h-8 text-xs w-[110px]">
+        <SelectTrigger className="h-9 text-xs w-[110px] rounded-xl">
           <SelectValue placeholder="মাস" />
         </SelectTrigger>
         <SelectContent>
@@ -34,7 +34,7 @@ const TransactionFilters = ({ month, year, onMonthChange, onYearChange, onClear 
         </SelectContent>
       </Select>
       <Select value={year} onValueChange={onYearChange}>
-        <SelectTrigger className="h-8 text-xs w-[90px]">
+        <SelectTrigger className="h-9 text-xs w-[90px] rounded-xl">
           <SelectValue placeholder="সাল" />
         </SelectTrigger>
         <SelectContent>
@@ -45,7 +45,7 @@ const TransactionFilters = ({ month, year, onMonthChange, onYearChange, onClear 
         </SelectContent>
       </Select>
       {hasFilter && (
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onClear}>
+        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl" onClick={onClear}>
           <X className="w-3.5 h-3.5" />
         </Button>
       )}
