@@ -265,6 +265,7 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
       queryClient.invalidateQueries({ queryKey: ["grocery-batches", ledgerId] });
       queryClient.invalidateQueries({ queryKey: ["transactions", ledgerId] });
       queryClient.invalidateQueries({ queryKey: ["ledger-balances"] });
+      queryClient.invalidateQueries({ queryKey: ["grocery-reminders", ledgerId] });
 
       toast.success(`বাজার সেভ হয়েছে! মোট: ৳${grandTotal.toLocaleString("bn-BD")}`);
       setStep("master");
