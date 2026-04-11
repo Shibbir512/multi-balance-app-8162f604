@@ -9,13 +9,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowLeft, Plus, TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ArrowLeft, Plus, TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import GroceryModule from "@/components/GroceryModule";
 import { useGroceryReminders } from "@/hooks/useGroceryReminders";
 import GroceryReminders from "@/components/GroceryReminders";
 import ZakatCalculator from "@/components/ZakatCalculator";
+import TransactionFilters from "@/components/TransactionFilters";
+import PdfExport from "@/components/PdfExport";
+import TransactionEditDialog from "@/components/TransactionEditDialog";
+import CalculatorInput from "@/components/CalculatorInput";
 
 const LedgerDetailPage = () => {
   const { ledgerId } = useParams<{ ledgerId: string }>();
@@ -30,14 +34,18 @@ const LedgerDetailPage = () => {
   const [txDate, setTxDate] = useState(new Date().toISOString().split("T")[0]);
   const [txNote, setTxNote] = useState("");
 
+  // Filters
+  const [filterMonth, setFilterMonth] = useState("all");
+  const [filterYear, setFilterYear] = useState("all");
+
+  // Edit
+  const [editTx, setEditTx] = useState<any>(null);
+  const [editOpen, setEditOpen] = useState(false);
+
   const { data: ledger } = useQuery({
     queryKey: ["ledger", ledgerId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("ledgers")
-        .select("*")
-        .eq("id", ledgerId!)
-        .single();
+      const { data, error } = await supabase.from("ledgers").select("*").eq("id", ledgerId!).single();
       if (error) throw error;
       return data;
     },
@@ -46,10 +54,7 @@ const LedgerDetailPage = () => {
   const { data: accounts } = useQuery({
     queryKey: ["accounts", ledgerId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("accounts")
-        .select("*")
-        .eq("ledger_id", ledgerId!);
+      const { data, error } = await supabase.from("accounts").select("*").eq("ledger_id", ledgerId!);
       if (error) throw error;
       return data;
     },
@@ -58,10 +63,7 @@ const LedgerDetailPage = () => {
   const { data: categories } = useQuery({
     queryKey: ["categories", ledgerId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("categories")
-        .select("*")
-        .eq("ledger_id", ledgerId!);
+      const { data, error } = await supabase.from("categories").select("*").eq("ledger_id", ledgerId!);
       if (error) throw error;
       return data;
     },
@@ -76,18 +78,27 @@ const LedgerDetailPage = () => {
         .eq("ledger_id", ledgerId!)
         .order("date", { ascending: false })
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(500);
       if (error) throw error;
       return data;
     },
   });
 
-  const totalIncome = transactions?.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0) ?? 0;
-  const totalExpense = transactions?.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0) ?? 0;
+  // Apply filters
+  const filteredTransactions = transactions?.filter((t) => {
+    if (filterMonth !== "all" || filterYear !== "all") {
+      const [y, m] = t.date.split("-");
+      if (filterMonth !== "all" && m !== filterMonth) return false;
+      if (filterYear !== "all" && y !== filterYear) return false;
+    }
+    return true;
+  }) ?? [];
+
+  const totalIncome = filteredTransactions.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
+  const totalExpense = filteredTransactions.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
   const totalBalance = totalIncome - totalExpense;
 
   const filteredCategories = categories?.filter((c) => c.type === txType) ?? [];
-
   const { data: reminders } = useGroceryReminders(ledgerId);
 
   const addTransaction = useMutation({
@@ -95,8 +106,8 @@ const LedgerDetailPage = () => {
       const { error } = await supabase.from("transactions").insert({
         ledger_id: ledgerId!,
         user_id: user!.id,
-        account_id: txAccount,
-        category_id: txCategory,
+        account_id: txAccount || null,
+        category_id: txCategory || null,
         type: txType,
         amount: parseFloat(txAmount),
         date: txDate,
@@ -119,6 +130,10 @@ const LedgerDetailPage = () => {
 
   const handleAddTx = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!txAmount || parseFloat(txAmount) <= 0) {
+      toast.error("সঠিক পরিমাণ দিন");
+      return;
+    }
     addTransaction.mutate();
   };
 
@@ -137,9 +152,8 @@ const LedgerDetailPage = () => {
             <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="text-primary-foreground hover:bg-primary/80">
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-lg font-bold text-primary-foreground">{ledger?.name ?? "..."}</h1>
+            <h1 className="text-lg font-bold text-primary-foreground truncate flex-1">{ledger?.name ?? "..."}</h1>
           </div>
-          {/* Balance cards */}
           <div className="grid grid-cols-3 gap-2">
             <div className="bg-primary-foreground/15 rounded-lg p-2.5 text-center backdrop-blur-sm">
               <p className="text-xs text-primary-foreground/70">ব্যালেন্স</p>
@@ -158,7 +172,6 @@ const LedgerDetailPage = () => {
       </div>
 
       <div className="max-w-lg mx-auto p-4">
-        {/* Quick action buttons */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <Button onClick={() => openTxDialog("income")} variant="outline" className="gap-2 h-12 border-success/30 text-success hover:bg-success/10">
             <ArrowUpRight className="w-4 h-4" /> আয় যোগ করুন
@@ -168,7 +181,6 @@ const LedgerDetailPage = () => {
           </Button>
         </div>
 
-        {/* Grocery Reminders on Dashboard */}
         {reminders && reminders.length > 0 && (
           <div className="mb-4">
             <GroceryReminders reminders={reminders} compact />
@@ -184,49 +196,61 @@ const LedgerDetailPage = () => {
             <TabsTrigger value="categories" className="flex-1 text-xs">ক্যাটাগরি</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="transactions" className="mt-4 space-y-2">
-            {!transactions?.length ? (
+          <TabsContent value="transactions" className="mt-4 space-y-3">
+            {/* Filters & PDF */}
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <TransactionFilters
+                month={filterMonth}
+                year={filterYear}
+                onMonthChange={setFilterMonth}
+                onYearChange={setFilterYear}
+                onClear={() => { setFilterMonth("all"); setFilterYear("all"); }}
+              />
+              {filteredTransactions.length > 0 && (
+                <PdfExport ledgerName={ledger?.name ?? "Report"} transactions={filteredTransactions as any} />
+              )}
+            </div>
+
+            {!filteredTransactions.length ? (
               <Card className="border-dashed">
                 <CardContent className="py-8 text-center text-muted-foreground">
                   কোনো লেনদেন নেই। আয় বা খরচ যোগ করুন।
                 </CardContent>
               </Card>
             ) : (
-              transactions.map((tx) => (
-                <Card key={tx.id} className="animate-fade-in">
+              filteredTransactions.map((tx) => (
+                <Card
+                  key={tx.id}
+                  className="animate-fade-in cursor-pointer hover:shadow-sm transition-shadow"
+                  onClick={() => { setEditTx(tx); setEditOpen(true); }}
+                >
                   <CardContent className="flex items-center justify-between p-3">
                     <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center ${tx.type === "income" ? "bg-success/10" : "bg-destructive/10"}`}>
-                        {tx.type === "income" ? (
-                          <TrendingUp className="w-4 h-4 text-success" />
-                        ) : (
-                          <TrendingDown className="w-4 h-4 text-destructive" />
-                        )}
+                        {tx.type === "income" ? <TrendingUp className="w-4 h-4 text-success" /> : <TrendingDown className="w-4 h-4 text-destructive" />}
                       </div>
                       <div>
-                        <p className="text-sm font-medium">{(tx.categories as any)?.name}</p>
+                        <p className="text-sm font-medium">{(tx.categories as any)?.name || "—"}</p>
                         <p className="text-xs text-muted-foreground">
-                          {(tx.accounts as any)?.name} • {tx.date}
+                          {(tx.accounts as any)?.name || "—"} • {tx.date}
                         </p>
                         {tx.note && <p className="text-xs text-muted-foreground mt-0.5">{tx.note}</p>}
                       </div>
                     </div>
-                    <p className={`font-semibold ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
-                      {tx.type === "income" ? "+" : "-"}৳{tx.amount.toLocaleString("bn-BD")}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className={`font-semibold ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
+                        {tx.type === "income" ? "+" : "-"}৳{tx.amount.toLocaleString("bn-BD")}
+                      </p>
+                      <Pencil className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100" />
+                    </div>
                   </CardContent>
                 </Card>
               ))
             )}
           </TabsContent>
 
-
           <TabsContent value="grocery" className="mt-4">
-            <GroceryModule
-              ledgerId={ledgerId!}
-              accounts={accounts ?? []}
-              categories={categories ?? []}
-            />
+            <GroceryModule ledgerId={ledgerId!} accounts={accounts ?? []} categories={categories ?? []} />
           </TabsContent>
 
           <TabsContent value="zakat" className="mt-4">
@@ -256,11 +280,7 @@ const LedgerDetailPage = () => {
               <h3 className="text-sm font-semibold text-success mb-2">আয়ের ক্যাটাগরি</h3>
               <div className="space-y-1">
                 {categories?.filter((c) => c.type === "income").map((c) => (
-                  <Card key={c.id}>
-                    <CardContent className="p-3">
-                      <p className="text-sm">{c.name}</p>
-                    </CardContent>
-                  </Card>
+                  <Card key={c.id}><CardContent className="p-3"><p className="text-sm">{c.name}</p></CardContent></Card>
                 ))}
               </div>
             </div>
@@ -268,11 +288,7 @@ const LedgerDetailPage = () => {
               <h3 className="text-sm font-semibold text-destructive mb-2">খরচের ক্যাটাগরি</h3>
               <div className="space-y-1">
                 {categories?.filter((c) => c.type === "expense").map((c) => (
-                  <Card key={c.id}>
-                    <CardContent className="p-3">
-                      <p className="text-sm">{c.name}</p>
-                    </CardContent>
-                  </Card>
+                  <Card key={c.id}><CardContent className="p-3"><p className="text-sm">{c.name}</p></CardContent></Card>
                 ))}
               </div>
             </div>
@@ -289,19 +305,11 @@ const LedgerDetailPage = () => {
           <form onSubmit={handleAddTx} className="space-y-4">
             <div className="space-y-2">
               <Label>পরিমাণ (৳)</Label>
-              <Input
-                type="number"
-                value={txAmount}
-                onChange={(e) => setTxAmount(e.target.value)}
-                placeholder="0"
-                required
-                min="0.01"
-                step="0.01"
-              />
+              <CalculatorInput value={txAmount} onChange={setTxAmount} placeholder="যেমন: 500+200" required />
             </div>
             <div className="space-y-2">
-              <Label>ক্যাটাগরি</Label>
-              <Select value={txCategory} onValueChange={setTxCategory} required>
+              <Label>ক্যাটাগরি (ঐচ্ছিক)</Label>
+              <Select value={txCategory} onValueChange={setTxCategory}>
                 <SelectTrigger><SelectValue placeholder="ক্যাটাগরি বাছুন" /></SelectTrigger>
                 <SelectContent>
                   {filteredCategories.map((c) => (
@@ -311,8 +319,8 @@ const LedgerDetailPage = () => {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>অ্যাকাউন্ট</Label>
-              <Select value={txAccount} onValueChange={setTxAccount} required>
+              <Label>অ্যাকাউন্ট (ঐচ্ছিক)</Label>
+              <Select value={txAccount} onValueChange={setTxAccount}>
                 <SelectTrigger><SelectValue placeholder="অ্যাকাউন্ট বাছুন" /></SelectTrigger>
                 <SelectContent>
                   {accounts?.map((a) => (
@@ -335,6 +343,16 @@ const LedgerDetailPage = () => {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Transaction Dialog */}
+      <TransactionEditDialog
+        transaction={editTx}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        accounts={accounts ?? []}
+        categories={categories ?? []}
+        ledgerId={ledgerId!}
+      />
     </div>
   );
 };
