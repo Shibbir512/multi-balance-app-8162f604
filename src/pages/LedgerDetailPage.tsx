@@ -13,6 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ArrowLeft, Plus, TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { toast } from "sonner";
 import GroceryModule from "@/components/GroceryModule";
+import { useGroceryReminders } from "@/hooks/useGroceryReminders";
+import GroceryReminders from "@/components/GroceryReminders";
 
 const LedgerDetailPage = () => {
   const { ledgerId } = useParams<{ ledgerId: string }>();
