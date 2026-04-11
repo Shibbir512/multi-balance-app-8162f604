@@ -150,7 +150,7 @@ const LedgerDetailPage = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Compact Dark Header */}
-      <div className="sticky top-0 z-10 gradient-header px-4 pt-3 pb-4 shadow-lg shadow-black/20">
+      <div className="sticky top-0 z-10 gradient-header px-4 pt-3 pb-4" style={{ boxShadow: '0 4px 16px -4px rgba(0,0,0,0.5)' }}>
         <div className="max-w-lg mx-auto flex items-center gap-3">
           <Button
             variant="ghost"
@@ -166,7 +166,7 @@ const LedgerDetailPage = () => {
 
       <div className="max-w-lg mx-auto px-4">
         {/* Hero Balance Card - floating */}
-        <div className="glass rounded-2xl p-4 -mt-2 mb-4 shadow-hero">
+        <div className="glass rounded-2xl p-4 -mt-2 mb-4 animate-fade-in-up" style={{ boxShadow: '0 4px 24px -6px rgba(99,102,241,0.15)', transform: 'translateY(-2px)' }}>
           <p className="text-muted-foreground text-[11px] font-medium uppercase tracking-wider mb-0.5">মোট ব্যালেন্স</p>
           <p className="text-2xl font-extrabold text-foreground mb-3">৳{totalBalance.toLocaleString("bn-BD")}</p>
           <div className="grid grid-cols-2 gap-2.5">
@@ -192,17 +192,17 @@ const LedgerDetailPage = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-2.5 mb-4">
+        <div className="grid grid-cols-2 gap-2.5 mb-4 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
           <Button
             onClick={() => openTxDialog("income")}
-            className="gap-2 h-11 rounded-2xl bg-white/[0.04] text-emerald-400/80 border border-white/[0.08] hover:bg-white/[0.07] font-semibold"
+            className="gap-2 h-11 rounded-2xl bg-white/[0.04] text-emerald-400/80 border border-white/[0.08] hover:bg-white/[0.07] font-semibold btn-press"
             variant="ghost"
           >
             <ArrowUpRight className="w-4 h-4" /> আয় যোগ
           </Button>
           <Button
             onClick={() => openTxDialog("expense")}
-            className="gap-2 h-11 rounded-2xl bg-white/[0.04] text-red-400/80 border border-white/[0.08] hover:bg-white/[0.07] font-semibold"
+            className="gap-2 h-11 rounded-2xl bg-white/[0.04] text-red-400/80 border border-white/[0.08] hover:bg-white/[0.07] font-semibold btn-press"
             variant="ghost"
           >
             <ArrowDownRight className="w-4 h-4" /> খরচ যোগ
@@ -216,7 +216,7 @@ const LedgerDetailPage = () => {
         )}
 
         {/* Pill-style Tabs - horizontal scroll, no wrap */}
-        <div className="glass rounded-2xl p-1 flex gap-1 mb-4 overflow-x-auto no-scrollbar flex-nowrap">
+        <div className="glass rounded-2xl p-1 flex gap-1 mb-4 overflow-x-auto no-scrollbar flex-nowrap animate-fade-in-up" style={{ animationDelay: '0.15s' }}>
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
@@ -259,10 +259,11 @@ const LedgerDetailPage = () => {
                 <p className="text-xs text-muted-foreground mt-1">আয় বা খরচ যোগ করুন</p>
               </div>
             ) : (
-              filteredTransactions.map((tx) => (
+              filteredTransactions.map((tx, index) => (
                 <div
                   key={tx.id}
-                  className="premium-card p-3.5 cursor-pointer"
+                  className="premium-card p-3.5 cursor-pointer stagger-item"
+                  style={{ animationDelay: `${Math.min(index * 0.05, 0.5)}s` }}
                   onClick={() => { setEditTx(tx); setEditOpen(true); }}
                 >
                   <div className="flex items-center justify-between">
