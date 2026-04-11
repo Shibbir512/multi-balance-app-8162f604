@@ -225,18 +225,23 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
 
         if (currentMasters) {
           for (const master of currentMasters) {
-            const updates: Record<string, any> = { last_purchase_date: today };
+            let newInterval = master.average_interval;
             if (master.last_purchase_date) {
               const lastDate = new Date(master.last_purchase_date);
               const todayDate = new Date(today);
               const daysBetween = Math.floor((todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
               if (daysBetween > 0) {
-                // Weighted average: 70% old interval + 30% new interval (or just new if no old)
                 const oldInterval = master.average_interval ?? daysBetween;
-                updates.average_interval = Math.round(oldInterval * 0.7 + daysBetween * 0.3);
+                newInterval = Math.round(oldInterval * 0.7 + daysBetween * 0.3);
               }
             }
-            await supabase.from("grocery_master_items").update(updates).eq("id", master.id);
+            await supabase
+              .from("grocery_master_items")
+              .update({
+                last_purchase_date: today,
+                average_interval: newInterval,
+              })
+              .eq("id", master.id);
           }
         }
       }
