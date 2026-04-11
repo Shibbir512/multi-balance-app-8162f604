@@ -294,6 +294,11 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
           </div>
         </div>
 
+        {/* Reminders */}
+        {reminders && reminders.length > 0 && (
+          <GroceryReminders reminders={reminders} />
+        )}
+
         {isLoading ? (
           <div className="space-y-2">
             {[1, 2, 3].map((i) => <div key={i} className="h-12 bg-muted animate-pulse rounded-lg" />)}
