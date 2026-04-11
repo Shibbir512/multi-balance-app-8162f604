@@ -89,6 +89,7 @@ const LedgerDetailPage = () => {
 
   const { data: reminders } = useGroceryReminders(ledgerId);
 
+  const addTransaction = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from("transactions").insert({
         ledger_id: ledgerId!,
