@@ -165,9 +165,10 @@ const LedgerDetailPage = () => {
 
         <Tabs defaultValue="transactions">
           <TabsList className="w-full">
-            <TabsTrigger value="transactions" className="flex-1">লেনদেন</TabsTrigger>
-            <TabsTrigger value="accounts" className="flex-1">অ্যাকাউন্ট</TabsTrigger>
-            <TabsTrigger value="categories" className="flex-1">ক্যাটাগরি</TabsTrigger>
+            <TabsTrigger value="transactions" className="flex-1 text-xs">লেনদেন</TabsTrigger>
+            <TabsTrigger value="grocery" className="flex-1 text-xs">বাজার</TabsTrigger>
+            <TabsTrigger value="accounts" className="flex-1 text-xs">অ্যাকাউন্ট</TabsTrigger>
+            <TabsTrigger value="categories" className="flex-1 text-xs">ক্যাটাগরি</TabsTrigger>
           </TabsList>
 
           <TabsContent value="transactions" className="mt-4 space-y-2">
