@@ -90,6 +90,158 @@ export type Database = {
           },
         ]
       }
+      grocery_batch_items: {
+        Row: {
+          batch_id: string
+          created_at: string
+          id: string
+          master_item_id: string | null
+          name: string
+          price_per_unit: number
+          quantity: number
+          subtotal: number
+          unit: string
+          user_id: string
+        }
+        Insert: {
+          batch_id: string
+          created_at?: string
+          id?: string
+          master_item_id?: string | null
+          name: string
+          price_per_unit?: number
+          quantity?: number
+          subtotal?: number
+          unit?: string
+          user_id: string
+        }
+        Update: {
+          batch_id?: string
+          created_at?: string
+          id?: string
+          master_item_id?: string | null
+          name?: string
+          price_per_unit?: number
+          quantity?: number
+          subtotal?: number
+          unit?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grocery_batch_items_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "grocery_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grocery_batch_items_master_item_id_fkey"
+            columns: ["master_item_id"]
+            isOneToOne: false
+            referencedRelation: "grocery_master_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      grocery_batches: {
+        Row: {
+          batch_date: string
+          created_at: string
+          id: string
+          ledger_id: string
+          status: string
+          total_amount: number
+          transaction_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          batch_date?: string
+          created_at?: string
+          id?: string
+          ledger_id: string
+          status?: string
+          total_amount?: number
+          transaction_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          batch_date?: string
+          created_at?: string
+          id?: string
+          ledger_id?: string
+          status?: string
+          total_amount?: number
+          transaction_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grocery_batches_ledger_id_fkey"
+            columns: ["ledger_id"]
+            isOneToOne: false
+            referencedRelation: "ledgers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grocery_batches_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      grocery_master_items: {
+        Row: {
+          average_interval: number | null
+          created_at: string
+          default_quantity: number
+          id: string
+          last_purchase_date: string | null
+          ledger_id: string
+          name: string
+          unit: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          average_interval?: number | null
+          created_at?: string
+          default_quantity?: number
+          id?: string
+          last_purchase_date?: string | null
+          ledger_id: string
+          name: string
+          unit?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          average_interval?: number | null
+          created_at?: string
+          default_quantity?: number
+          id?: string
+          last_purchase_date?: string | null
+          ledger_id?: string
+          name?: string
+          unit?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grocery_master_items_ledger_id_fkey"
+            columns: ["ledger_id"]
+            isOneToOne: false
+            referencedRelation: "ledgers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ledgers: {
         Row: {
           created_at: string
