@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Wallet, LogOut, BookOpen } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Plus, Wallet, LogOut, BookOpen, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 const LedgerListPage = () => {
@@ -16,28 +17,22 @@ const LedgerListPage = () => {
   const queryClient = useQueryClient();
   const [newLedgerName, setNewLedgerName] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   const { data: ledgers, isLoading } = useQuery({
     queryKey: ["ledgers"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("ledgers")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("ledgers").select("*").order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
   });
 
-  // Get balances for each ledger
   const { data: ledgerBalances } = useQuery({
     queryKey: ["ledger-balances"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("transactions")
-        .select("ledger_id, type, amount");
+      const { data, error } = await supabase.from("transactions").select("ledger_id, type, amount");
       if (error) throw error;
-
       const balances: Record<string, number> = {};
       data.forEach((t) => {
         if (!balances[t.ledger_id]) balances[t.ledger_id] = 0;
@@ -49,34 +44,26 @@ const LedgerListPage = () => {
 
   const createLedger = useMutation({
     mutationFn: async (name: string) => {
-      const { data, error } = await supabase
-        .from("ledgers")
-        .insert({ name, user_id: user!.id })
-        .select()
-        .single();
+      const { data, error } = await supabase.from("ledgers").insert({ name, user_id: user!.id }).select().single();
       if (error) throw error;
-
-      // Create default accounts
       const defaultAccounts = [
-        { ledger_id: data.id, user_id: user!.id, name: "নগদ (Cash)", type: "cash" as const },
-        { ledger_id: data.id, user_id: user!.id, name: "ব্যাংক (Bank)", type: "bank" as const },
-        { ledger_id: data.id, user_id: user!.id, name: "মোবাইল ব্যাংকিং", type: "mobile_banking" as const },
+        { ledger_id: data.id, user_id: user!.id, name: "নগদ (Cash)", type: "cash" },
+        { ledger_id: data.id, user_id: user!.id, name: "ব্যাংক (Bank)", type: "bank" },
+        { ledger_id: data.id, user_id: user!.id, name: "মোবাইল ব্যাংকিং", type: "mobile_banking" },
       ];
       await supabase.from("accounts").insert(defaultAccounts);
-
-      // Create default categories
       const defaultCategories = [
-        { ledger_id: data.id, user_id: user!.id, name: "বেতন", type: "income" as const },
-        { ledger_id: data.id, user_id: user!.id, name: "ব্যবসা", type: "income" as const },
-        { ledger_id: data.id, user_id: user!.id, name: "অন্যান্য আয়", type: "income" as const },
-        { ledger_id: data.id, user_id: user!.id, name: "খাবার", type: "expense" as const },
-        { ledger_id: data.id, user_id: user!.id, name: "যাতায়াত", type: "expense" as const },
-        { ledger_id: data.id, user_id: user!.id, name: "বিল", type: "expense" as const },
-        { ledger_id: data.id, user_id: user!.id, name: "শপিং", type: "expense" as const },
-        { ledger_id: data.id, user_id: user!.id, name: "অন্যান্য খরচ", type: "expense" as const },
+        { ledger_id: data.id, user_id: user!.id, name: "বেতন", type: "income" },
+        { ledger_id: data.id, user_id: user!.id, name: "ব্যবসা", type: "income" },
+        { ledger_id: data.id, user_id: user!.id, name: "অন্যান্য আয়", type: "income" },
+        { ledger_id: data.id, user_id: user!.id, name: "খাবার", type: "expense" },
+        { ledger_id: data.id, user_id: user!.id, name: "যাতায়াত", type: "expense" },
+        { ledger_id: data.id, user_id: user!.id, name: "বিল", type: "expense" },
+        { ledger_id: data.id, user_id: user!.id, name: "শপিং", type: "expense" },
+        { ledger_id: data.id, user_id: user!.id, name: "বাজার", type: "expense" },
+        { ledger_id: data.id, user_id: user!.id, name: "অন্যান্য খরচ", type: "expense" },
       ];
       await supabase.from("categories").insert(defaultCategories);
-
       return data;
     },
     onSuccess: () => {
@@ -88,6 +75,20 @@ const LedgerListPage = () => {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const deleteLedger = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("ledgers").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ledgers"] });
+      queryClient.invalidateQueries({ queryKey: ["ledger-balances"] });
+      setDeleteTarget(null);
+      toast.success("খাতা মুছে ফেলা হয়েছে!");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
     if (newLedgerName.trim()) createLedger.mutate(newLedgerName.trim());
@@ -95,7 +96,6 @@ const LedgerListPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <div className="sticky top-0 z-10 bg-primary px-4 py-4">
         <div className="flex items-center justify-between max-w-lg mx-auto">
           <div className="flex items-center gap-2">
@@ -113,21 +113,12 @@ const LedgerListPage = () => {
           <h2 className="text-lg font-semibold">আমার খাতাসমূহ</h2>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="gap-1">
-                <Plus className="w-4 h-4" /> নতুন খাতা
-              </Button>
+              <Button size="sm" className="gap-1"><Plus className="w-4 h-4" /> নতুন খাতা</Button>
             </DialogTrigger>
             <DialogContent className="max-w-sm">
-              <DialogHeader>
-                <DialogTitle>নতুন খাতা তৈরি করুন</DialogTitle>
-              </DialogHeader>
+              <DialogHeader><DialogTitle>নতুন খাতা তৈরি করুন</DialogTitle></DialogHeader>
               <form onSubmit={handleCreate} className="space-y-4">
-                <Input
-                  value={newLedgerName}
-                  onChange={(e) => setNewLedgerName(e.target.value)}
-                  placeholder="খাতার নাম লিখুন..."
-                  required
-                />
+                <Input value={newLedgerName} onChange={(e) => setNewLedgerName(e.target.value)} placeholder="খাতার নাম লিখুন..." required />
                 <Button type="submit" className="w-full" disabled={createLedger.isPending}>
                   {createLedger.isPending ? "তৈরি হচ্ছে..." : "তৈরি করুন"}
                 </Button>
@@ -138,9 +129,7 @@ const LedgerListPage = () => {
 
         {isLoading ? (
           <div className="space-y-3">
-            {[1, 2].map((i) => (
-              <div key={i} className="h-24 bg-muted animate-pulse rounded-lg" />
-            ))}
+            {[1, 2].map((i) => <div key={i} className="h-24 bg-muted animate-pulse rounded-lg" />)}
           </div>
         ) : ledgers?.length === 0 ? (
           <Card className="border-dashed">
@@ -155,13 +144,12 @@ const LedgerListPage = () => {
             {ledgers?.map((ledger) => {
               const balance = ledgerBalances?.[ledger.id] ?? 0;
               return (
-                <Card
-                  key={ledger.id}
-                  className="cursor-pointer hover:shadow-md transition-shadow animate-fade-in"
-                  onClick={() => navigate(`/ledger/${ledger.id}`)}
-                >
+                <Card key={ledger.id} className="animate-fade-in group">
                   <CardContent className="flex items-center justify-between p-4">
-                    <div className="flex items-center gap-3">
+                    <div
+                      className="flex items-center gap-3 flex-1 cursor-pointer"
+                      onClick={() => navigate(`/ledger/${ledger.id}`)}
+                    >
                       <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
                         <BookOpen className="w-5 h-5 text-secondary-foreground" />
                       </div>
@@ -170,9 +158,19 @@ const LedgerListPage = () => {
                         <p className="text-xs text-muted-foreground">{ledger.currency}</p>
                       </div>
                     </div>
-                    <p className={`font-semibold text-lg ${balance >= 0 ? "text-success" : "text-destructive"}`}>
-                      ৳{balance.toLocaleString("bn-BD")}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className={`font-semibold text-lg ${balance >= 0 ? "text-success" : "text-destructive"}`}>
+                        ৳{balance.toLocaleString("bn-BD")}
+                      </p>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                        onClick={(e) => { e.stopPropagation(); setDeleteTarget({ id: ledger.id, name: ledger.name }); }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               );
@@ -180,6 +178,24 @@ const LedgerListPage = () => {
           </div>
         )}
       </div>
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>"{deleteTarget?.name}" মুছে ফেলবেন?</AlertDialogTitle>
+            <AlertDialogDescription>এই হিসাব খাতা ও এর সব ডাটা মুছে যাবে। এটি পূর্বাবস্থায় ফেরানো যাবে না।</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>বাতিল</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteTarget && deleteLedger.mutate(deleteTarget.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteLedger.isPending ? "মুছছে..." : "মুছে ফেলুন"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
