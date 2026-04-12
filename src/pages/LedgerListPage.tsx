@@ -103,7 +103,7 @@ const LedgerListPage = () => {
             <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center shadow-md">
               <Wallet className="w-4 h-4 text-white" />
             </div>
-            <h1 className="text-lg font-extrabold text-white tracking-tight">FinTrack</h1>
+            <h1 className="text-lg font-extrabold text-white tracking-tight">জমা খরচ</h1>
           </div>
           <div className="flex items-center gap-1">
             <ThemeToggle />
