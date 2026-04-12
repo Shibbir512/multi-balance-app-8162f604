@@ -36,7 +36,8 @@ const formatBengaliDate = (dateStr: string, timeStr?: string | null) => {
     const hour = parseInt(h);
     const period = hour >= 12 ? "PM" : "AM";
     const h12 = hour % 12 || 12;
-    result += ` ${h12.toLocaleString("bn-BD")}:${min} ${period}`;
+    const bengaliMin = parseInt(min).toLocaleString("bn-BD").padStart(2, "০");
+    result += ` ${h12.toLocaleString("bn-BD")}:${bengaliMin} ${period}`;
   }
   return result;
 };
