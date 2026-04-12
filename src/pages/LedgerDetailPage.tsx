@@ -45,6 +45,8 @@ const LedgerDetailPage = () => {
   const [fabOpen, setFabOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [showNewCategory, setShowNewCategory] = useState(false);
+  const [editCategoryId, setEditCategoryId] = useState<string | null>(null);
+  const [editCategoryName, setEditCategoryName] = useState("");
 
   const { data: ledger } = useQuery({
     queryKey: ["ledger", ledgerId],
