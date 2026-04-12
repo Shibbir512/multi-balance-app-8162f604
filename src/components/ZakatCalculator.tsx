@@ -205,9 +205,9 @@ const ZakatCalculator = ({ ledgerId }: Props) => {
 };
 
 const Field = ({ label, value, onChange, hint }: { label: string; value: string; onChange: (v: string) => void; hint?: string }) => (
-  <div className="space-y-1">
-    <Label className="text-xs">{label} {hint && <span className="text-muted-foreground">({hint})</span>}</Label>
-    <CalculatorInput value={value} onChange={onChange} placeholder="0" />
+  <div className="space-y-1.5">
+    <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{label} {hint && <span className="font-normal normal-case">({hint})</span>}</Label>
+    <CalculatorInput value={value} onChange={onChange} placeholder="0" className="form-input" />
   </div>
 );
 
