@@ -19,6 +19,7 @@ import TransactionFilters from "@/components/TransactionFilters";
 import PdfExport from "@/components/PdfExport";
 import TransactionEditDialog from "@/components/TransactionEditDialog";
 import CalculatorInput from "@/components/CalculatorInput";
+import MonthlyChart from "@/components/MonthlyChart";
 
 const LedgerDetailPage = () => {
   const { ledgerId } = useParams<{ ledgerId: string }>();
@@ -243,6 +244,7 @@ const LedgerDetailPage = () => {
         {/* Tab Content */}
         {activeTab === "transactions" && (
           <div className="space-y-2.5 pb-8">
+            <MonthlyChart transactions={transactions ?? []} />
             <div className="premium-card p-3 flex items-center justify-between flex-wrap gap-2">
               <TransactionFilters
                 month={filterMonth}
