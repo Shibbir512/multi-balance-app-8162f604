@@ -7,7 +7,7 @@ import { BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetTitle, B
 import { Download, FileSpreadsheet, FileText } from "lucide-react";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 
 interface Transaction {
@@ -79,7 +79,7 @@ const AdvancedExport = ({ ledgerName, transactions, categories }: Props) => {
       t.note || "",
     ]);
 
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: y + 8,
       head: [["Date", "Type", "Category", "Account", "Amount", "Note"]],
       body: rows,

@@ -5,7 +5,7 @@ import { BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetTitle, B
 import { FileDown } from "lucide-react";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 
 interface Transaction {
   id: string;
@@ -67,7 +67,7 @@ const PdfExport = ({ ledgerName, transactions }: PdfExportProps) => {
       t.note || "",
     ]);
 
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: y + 22,
       head: [["Date", "Type", "Category", "Account", "Amount", "Note"]],
       body: tableData,
