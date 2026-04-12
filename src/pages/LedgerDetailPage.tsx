@@ -39,6 +39,9 @@ const LedgerDetailPage = () => {
 
   const [filterMonth, setFilterMonth] = useState("all");
   const [filterYear, setFilterYear] = useState("all");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [filterDateFrom, setFilterDateFrom] = useState("");
+  const [filterDateTo, setFilterDateTo] = useState("");
 
   const [editTx, setEditTx] = useState<any>(null);
   const [editOpen, setEditOpen] = useState(false);
