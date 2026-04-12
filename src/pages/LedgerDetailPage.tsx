@@ -130,6 +130,27 @@ const LedgerDetailPage = () => {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const addCategory = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.from("categories").insert({
+        ledger_id: ledgerId!,
+        user_id: user!.id,
+        name: newCategoryName.trim(),
+        type: txType,
+      }).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["categories", ledgerId] });
+      setTxCategory(data.id);
+      setNewCategoryName("");
+      setShowNewCategory(false);
+      toast.success("ক্যাটাগরি যোগ হয়েছে!");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   const handleAddTx = (e: React.FormEvent) => {
     e.preventDefault();
     if (!txAmount || parseFloat(txAmount) <= 0) {
