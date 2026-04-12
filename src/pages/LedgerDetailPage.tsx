@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetTitle, BottomSheetDescription } from "@/components/ui/bottom-sheet";
-import { ArrowLeft, Plus, TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, Pencil, ShoppingCart, Calculator, CreditCard, Tag, Trash2, X } from "lucide-react";
+import { ArrowLeft, Plus, TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, Pencil, ShoppingCart, Calculator, CreditCard, Tag, Trash2, X, ChevronDown, BarChart3 } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import { toast } from "sonner";
 import GroceryModule from "@/components/GroceryModule";
@@ -43,6 +43,8 @@ const formatBengaliDate = (dateStr: string, timeStr?: string | null) => {
   return result;
 };
 
+type StatPeriod = "today" | "month" | "year" | "all";
+
 const LedgerDetailPage = () => {
   const { ledgerId } = useParams<{ ledgerId: string }>();
   const navigate = useNavigate();
@@ -71,11 +73,23 @@ const LedgerDetailPage = () => {
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [editCategoryId, setEditCategoryId] = useState<string | null>(null);
   const [editCategoryName, setEditCategoryName] = useState("");
+  const [ledgerDropdownOpen, setLedgerDropdownOpen] = useState(false);
+  const [statPeriod, setStatPeriod] = useState<StatPeriod>("all");
+  const [chartCategory, setChartCategory] = useState<string | null>(null);
 
   const { data: ledger } = useQuery({
     queryKey: ["ledger", ledgerId],
     queryFn: async () => {
       const { data, error } = await supabase.from("ledgers").select("*").eq("id", ledgerId!).single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: allLedgers } = useQuery({
+    queryKey: ["ledgers"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("ledgers").select("*").order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -123,23 +137,70 @@ const LedgerDetailPage = () => {
     },
   });
 
-  const filteredTransactions = transactions?.filter((t) => {
-    if (filterMonth !== "all" || filterYear !== "all") {
-      const [y, m] = t.date.split("-");
-      if (filterMonth !== "all" && m !== filterMonth) return false;
-      if (filterYear !== "all" && y !== filterYear) return false;
-    }
-    if (filterCategory !== "all") {
-      if ((t.categories as any)?.name !== filterCategory) return false;
-    }
-    if (filterDateFrom && t.date < filterDateFrom) return false;
-    if (filterDateTo && t.date > filterDateTo) return false;
-    return true;
-  }) ?? [];
+  // Report tab filters
+  const reportFilteredTransactions = useMemo(() => {
+    return (transactions ?? []).filter((t) => {
+      if (filterMonth !== "all" || filterYear !== "all") {
+        const [y, m] = t.date.split("-");
+        if (filterMonth !== "all" && m !== filterMonth) return false;
+        if (filterYear !== "all" && y !== filterYear) return false;
+      }
+      if (filterCategory !== "all") {
+        if ((t.categories as any)?.name !== filterCategory) return false;
+      }
+      if (filterDateFrom && t.date < filterDateFrom) return false;
+      if (filterDateTo && t.date > filterDateTo) return false;
+      return true;
+    });
+  }, [transactions, filterMonth, filterYear, filterCategory, filterDateFrom, filterDateTo]);
 
-  const totalIncome = filteredTransactions.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
-  const totalExpense = filteredTransactions.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+  // Quick stat period filter for dashboard
+  const periodFilteredTransactions = useMemo(() => {
+    if (!transactions) return [];
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0];
+    const monthStr = todayStr.slice(0, 7);
+    const yearStr = todayStr.slice(0, 4);
+
+    let filtered = transactions;
+    if (statPeriod === "today") {
+      filtered = transactions.filter(t => t.date === todayStr);
+    } else if (statPeriod === "month") {
+      filtered = transactions.filter(t => t.date.startsWith(monthStr));
+    } else if (statPeriod === "year") {
+      filtered = transactions.filter(t => t.date.startsWith(yearStr));
+    }
+
+    // Apply chart category filter
+    if (chartCategory) {
+      filtered = filtered.filter(t => (t.categories as any)?.name === chartCategory);
+    }
+
+    return filtered;
+  }, [transactions, statPeriod, chartCategory]);
+
+  const totalIncome = periodFilteredTransactions.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
+  const totalExpense = periodFilteredTransactions.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
   const totalBalance = totalIncome - totalExpense;
+
+  // Stats for all periods
+  const periodStats = useMemo(() => {
+    if (!transactions) return { today: { income: 0, expense: 0 }, month: { income: 0, expense: 0 }, year: { income: 0, expense: 0 }, all: { income: 0, expense: 0 } };
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0];
+    const monthStr = todayStr.slice(0, 7);
+    const yearStr = todayStr.slice(0, 4);
+    const calc = (txs: typeof transactions) => ({
+      income: txs.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0),
+      expense: txs.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0),
+    });
+    return {
+      today: calc(transactions.filter(t => t.date === todayStr)),
+      month: calc(transactions.filter(t => t.date.startsWith(monthStr))),
+      year: calc(transactions.filter(t => t.date.startsWith(yearStr))),
+      all: calc(transactions),
+    };
+  }, [transactions]);
 
   const filteredCategories = categories?.filter((c) => c.type === txType) ?? [];
   const { data: reminders } = useGroceryReminders(ledgerId);
@@ -239,108 +300,271 @@ const LedgerDetailPage = () => {
     { id: "transactions", label: "লেনদেন", icon: CreditCard },
     { id: "grocery", label: "বাজার", icon: ShoppingCart },
     { id: "zakat", label: "যাকাত", icon: Calculator },
-    { id: "accounts", label: "অ্যাকাউন্ট", icon: Wallet },
+    { id: "reports", label: "রিপোর্ট", icon: BarChart3 },
     { id: "categories", label: "ক্যাটাগরি", icon: Tag },
+  ];
+
+  const statPeriods: { id: StatPeriod; label: string }[] = [
+    { id: "today", label: "আজ" },
+    { id: "month", label: "মাস" },
+    { id: "year", label: "বছর" },
+    { id: "all", label: "সব" },
   ];
 
   return (
     <div className="min-h-screen page-gradient">
-      {/* Compact Dark Header */}
-      <div className="sticky top-0 z-10 gradient-header px-4 pt-3 pb-4">
-        <div className="max-w-lg mx-auto flex items-center gap-3">
+      {/* ─── HEADER ─── */}
+      <div className="sticky top-0 z-20 gradient-header px-4 pt-3 pb-3">
+        <div className="max-w-lg mx-auto flex items-center gap-2">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate("/")}
-            className="text-white/50 hover:text-white hover:bg-white/10 rounded-xl h-9 w-9"
+            className="text-white/50 hover:text-white hover:bg-white/10 rounded-xl h-9 w-9 shrink-0"
           >
             <ArrowLeft className="w-4 h-4" />
           </Button>
-          <h1 className="text-base font-bold text-white/90 truncate flex-1">{ledger?.name ?? "..."}</h1>
+
+          {/* Ledger Switcher */}
+          <div className="flex-1 flex justify-center">
+            <div className="relative">
+              <button
+                onClick={() => setLedgerDropdownOpen(!ledgerDropdownOpen)}
+                className="ledger-switcher"
+              >
+                <span className="text-sm font-bold text-white truncate max-w-[180px]">
+                  {ledger?.name ?? "..."}
+                </span>
+                <ChevronDown className={`w-3.5 h-3.5 text-white/60 transition-transform duration-200 ${ledgerDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Dropdown */}
+              {ledgerDropdownOpen && (
+                <>
+                  <div className="fixed inset-0 z-30" onClick={() => setLedgerDropdownOpen(false)} />
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-56 rounded-2xl border bg-popover p-1.5 shadow-xl z-40 animate-scale-in">
+                    {allLedgers?.map((l) => (
+                      <button
+                        key={l.id}
+                        onClick={() => {
+                          setLedgerDropdownOpen(false);
+                          if (l.id !== ledgerId) navigate(`/ledger/${l.id}`);
+                        }}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-sm font-medium transition-colors ${
+                          l.id === ledgerId
+                            ? "bg-primary/10 text-primary"
+                            : "text-foreground hover:bg-muted"
+                        }`}
+                      >
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                          l.id === ledgerId ? 'gradient-primary' : 'bg-muted'
+                        }`}>
+                          <Wallet className="w-3.5 h-3.5 text-white" />
+                        </div>
+                        <span className="truncate">{l.name}</span>
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => { setLedgerDropdownOpen(false); navigate("/"); }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-sm font-medium text-muted-foreground hover:bg-muted transition-colors border-t mt-1 pt-2"
+                      style={{ borderColor: 'var(--glass-border)' }}
+                    >
+                      <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border border-dashed border-muted-foreground/30">
+                        <Plus className="w-3.5 h-3.5" />
+                      </div>
+                      <span>নতুন খাতা</span>
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
           <ThemeToggle />
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-4">
-        {/* Hero Balance Card - floating */}
-        <div className="hero-card p-4 -mt-2 mb-4 animate-fade-in-up" style={{ transform: 'translateY(-2px)' }}>
-          <p className="text-muted-foreground text-[11px] font-medium uppercase tracking-wider mb-0.5">মোট ব্যালেন্স</p>
-          <p className="text-2xl font-extrabold text-foreground mb-3">৳{totalBalance.toLocaleString("bn-BD")}</p>
-          <div className="grid grid-cols-2 gap-2.5">
-            <div className="income-zone border rounded-xl p-2.5 flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--income-bg)' }}>
-                <TrendingUp className="w-3.5 h-3.5" style={{ color: 'var(--income-text-soft)' }} />
-              </div>
-              <div>
-                <p className="text-[10px] font-medium" style={{ color: 'var(--income-text-soft)', opacity: 0.7 }}>আয়</p>
-                <p className="text-xs font-bold" style={{ color: 'var(--income-text)' }}>৳{totalIncome.toLocaleString("bn-BD")}</p>
-              </div>
-            </div>
-            <div className="expense-zone border rounded-xl p-2.5 flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--expense-bg)' }}>
-                <TrendingDown className="w-3.5 h-3.5" style={{ color: 'var(--expense-text-soft)' }} />
-              </div>
-              <div>
-                <p className="text-[10px] font-medium" style={{ color: 'var(--expense-text-soft)', opacity: 0.7 }}>খরচ</p>
-                <p className="text-xs font-bold" style={{ color: 'var(--expense-text)' }}>৳{totalExpense.toLocaleString("bn-BD")}</p>
-              </div>
-            </div>
+      {/* ─── TOP NAVIGATION TABS ─── */}
+      <div className="sticky top-[52px] z-10 px-4 py-2" style={{ background: 'var(--page-gradient)' }}>
+        <div className="max-w-lg mx-auto">
+          <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`pill-tab flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
+                    activeTab === tab.id ? "pill-tab-active" : ""
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5 shrink-0" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
+      </div>
 
-        {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-2.5 mb-4 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-          <Button
-            onClick={() => openTxDialog("income")}
-            className="gap-2 h-11 rounded-2xl font-semibold btn-press"
-            variant="ghost"
-            style={{ background: 'var(--action-btn-bg)', borderColor: 'var(--action-btn-border)', color: 'var(--income-text-soft)', border: '1px solid var(--action-btn-border)' }}
-          >
-            <ArrowUpRight className="w-4 h-4" /> আয় যোগ
-          </Button>
-          <Button
-            onClick={() => openTxDialog("expense")}
-            className="gap-2 h-11 rounded-2xl font-semibold btn-press"
-            variant="ghost"
-            style={{ background: 'var(--action-btn-bg)', borderColor: 'var(--action-btn-border)', color: 'var(--expense-text-soft)', border: '1px solid var(--action-btn-border)' }}
-          >
-            <ArrowDownRight className="w-4 h-4" /> খরচ যোগ
-          </Button>
-        </div>
-
-        {reminders && reminders.length > 0 && (
-          <div className="mb-4">
+      <div className="max-w-lg mx-auto px-4 pt-3">
+        {reminders && reminders.length > 0 && activeTab === "transactions" && (
+          <div className="mb-3">
             <GroceryReminders reminders={reminders} compact />
           </div>
         )}
 
-        {/* Pill-style Tabs - horizontal scroll, no wrap */}
-        <div className="glass rounded-2xl p-1 flex gap-1 mb-4 overflow-x-auto no-scrollbar flex-nowrap animate-fade-in-up" style={{ animationDelay: '0.15s' }}>
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`pill-tab flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 justify-center min-w-0 px-3 ${
-                  activeTab === tab.id ? "pill-tab-active" : ""
-                }`}
-                style={activeTab !== tab.id ? { color: 'var(--tab-inactive)' } : undefined}
-              >
-                <Icon className="w-3.5 h-3.5 shrink-0" />
-                <span className="text-xs truncate">{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Tab Content */}
+        {/* ═══ TRANSACTIONS TAB ═══ */}
         {activeTab === "transactions" && (
-          <div className="space-y-2.5 pb-8">
+          <div className="space-y-3 pb-24">
+            {/* Donut Hero */}
+            <ExpensePieChart
+              transactions={periodFilteredTransactions}
+              totalBalance={totalBalance}
+              onCategorySelect={setChartCategory}
+              selectedCategory={chartCategory}
+            />
+
+            {/* Quick Stats Bar */}
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+              {statPeriods.map((sp) => {
+                const stats = periodStats[sp.id];
+                const isActive = statPeriod === sp.id;
+                return (
+                  <button
+                    key={sp.id}
+                    onClick={() => { setStatPeriod(sp.id); setChartCategory(null); }}
+                    className={`stat-pill min-w-[80px] text-center ${isActive ? 'stat-pill-active' : ''}`}
+                  >
+                    <p className="text-[10px] font-bold uppercase tracking-wider mb-1">{sp.label}</p>
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-[10px]" style={{ color: 'var(--income-text-soft)' }}>
+                        +{(stats.income / 1000).toFixed(stats.income >= 1000 ? 0 : 1)}k
+                      </span>
+                      <span className="text-[10px]" style={{ color: 'var(--expense-text-soft)' }}>
+                        -{(stats.expense / 1000).toFixed(stats.expense >= 1000 ? 0 : 1)}k
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Income / Expense Summary */}
+            <div className="grid grid-cols-2 gap-3 animate-fade-in-up" style={{ animationDelay: '0.15s' }}>
+              <div className="income-zone border rounded-2xl p-3 flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'var(--income-bg)' }}>
+                  <TrendingUp className="w-4 h-4" style={{ color: 'var(--income-text-soft)' }} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-medium" style={{ color: 'var(--income-text-soft)', opacity: 0.7 }}>আয়</p>
+                  <p className="text-sm font-bold" style={{ color: 'var(--income-text)' }}>৳{totalIncome.toLocaleString("bn-BD")}</p>
+                </div>
+              </div>
+              <div className="expense-zone border rounded-2xl p-3 flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'var(--expense-bg)' }}>
+                  <TrendingDown className="w-4 h-4" style={{ color: 'var(--expense-text-soft)' }} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-medium" style={{ color: 'var(--expense-text-soft)', opacity: 0.7 }}>খরচ</p>
+                  <p className="text-sm font-bold" style={{ color: 'var(--expense-text)' }}>৳{totalExpense.toLocaleString("bn-BD")}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Transaction List */}
+            <div className="space-y-2 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+              <div className="flex items-center justify-between px-1">
+                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                  সাম্প্রতিক লেনদেন
+                  {chartCategory && (
+                    <button onClick={() => setChartCategory(null)} className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-primary/10 text-primary font-medium">
+                      {chartCategory} <X className="w-2.5 h-2.5" />
+                    </button>
+                  )}
+                </h3>
+              </div>
+
+              {!periodFilteredTransactions.length ? (
+                <div className="premium-card p-10 text-center border-dashed">
+                  <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-3">
+                    <CreditCard className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                  <p className="text-muted-foreground font-medium text-sm">কোনো লেনদেন নেই</p>
+                  <p className="text-xs text-muted-foreground mt-1">আয় বা খরচ যোগ করুন</p>
+                </div>
+              ) : (
+                <>
+                {periodFilteredTransactions.map((tx, index) => {
+                  const cardId = tx.id;
+                  return (
+                  <SwipeableCard
+                    key={cardId}
+                    onEdit={() => { setEditTx(tx); setEditOpen(true); }}
+                    onDelete={async () => {
+                      if (confirm("এই লেনদেন মুছে ফেলতে চান?")) {
+                        const { error } = await supabase.from("transactions").delete().eq("id", tx.id);
+                        if (error) { toast.error("মুছতে ব্যর্থ"); return; }
+                        queryClient.invalidateQueries({ queryKey: ["transactions", ledgerId] });
+                        toast.success("লেনদেন মুছে ফেলা হয়েছে");
+                      }
+                    }}
+                    className="stagger-item"
+                    style={{ animationDelay: `${Math.min(index * 0.03, 0.3)}s` }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+                          style={{ background: tx.type === "income" ? 'var(--income-bg)' : 'var(--expense-bg)', color: tx.type === "income" ? 'var(--income-text-soft)' : 'var(--expense-text-soft)' }}
+                        >
+                          {tx.type === "income" ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">{(tx.categories as any)?.name || "—"}</p>
+                          <p className="text-[11px] text-muted-foreground">
+                            {(tx.accounts as any)?.name || "—"} • {formatBengaliDate(tx.date, (tx as any).time)}
+                          </p>
+                          {tx.note && <p className="text-[11px] text-muted-foreground mt-0.5">{tx.note}</p>}
+                        </div>
+                      </div>
+                      <p className="text-sm font-bold" style={{ color: tx.type === "income" ? 'var(--income-text)' : 'var(--expense-text)' }}>
+                        {tx.type === "income" ? "+" : "-"}৳{tx.amount.toLocaleString("bn-BD")}
+                      </p>
+                    </div>
+                  </SwipeableCard>
+                  );
+                })}
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ═══ GROCERY TAB ═══ */}
+        {activeTab === "grocery" && (
+          <div className="pb-8">
+            <GroceryModule ledgerId={ledgerId!} accounts={accounts ?? []} categories={categories ?? []} />
+          </div>
+        )}
+
+        {/* ═══ ZAKAT TAB ═══ */}
+        {activeTab === "zakat" && (
+          <div className="pb-8">
+            <ZakatCalculator ledgerId={ledgerId!} />
+          </div>
+        )}
+
+        {/* ═══ REPORTS TAB ═══ */}
+        {activeTab === "reports" && (
+          <div className="space-y-3 pb-8">
             <MonthlyChart transactions={transactions ?? []} />
-            <ExpensePieChart transactions={transactions as any ?? []} />
             <CategoryBreakdownTable transactions={transactions as any ?? []} />
-            <div className="premium-card p-3 space-y-2">
+
+            <div className="premium-card p-4 space-y-3">
+              <h3 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
+                <BarChart3 className="w-3.5 h-3.5 text-muted-foreground" />
+                ফিল্টার ও রিপোর্ট
+              </h3>
               <TransactionFilters
                 month={filterMonth}
                 year={filterYear}
@@ -355,103 +579,49 @@ const LedgerDetailPage = () => {
                 onDateFromChange={setFilterDateFrom}
                 onDateToChange={setFilterDateTo}
               />
-              <div className="flex justify-end">
-                {filteredTransactions.length > 0 && (
-                  <AdvancedExport ledgerName={ledger?.name ?? "Report"} transactions={filteredTransactions as any} categories={categories ?? []} />
+              <div className="flex justify-end pt-1">
+                {reportFilteredTransactions.length > 0 && (
+                  <AdvancedExport ledgerName={ledger?.name ?? "Report"} transactions={reportFilteredTransactions as any} categories={categories ?? []} />
                 )}
               </div>
             </div>
 
-            {!filteredTransactions.length ? (
-              <div className="premium-card p-10 text-center border-dashed border-white/10">
-                <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-3">
-                  <CreditCard className="w-5 h-5 text-muted-foreground" />
-                </div>
-                <p className="text-muted-foreground font-medium text-sm">কোনো লেনদেন নেই</p>
-                <p className="text-xs text-muted-foreground mt-1">আয় বা খরচ যোগ করুন</p>
-              </div>
-            ) : (
-              <>
-              {filteredTransactions.map((tx, index) => {
-                const cardId = tx.id;
-                return (
-                <SwipeableCard
-                  key={cardId}
-                  onEdit={() => { setEditTx(tx); setEditOpen(true); }}
-                  onDelete={async () => {
-                    if (confirm("এই লেনদেন মুছে ফেলতে চান?")) {
-                      const { error } = await supabase.from("transactions").delete().eq("id", tx.id);
-                      if (error) { toast.error("মুছতে ব্যর্থ"); return; }
-                      queryClient.invalidateQueries({ queryKey: ["transactions", ledgerId] });
-                      toast.success("লেনদেন মুছে ফেলা হয়েছে");
-                    }
-                  }}
-                  className="stagger-item"
-                  style={{ animationDelay: `${Math.min(index * 0.05, 0.5)}s` }}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-                        style={{ background: tx.type === "income" ? 'var(--income-bg)' : 'var(--expense-bg)', color: tx.type === "income" ? 'var(--income-text-soft)' : 'var(--expense-text-soft)' }}
-                      >
-                        {tx.type === "income" ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+            {/* Filtered transaction list in reports */}
+            {reportFilteredTransactions.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground px-1">{reportFilteredTransactions.length}টি লেনদেন</p>
+                {reportFilteredTransactions.slice(0, 20).map((tx) => (
+                  <div key={tx.id} className="premium-card p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+                          style={{ background: tx.type === "income" ? 'var(--income-bg)' : 'var(--expense-bg)' }}
+                        >
+                          {tx.type === "income" ? <TrendingUp className="w-3 h-3" style={{ color: 'var(--income-text-soft)' }} /> : <TrendingDown className="w-3 h-3" style={{ color: 'var(--expense-text-soft)' }} />}
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-foreground">{(tx.categories as any)?.name || "—"}</p>
+                          <p className="text-[10px] text-muted-foreground">{formatBengaliDate(tx.date)}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">{(tx.categories as any)?.name || "—"}</p>
-                        <p className="text-[11px] text-muted-foreground">
-                          {(tx.accounts as any)?.name || "—"} • {formatBengaliDate(tx.date, (tx as any).time)}
-                        </p>
-                        {tx.note && <p className="text-[11px] text-muted-foreground mt-0.5">{tx.note}</p>}
-                      </div>
+                      <p className="text-xs font-bold" style={{ color: tx.type === "income" ? 'var(--income-text)' : 'var(--expense-text)' }}>
+                        {tx.type === "income" ? "+" : "-"}৳{tx.amount.toLocaleString("bn-BD")}
+                      </p>
                     </div>
-                    <p className="text-sm font-bold" style={{ color: tx.type === "income" ? 'var(--income-text)' : 'var(--expense-text)' }}>
-                      {tx.type === "income" ? "+" : "-"}৳{tx.amount.toLocaleString("bn-BD")}
-                    </p>
                   </div>
-                </SwipeableCard>
-                );
-              })}
-              </>
+                ))}
+              </div>
             )}
           </div>
         )}
 
-        {activeTab === "grocery" && (
-          <div className="pb-8">
-            <GroceryModule ledgerId={ledgerId!} accounts={accounts ?? []} categories={categories ?? []} />
-          </div>
-        )}
-
-        {activeTab === "zakat" && (
-          <div className="pb-8">
-            <ZakatCalculator ledgerId={ledgerId!} />
-          </div>
-        )}
-
-        {activeTab === "accounts" && (
-          <div className="space-y-2.5 pb-8">
-            {accounts?.map((acc) => (
-              <div key={acc.id} className="premium-card p-3.5">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center">
-                    <Wallet className="w-4 h-4 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{acc.name}</p>
-                    <p className="text-xs text-muted-foreground capitalize">{acc.type.replace("_", " ")}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
+        {/* ═══ CATEGORIES TAB ═══ */}
         {activeTab === "categories" && (
           <div className="space-y-4 pb-8">
             {["income", "expense"].map((type) => (
               <div key={type}>
-                <h3 className={`text-sm font-bold mb-2 flex items-center gap-2 ${type === "income" ? "text-emerald-400" : "text-red-400"}`}>
-                  <div className={`w-2 h-2 rounded-full ${type === "income" ? "bg-emerald-400" : "bg-red-400"}`} />
+                <h3 className="text-sm font-bold mb-2.5 flex items-center gap-2" style={{ color: type === "income" ? 'var(--income-text-soft)' : 'var(--expense-text-soft)' }}>
+                  <div className="w-2 h-2 rounded-full" style={{ background: type === "income" ? 'var(--income-text-soft)' : 'var(--expense-text-soft)' }} />
                   {type === "income" ? "আয়ের ক্যাটাগরি" : "খরচের ক্যাটাগরি"}
                 </h3>
                 <div className="space-y-1.5">
@@ -516,22 +686,22 @@ const LedgerDetailPage = () => {
         )}
       </div>
 
-      {/* Add Transaction Bottom Sheet - Premium Fintech UI */}
+      {/* ─── ADD TRANSACTION BOTTOM SHEET ─── */}
       <BottomSheet open={txDialogOpen} onOpenChange={setTxDialogOpen}>
         <BottomSheetContent className="p-0 rounded-t-3xl">
-          <div className="px-4 pt-4 pb-2 relative" style={{ background: 'linear-gradient(180deg, hsl(var(--primary) / 0.06), transparent)' }}>
-            <div className="flex justify-center mb-2">
+          <div className="px-5 pt-5 pb-3 relative" style={{ background: 'linear-gradient(180deg, hsl(var(--primary) / 0.06), transparent)' }}>
+            <div className="flex justify-center mb-3">
               <div className="w-10 h-1 rounded-full bg-muted-foreground/20" />
             </div>
 
             {/* Segmented Toggle */}
-            <div className="flex gap-1 p-0.5 rounded-xl mb-2.5" style={{ background: 'hsl(var(--muted))' }}>
+            <div className="flex gap-1 p-0.5 rounded-2xl mb-3" style={{ background: 'hsl(var(--muted))' }}>
               <button
                 type="button"
                 onClick={() => { setTxType("income"); setTxCategory(""); }}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
                   txType === "income"
-                    ? "bg-gradient-to-r from-[#6D5DFC] to-[#8B5CF6] text-white shadow-md"
+                    ? "gradient-primary text-white shadow-md"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -540,9 +710,9 @@ const LedgerDetailPage = () => {
               <button
                 type="button"
                 onClick={() => { setTxType("expense"); setTxCategory(""); }}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
                   txType === "expense"
-                    ? "bg-gradient-to-r from-[#6D5DFC] to-[#8B5CF6] text-white shadow-md"
+                    ? "gradient-primary text-white shadow-md"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -551,14 +721,14 @@ const LedgerDetailPage = () => {
             </div>
 
             {/* Title row */}
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{
                 background: txType === "income" ? 'var(--income-bg)' : 'var(--expense-bg)',
               }}>
                 {txType === "income" ? (
-                  <TrendingUp className="w-3.5 h-3.5" style={{ color: 'var(--income-text-soft)' }} />
+                  <TrendingUp className="w-4 h-4" style={{ color: 'var(--income-text-soft)' }} />
                 ) : (
-                  <TrendingDown className="w-3.5 h-3.5" style={{ color: 'var(--expense-text-soft)' }} />
+                  <TrendingDown className="w-4 h-4" style={{ color: 'var(--expense-text-soft)' }} />
                 )}
               </div>
               <div>
@@ -572,24 +742,24 @@ const LedgerDetailPage = () => {
             </div>
           </div>
 
-          {/* Form Body - compact */}
-          <form onSubmit={handleAddTx} className="px-4 pb-4 space-y-2.5">
+          {/* Form Body */}
+          <form onSubmit={handleAddTx} className="px-5 pb-5 space-y-3">
             {/* Amount Input */}
-            <div className="rounded-xl p-3 border transition-all duration-200" style={{
+            <div className="rounded-2xl p-4 border transition-all duration-200" style={{
               background: 'hsl(var(--card))',
               borderColor: 'var(--glass-border)',
               boxShadow: 'var(--shadow-card)',
             }}>
-              <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">পরিমাণ (৳)</label>
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5 block">পরিমাণ (৳)</label>
               <CalculatorInput
                 value={txAmount}
                 onChange={setTxAmount}
                 placeholder="যেমন: 500 + 200"
                 required
-                className="border-0 bg-transparent text-lg font-semibold h-10 px-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/40"
+                className="border-0 bg-transparent text-xl font-bold h-12 px-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/40"
               />
               {txAmount && parseFloat(txAmount) > 0 && (
-                <p className="text-[11px] mt-1 font-medium" style={{ color: txType === "income" ? 'var(--income-text-soft)' : 'var(--expense-text-soft)' }}>
+                <p className="text-[11px] mt-1.5 font-medium" style={{ color: txType === "income" ? 'var(--income-text-soft)' : 'var(--expense-text-soft)' }}>
                   মোট: ৳{parseFloat(txAmount).toLocaleString("bn-BD")}
                 </p>
               )}
@@ -597,20 +767,20 @@ const LedgerDetailPage = () => {
 
             {/* Category Selection */}
             <div>
-              <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">ক্যাটাগরি</label>
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 block">ক্যাটাগরি</label>
               {showNewCategory ? (
                 <div className="flex gap-1.5">
                   <Input
                     value={newCategoryName}
                     onChange={(e) => setNewCategoryName(e.target.value)}
                     placeholder="ক্যাটাগরি নাম"
-                    className="form-input flex-1 h-8 text-xs"
+                    className="form-input flex-1 h-9 text-xs"
                     autoFocus
                   />
                   <Button
                     type="button"
                     size="icon"
-                    className="h-8 w-8 shrink-0 rounded-lg btn-primary"
+                    className="h-9 w-9 shrink-0 rounded-xl btn-primary"
                     disabled={!newCategoryName.trim() || addCategory.isPending}
                     onClick={() => addCategory.mutate()}
                   >
@@ -620,7 +790,7 @@ const LedgerDetailPage = () => {
                     type="button"
                     size="icon"
                     variant="ghost"
-                    className="h-8 w-8 shrink-0 rounded-lg"
+                    className="h-9 w-9 shrink-0 rounded-xl"
                     onClick={() => { setShowNewCategory(false); setNewCategoryName(""); }}
                   >
                     <X className="w-3.5 h-3.5" />
@@ -633,7 +803,7 @@ const LedgerDetailPage = () => {
                       key={c.id}
                       type="button"
                       onClick={() => setTxCategory(c.id)}
-                      className={`relative flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 border overflow-hidden ${
+                      className={`relative flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 border overflow-hidden ${
                         txCategory === c.id
                           ? "border-primary bg-primary/8 text-foreground shadow-sm"
                           : "border-border/60 bg-card text-muted-foreground hover:border-primary/30 hover:bg-primary/4"
@@ -649,7 +819,7 @@ const LedgerDetailPage = () => {
                   <button
                     type="button"
                     onClick={() => setShowNewCategory(true)}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-dashed border-primary/30 text-primary hover:bg-primary/5 transition-all duration-200"
+                    className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-medium border border-dashed border-primary/30 text-primary hover:bg-primary/5 transition-all duration-200"
                   >
                     <Plus className="w-3 h-3" /> নতুন
                   </button>
@@ -659,14 +829,14 @@ const LedgerDetailPage = () => {
 
             {/* Account Selection */}
             <div>
-              <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">অ্যাকাউন্ট</label>
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 block">অ্যাকাউন্ট</label>
               <div className="flex flex-wrap gap-1.5">
                 {accounts?.map((a) => (
                   <button
                     key={a.id}
                     type="button"
                     onClick={() => setTxAccount(a.id)}
-                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 border ${
+                    className={`flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 border ${
                       txAccount === a.id
                         ? "border-primary bg-primary/8 text-foreground shadow-sm"
                         : "border-border/60 bg-card text-muted-foreground hover:border-primary/30 hover:bg-primary/4"
@@ -679,8 +849,8 @@ const LedgerDetailPage = () => {
             </div>
 
             {/* Date & Time */}
-            <div className="grid grid-cols-2 gap-1.5">
-              <div className="flex items-center gap-1.5 rounded-lg border px-2.5 py-2" style={{
+            <div className="grid grid-cols-2 gap-2">
+              <div className="flex items-center gap-1.5 rounded-xl border px-3 py-2.5" style={{
                 background: 'hsl(var(--muted))',
                 borderColor: 'var(--glass-border)',
               }}>
@@ -693,7 +863,7 @@ const LedgerDetailPage = () => {
                   className="bg-transparent border-0 outline-none text-xs font-medium text-foreground flex-1 w-full"
                 />
               </div>
-              <div className="flex items-center gap-1.5 rounded-lg border px-2.5 py-2" style={{
+              <div className="flex items-center gap-1.5 rounded-xl border px-3 py-2.5" style={{
                 background: 'hsl(var(--muted))',
                 borderColor: 'var(--glass-border)',
               }}>
@@ -713,7 +883,7 @@ const LedgerDetailPage = () => {
               onChange={(e) => setTxNote(e.target.value)}
               placeholder="কিসের জন্য?"
               rows={1}
-              className="w-full rounded-lg border px-2.5 py-2 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200"
+              className="w-full rounded-xl border px-3 py-2.5 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200"
               style={{
                 background: 'hsl(var(--muted))',
                 borderColor: 'var(--glass-border)',
@@ -725,7 +895,7 @@ const LedgerDetailPage = () => {
             {/* CTA Button */}
             <Button
               type="submit"
-              className="w-full h-11 rounded-xl text-sm font-semibold btn-primary active:scale-[0.96] transition-all duration-200"
+              className="w-full h-12 rounded-2xl text-sm font-bold btn-primary active:scale-[0.96] transition-all duration-200"
               disabled={addTransaction.isPending}
             >
               {addTransaction.isPending
@@ -749,7 +919,7 @@ const LedgerDetailPage = () => {
         ledgerId={ledgerId!}
       />
 
-      {/* Expandable FAB */}
+      {/* ─── EXPANDABLE FAB ─── */}
       {fabOpen && (
         <div
           className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-40 transition-opacity duration-200"
@@ -764,8 +934,8 @@ const LedgerDetailPage = () => {
               className="flex items-center gap-2 animate-fade-in"
               style={{ animationDuration: '0.15s' }}
             >
-              <span className="text-xs font-semibold text-foreground bg-popover/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-md">আয়</span>
-              <div className="w-11 h-11 rounded-full bg-emerald-500 shadow-lg flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-transform">
+              <span className="text-xs font-semibold text-foreground bg-popover/90 backdrop-blur-sm px-3 py-1.5 rounded-xl shadow-md">আয়</span>
+              <div className="w-11 h-11 rounded-full shadow-lg flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-transform" style={{ background: 'var(--income-text-soft)' }}>
                 <ArrowUpRight className="w-5 h-5" />
               </div>
             </button>
@@ -774,8 +944,8 @@ const LedgerDetailPage = () => {
               className="flex items-center gap-2 animate-fade-in"
               style={{ animationDuration: '0.2s' }}
             >
-              <span className="text-xs font-semibold text-foreground bg-popover/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-md">খরচ</span>
-              <div className="w-11 h-11 rounded-full bg-red-500 shadow-lg flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-transform">
+              <span className="text-xs font-semibold text-foreground bg-popover/90 backdrop-blur-sm px-3 py-1.5 rounded-xl shadow-md">খরচ</span>
+              <div className="w-11 h-11 rounded-full shadow-lg flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-transform" style={{ background: 'var(--expense-text-soft)' }}>
                 <ArrowDownRight className="w-5 h-5" />
               </div>
             </button>

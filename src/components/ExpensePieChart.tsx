@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
-import { PieChart as PieIcon } from "lucide-react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Sector } from "recharts";
+import { useState } from "react";
 
 interface Transaction {
   date: string;
@@ -11,20 +11,41 @@ interface Transaction {
 
 interface ExpensePieChartProps {
   transactions: Transaction[];
+  totalBalance?: number;
+  onCategorySelect?: (category: string | null) => void;
+  selectedCategory?: string | null;
 }
 
 const COLORS = [
   "hsl(252, 56%, 57%)",
-  "hsl(0, 62%, 48%)",
+  "hsl(340, 65%, 50%)",
   "hsl(152, 55%, 38%)",
   "hsl(30, 80%, 55%)",
   "hsl(200, 70%, 50%)",
   "hsl(280, 50%, 55%)",
   "hsl(45, 85%, 50%)",
-  "hsl(340, 65%, 50%)",
+  "hsl(170, 60%, 42%)",
 ];
 
-const ExpensePieChart = ({ transactions }: ExpensePieChartProps) => {
+const renderActiveShape = (props: any) => {
+  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
+  return (
+    <Sector
+      cx={cx}
+      cy={cy}
+      innerRadius={innerRadius - 2}
+      outerRadius={outerRadius + 6}
+      startAngle={startAngle}
+      endAngle={endAngle}
+      fill={fill}
+      style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))' }}
+    />
+  );
+};
+
+const ExpensePieChart = ({ transactions, totalBalance = 0, onCategorySelect, selectedCategory }: ExpensePieChartProps) => {
+  const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined);
+
   const chartData = useMemo(() => {
     const map = new Map<string, number>();
     transactions
@@ -34,40 +55,63 @@ const ExpensePieChart = ({ transactions }: ExpensePieChartProps) => {
         map.set(cat, (map.get(cat) || 0) + t.amount);
       });
 
-    return Array.from(map.entries())
+    const sorted = Array.from(map.entries())
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
+
+    // Group beyond 5 into "অন্যান্য"
+    if (sorted.length > 5) {
+      const top5 = sorted.slice(0, 5);
+      const othersTotal = sorted.slice(5).reduce((s, d) => s + d.value, 0);
+      if (othersTotal > 0) top5.push({ name: "অন্যান্য", value: othersTotal });
+      return top5;
+    }
+    return sorted;
   }, [transactions]);
 
   const total = chartData.reduce((s, d) => s + d.value, 0);
 
   if (chartData.length === 0) return null;
 
-  return (
-    <div className="premium-card p-4 mb-3 animate-fade-in-up">
-      <div className="flex items-center gap-2 mb-3">
-        <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--action-btn-bg)' }}>
-          <PieIcon className="w-3.5 h-3.5 text-muted-foreground" />
-        </div>
-        <p className="text-xs font-bold text-foreground">খরচের ক্যাটাগরি বিশ্লেষণ</p>
-      </div>
+  const handleClick = (_: any, index: number) => {
+    const cat = chartData[index]?.name;
+    if (onCategorySelect) {
+      if (selectedCategory === cat) {
+        onCategorySelect(null);
+        setActiveIndex(undefined);
+      } else {
+        onCategorySelect(cat);
+        setActiveIndex(index);
+      }
+    }
+  };
 
-      <div className="flex items-center gap-3">
-        <div className="w-32 h-32 shrink-0">
+  return (
+    <div className="hero-card p-5 mb-4 animate-fade-in-up">
+      <div className="flex items-center justify-center mb-4">
+        <div className="relative w-48 h-48">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={chartData}
                 cx="50%"
                 cy="50%"
-                innerRadius={28}
-                outerRadius={55}
+                innerRadius={52}
+                outerRadius={80}
                 dataKey="value"
                 stroke="none"
-                paddingAngle={2}
+                paddingAngle={3}
+                activeIndex={activeIndex}
+                activeShape={renderActiveShape}
+                onClick={handleClick}
+                style={{ cursor: 'pointer' }}
               >
                 {chartData.map((_, i) => (
-                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                  <Cell
+                    key={i}
+                    fill={COLORS[i % COLORS.length]}
+                    opacity={selectedCategory && chartData[i].name !== selectedCategory ? 0.3 : 1}
+                  />
                 ))}
               </Pie>
               <Tooltip
@@ -82,22 +126,33 @@ const ExpensePieChart = ({ transactions }: ExpensePieChartProps) => {
               />
             </PieChart>
           </ResponsiveContainer>
+          {/* Center Balance */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">ব্যালেন্স</p>
+            <p className="text-lg font-extrabold text-foreground leading-tight">
+              ৳{totalBalance.toLocaleString("bn-BD")}
+            </p>
+          </div>
         </div>
+      </div>
 
-        <div className="flex-1 space-y-1.5 overflow-hidden">
-          {chartData.slice(0, 5).map((d, i) => (
-            <div key={d.name} className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
-              <span className="text-[11px] text-muted-foreground truncate flex-1">{d.name}</span>
-              <span className="text-[11px] font-semibold text-foreground whitespace-nowrap">
-                {total > 0 ? Math.round((d.value / total) * 100) : 0}%
-              </span>
-            </div>
-          ))}
-          {chartData.length > 5 && (
-            <p className="text-[10px] text-muted-foreground">+{chartData.length - 5} আরও</p>
-          )}
-        </div>
+      {/* Category Legend */}
+      <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5">
+        {chartData.map((d, i) => (
+          <button
+            key={d.name}
+            onClick={() => handleClick(null, i)}
+            className={`flex items-center gap-1.5 transition-opacity duration-200 ${
+              selectedCategory && selectedCategory !== d.name ? 'opacity-40' : 'opacity-100'
+            }`}
+          >
+            <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
+            <span className="text-[11px] text-muted-foreground">{d.name}</span>
+            <span className="text-[11px] font-bold text-foreground">
+              {total > 0 ? Math.round((d.value / total) * 100) : 0}%
+            </span>
+          </button>
+        ))}
       </div>
     </div>
   );

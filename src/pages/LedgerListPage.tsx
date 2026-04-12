@@ -95,12 +95,12 @@ const LedgerListPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Compact Dark Header */}
-      <div className="gradient-header px-4 pt-4 pb-5">
+    <div className="min-h-screen page-gradient">
+      {/* Header */}
+      <div className="gradient-header px-4 pt-4 pb-6">
         <div className="flex items-center justify-between max-w-lg mx-auto">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl gradient-primary flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center shadow-md">
               <Wallet className="w-4 h-4 text-white" />
             </div>
             <h1 className="text-lg font-extrabold text-white tracking-tight">FinTrack</h1>
@@ -119,16 +119,17 @@ const LedgerListPage = () => {
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 pt-4 pb-8">
+      <div className="max-w-lg mx-auto px-4 -mt-3 pb-8">
+        {/* Title + Add Button */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-base font-bold text-foreground">আমার খাতাসমূহ</h2>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="gap-1.5 rounded-xl btn-primary text-xs h-8">
+              <Button size="sm" className="gap-1.5 rounded-xl btn-primary text-xs h-8 px-3">
                 <Plus className="w-3.5 h-3.5" /> নতুন খাতা
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-sm rounded-2xl bg-popover border-white/10">
+            <DialogContent className="max-w-sm rounded-2xl bg-popover">
               <DialogHeader><DialogTitle>নতুন খাতা তৈরি করুন</DialogTitle></DialogHeader>
               <form onSubmit={handleCreate} className="space-y-4">
                 <Input
@@ -147,37 +148,41 @@ const LedgerListPage = () => {
         </div>
 
         {isLoading ? (
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             {[1, 2].map((i) => <div key={i} className="h-20 bg-muted/50 animate-pulse rounded-2xl" />)}
           </div>
         ) : ledgers?.length === 0 ? (
           <div className="premium-card p-10 text-center border-dashed">
-            <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-3">
+            <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-3">
               <BookOpen className="w-6 h-6 text-muted-foreground" />
             </div>
             <p className="font-semibold text-foreground text-sm">কোনো খাতা নেই</p>
             <p className="text-xs text-muted-foreground mt-1">নতুন খাতা তৈরি করে শুরু করুন</p>
           </div>
         ) : (
-          <div className="space-y-2.5">
-            {ledgers?.map((ledger) => {
+          <div className="space-y-3">
+            {ledgers?.map((ledger, index) => {
               const balance = ledgerBalances?.[ledger.id] ?? 0;
               return (
-                <div key={ledger.id} className="premium-card p-3.5 group">
+                <div
+                  key={ledger.id}
+                  className="premium-card p-4 group animate-fade-in-up"
+                  style={{ animationDelay: `${index * 0.05}s` }}
+                >
                   <div className="flex items-center justify-between">
                     <div
                       className="flex items-center gap-3 flex-1 cursor-pointer"
                       onClick={() => navigate(`/ledger/${ledger.id}`)}
                     >
-                      <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shadow-sm">
-                        <BookOpen className="w-4 h-4 text-white" />
+                      <div className="w-11 h-11 rounded-xl gradient-primary flex items-center justify-center shadow-sm">
+                        <BookOpen className="w-4.5 h-4.5 text-white" />
                       </div>
                       <div>
                         <p className="font-semibold text-sm text-foreground">{ledger.name}</p>
                         <p className="text-[11px] text-muted-foreground mt-0.5">{ledger.currency}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex items-center gap-3">
                       <div className="text-right">
                         <p className="font-bold text-base" style={{ color: balance >= 0 ? 'var(--income-text)' : 'var(--expense-text)' }}>
                           ৳{balance.toLocaleString("bn-BD")}
@@ -194,7 +199,7 @@ const LedgerListPage = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                        className="h-7 w-7 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
                         onClick={(e) => { e.stopPropagation(); setDeleteTarget({ id: ledger.id, name: ledger.name }); }}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -209,7 +214,7 @@ const LedgerListPage = () => {
       </div>
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent className="rounded-2xl bg-popover border-white/10">
+        <AlertDialogContent className="rounded-2xl bg-popover">
           <AlertDialogHeader>
             <AlertDialogTitle>"{deleteTarget?.name}" মুছে ফেলবেন?</AlertDialogTitle>
             <AlertDialogDescription>এই হিসাব খাতা ও এর সব ডাটা মুছে যাবে। এটি পূর্বাবস্থায় ফেরানো যাবে না।</AlertDialogDescription>
