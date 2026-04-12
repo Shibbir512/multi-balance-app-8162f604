@@ -154,6 +154,32 @@ const LedgerDetailPage = () => {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const updateCategory = useMutation({
+    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+      const { error } = await supabase.from("categories").update({ name }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories", ledgerId] });
+      setEditCategoryId(null);
+      setEditCategoryName("");
+      toast.success("ক্যাটাগরি আপডেট হয়েছে!");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const deleteCategory = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("categories").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories", ledgerId] });
+      toast.success("ক্যাটাগরি মুছে ফেলা হয়েছে!");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   const handleAddTx = (e: React.FormEvent) => {
     e.preventDefault();
     if (!txAmount || parseFloat(txAmount) <= 0) {
