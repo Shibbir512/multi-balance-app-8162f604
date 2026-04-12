@@ -494,19 +494,17 @@ const LedgerDetailPage = () => {
       {/* Add Transaction Bottom Sheet - Premium Fintech UI */}
       <BottomSheet open={txDialogOpen} onOpenChange={setTxDialogOpen}>
         <BottomSheetContent className="p-0 rounded-t-3xl">
-          {/* Header with subtle gradient tint */}
-          <div className="px-5 pt-6 pb-4 relative" style={{ background: 'linear-gradient(180deg, hsl(var(--primary) / 0.06), transparent)' }}>
-            {/* Drag handle */}
-            <div className="flex justify-center mb-4">
+          <div className="px-4 pt-4 pb-2 relative" style={{ background: 'linear-gradient(180deg, hsl(var(--primary) / 0.06), transparent)' }}>
+            <div className="flex justify-center mb-2">
               <div className="w-10 h-1 rounded-full bg-muted-foreground/20" />
             </div>
 
             {/* Segmented Toggle */}
-            <div className="flex gap-1 p-1 rounded-2xl mb-4" style={{ background: 'hsl(var(--muted))' }}>
+            <div className="flex gap-1 p-0.5 rounded-xl mb-2.5" style={{ background: 'hsl(var(--muted))' }}>
               <button
                 type="button"
                 onClick={() => { setTxType("income"); setTxCategory(""); }}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
                   txType === "income"
                     ? "bg-gradient-to-r from-[#6D5DFC] to-[#8B5CF6] text-white shadow-md"
                     : "text-muted-foreground hover:text-foreground"
@@ -517,7 +515,7 @@ const LedgerDetailPage = () => {
               <button
                 type="button"
                 onClick={() => { setTxType("expense"); setTxCategory(""); }}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
                   txType === "expense"
                     ? "bg-gradient-to-r from-[#6D5DFC] to-[#8B5CF6] text-white shadow-md"
                     : "text-muted-foreground hover:text-foreground"
@@ -528,21 +526,21 @@ const LedgerDetailPage = () => {
             </div>
 
             {/* Title row */}
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{
                 background: txType === "income" ? 'var(--income-bg)' : 'var(--expense-bg)',
               }}>
                 {txType === "income" ? (
-                  <TrendingUp className="w-4 h-4" style={{ color: 'var(--income-text-soft)' }} />
+                  <TrendingUp className="w-3.5 h-3.5" style={{ color: 'var(--income-text-soft)' }} />
                 ) : (
-                  <TrendingDown className="w-4 h-4" style={{ color: 'var(--expense-text-soft)' }} />
+                  <TrendingDown className="w-3.5 h-3.5" style={{ color: 'var(--expense-text-soft)' }} />
                 )}
               </div>
               <div>
-                <h2 className="text-base font-bold text-foreground">
+                <h2 className="text-sm font-bold text-foreground">
                   {txType === "income" ? "আয় যোগ করুন" : "খরচ যোগ করুন"}
                 </h2>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[10px] text-muted-foreground">
                   {txType === "income" ? "আয়ের বিবরণ দিন" : "খরচের বিবরণ দিন"}
                 </p>
               </div>
