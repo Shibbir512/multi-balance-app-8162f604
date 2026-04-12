@@ -67,7 +67,7 @@ const PdfExport = ({ ledgerName, transactions }: PdfExportProps) => {
       t.note || "",
     ]);
 
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: y + 22,
       head: [["Date", "Type", "Category", "Account", "Amount", "Note"]],
       body: tableData,

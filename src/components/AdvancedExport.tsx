@@ -79,7 +79,7 @@ const AdvancedExport = ({ ledgerName, transactions, categories }: Props) => {
       t.note || "",
     ]);
 
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: y + 8,
       head: [["Date", "Type", "Category", "Account", "Amount", "Note"]],
       body: rows,
