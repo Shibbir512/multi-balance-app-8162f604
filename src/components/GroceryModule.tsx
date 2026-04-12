@@ -401,12 +401,17 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
       <div className="space-y-5">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold">মাস্টার আইটেম</h3>
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={() => setAddItemOpen(true)} className="gap-1.5 rounded-xl">
+          <div className="flex gap-1.5">
+            {otherLedgers.length > 0 && (
+              <Button size="sm" variant="outline" onClick={() => setImportOpen(true)} className="gap-1 rounded-xl text-xs px-2">
+                <Download className="w-3 h-3" /> আমদানি
+              </Button>
+            )}
+            <Button size="sm" variant="outline" onClick={() => setAddItemOpen(true)} className="gap-1 rounded-xl text-xs px-2">
               <Plus className="w-3 h-3" /> যোগ
             </Button>
-            <Button size="sm" onClick={startShopping} disabled={!masterItems?.length} className="gap-1.5 rounded-xl gradient-primary shadow-sm font-semibold">
-              <ShoppingCart className="w-3 h-3" /> বাজার করুন
+            <Button size="sm" onClick={startShopping} disabled={!masterItems?.length} className="gap-1 rounded-xl gradient-primary shadow-sm font-semibold text-xs px-2">
+              <ShoppingCart className="w-3 h-3" /> বাজার
             </Button>
           </div>
         </div>
