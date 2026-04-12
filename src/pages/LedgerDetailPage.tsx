@@ -149,9 +149,9 @@ const LedgerDetailPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen page-gradient">
       {/* Compact Dark Header */}
-      <div className="sticky top-0 z-10 gradient-header px-4 pt-3 pb-4" style={{ boxShadow: '0 4px 16px -4px rgba(0,0,0,0.5)' }}>
+      <div className="sticky top-0 z-10 gradient-header px-4 pt-3 pb-4">
         <div className="max-w-lg mx-auto flex items-center gap-3">
           <Button
             variant="ghost"
