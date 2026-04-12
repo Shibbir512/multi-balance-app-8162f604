@@ -23,6 +23,24 @@ import CalculatorInput from "@/components/CalculatorInput";
 import MonthlyChart from "@/components/MonthlyChart";
 import ExpensePieChart from "@/components/ExpensePieChart";
 
+const BENGALI_MONTHS = ["জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"];
+
+const formatBengaliDate = (dateStr: string, timeStr?: string | null) => {
+  const [y, m, d] = dateStr.split("-");
+  const day = parseInt(d).toLocaleString("bn-BD");
+  const month = BENGALI_MONTHS[parseInt(m) - 1];
+  const year = parseInt(y).toLocaleString("bn-BD").replace(/,/g, "");
+  let result = `${day} ${month}, ${year}`;
+  if (timeStr) {
+    const [h, min] = timeStr.split(":");
+    const hour = parseInt(h);
+    const period = hour >= 12 ? "PM" : "AM";
+    const h12 = hour % 12 || 12;
+    result += ` ${h12.toLocaleString("bn-BD")}:${min} ${period}`;
+  }
+  return result;
+};
+
 const LedgerDetailPage = () => {
   const { ledgerId } = useParams<{ ledgerId: string }>();
   const navigate = useNavigate();
