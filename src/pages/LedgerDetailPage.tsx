@@ -99,6 +99,11 @@ const LedgerDetailPage = () => {
       if (filterMonth !== "all" && m !== filterMonth) return false;
       if (filterYear !== "all" && y !== filterYear) return false;
     }
+    if (filterCategory !== "all") {
+      if ((t.categories as any)?.name !== filterCategory) return false;
+    }
+    if (filterDateFrom && t.date < filterDateFrom) return false;
+    if (filterDateTo && t.date > filterDateTo) return false;
     return true;
   }) ?? [];
 
