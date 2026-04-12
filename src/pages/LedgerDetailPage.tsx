@@ -165,7 +165,8 @@ const LedgerDetailPage = () => {
       setTxDialogOpen(false);
       setTxAmount("");
       setTxCategory("");
-      setTxAccount("");
+      const nagad = accounts?.find(a => a.name === "নগদ" || a.name.toLowerCase() === "cash");
+      setTxAccount(nagad?.id || "");
       setTxNote("");
       toast.success(txType === "income" ? "আয় যোগ হয়েছে!" : "খরচ যোগ হয়েছে!");
     },
