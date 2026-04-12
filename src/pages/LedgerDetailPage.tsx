@@ -361,7 +361,8 @@ const LedgerDetailPage = () => {
                 <p className="text-xs text-muted-foreground mt-1">আয় বা খরচ যোগ করুন</p>
               </div>
             ) : (
-              filteredTransactions.map((tx, index) => {
+              <>
+              {filteredTransactions.map((tx, index) => {
                 const cardId = tx.id;
                 return (
                 <SwipeableCard
@@ -399,7 +400,8 @@ const LedgerDetailPage = () => {
                   </div>
                 </SwipeableCard>
                 );
-              }))
+              })}
+              </>
             )}
           </div>
         )}
