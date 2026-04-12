@@ -90,6 +90,15 @@ const LedgerDetailPage = () => {
     },
   });
 
+  // Default select "নগদ" account
+  useEffect(() => {
+    if (accounts?.length && !txAccount) {
+      const nagad = accounts.find(a => a.name === "নগদ" || a.name.toLowerCase() === "cash");
+      if (nagad) setTxAccount(nagad.id);
+    }
+  }, [accounts]);
+
+
   const { data: categories } = useQuery({
     queryKey: ["categories", ledgerId],
     queryFn: async () => {
@@ -156,7 +165,8 @@ const LedgerDetailPage = () => {
       setTxDialogOpen(false);
       setTxAmount("");
       setTxCategory("");
-      setTxAccount("");
+      const nagad = accounts?.find(a => a.name === "নগদ" || a.name.toLowerCase() === "cash");
+      setTxAccount(nagad?.id || "");
       setTxNote("");
       toast.success(txType === "income" ? "আয় যোগ হয়েছে!" : "খরচ যোগ হয়েছে!");
     },
