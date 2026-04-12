@@ -51,13 +51,14 @@
 
     /* Premium tokens - Light */
     --gradient-primary: linear-gradient(135deg, #6366F1, #8B5CF6);
-    --gradient-header: linear-gradient(135deg, #4F46E5, #7C3AED);
+    --gradient-header: linear-gradient(135deg, #4338CA, #7C3AED, #4F46E5);
     --shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.06);
     --shadow-card-hover: 0 8px 24px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.06);
     --shadow-hero: 0 8px 32px rgba(79,70,229,0.12), 0 2px 8px rgba(0,0,0,0.06);
-    --glass-bg: rgba(255, 255, 255, 0.85);
+    --glass-bg: rgba(255, 255, 255, 0.92);
     --glass-border: rgba(0, 0, 0, 0.06);
     --hero-glow: radial-gradient(ellipse at top right, rgba(99,102,241,0.12), transparent 60%);
+    --hero-overlay: linear-gradient(135deg, rgba(99,102,241,0.06), transparent 70%);
     --income-bg: rgba(5, 150, 105, 0.08);
     --income-border: rgba(5, 150, 105, 0.15);
     --income-text: #047857;
@@ -72,6 +73,13 @@
     --tab-inactive-bg: rgba(0, 0, 0, 0.03);
     --tab-inactive: #94A3B8;
     --tab-glow: 0 2px 12px rgba(99,102,241,0.25);
+    --card-alt-bg: #F1F5F9;
+    --page-gradient: linear-gradient(180deg, #F8FAFC 0%, #EEF2FF 100%);
+    --header-glow: 0 8px 25px rgba(99,102,241,0.3);
+    --fab-gradient: linear-gradient(135deg, #6366F1, #8B5CF6);
+    --fab-shadow: 0 8px 24px rgba(99,102,241,0.4);
+    --grocery-check-bg: rgba(5, 150, 105, 0.1);
+    --grocery-check-color: #059669;
   }
 
   /* ─── Dark Mode ─── */
@@ -118,13 +126,14 @@
 
     /* Premium tokens - Dark */
     --gradient-primary: linear-gradient(135deg, #6366F1, #8B5CF6);
-    --gradient-header: linear-gradient(135deg, #1E1B4B, #312E81);
+    --gradient-header: linear-gradient(135deg, #1E1B4B, #312E81, #1E1B4B);
     --shadow-card: 0 2px 8px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.25);
     --shadow-card-hover: 0 12px 32px rgba(0,0,0,0.45), 0 4px 12px rgba(0,0,0,0.3);
     --shadow-hero: 0 8px 40px rgba(99,102,241,0.2), 0 4px 16px rgba(0,0,0,0.3);
     --glass-bg: rgba(255, 255, 255, 0.05);
     --glass-border: rgba(255, 255, 255, 0.1);
     --hero-glow: radial-gradient(ellipse at top right, rgba(99,102,241,0.25), transparent 60%);
+    --hero-overlay: linear-gradient(135deg, rgba(255,255,255,0.08), transparent 70%);
     --income-bg: rgba(16, 185, 129, 0.1);
     --income-border: rgba(16, 185, 129, 0.18);
     --income-text: #6EE7B7;
@@ -139,6 +148,13 @@
     --tab-inactive-bg: rgba(255, 255, 255, 0.05);
     --tab-inactive: rgba(255, 255, 255, 0.4);
     --tab-glow: 0 2px 16px rgba(99,102,241,0.3);
+    --card-alt-bg: rgba(255, 255, 255, 0.03);
+    --page-gradient: linear-gradient(180deg, #0F172A 0%, #1E1B4B 50%, #0F172A 100%);
+    --header-glow: 0 8px 25px rgba(99,102,241,0.2);
+    --fab-gradient: linear-gradient(135deg, #6366F1, #8B5CF6);
+    --fab-shadow: 0 8px 24px rgba(99,102,241,0.35);
+    --grocery-check-bg: rgba(16, 185, 129, 0.15);
+    --grocery-check-color: #34D399;
   }
 }
 
@@ -154,6 +170,11 @@
 }
 
 @layer utilities {
+  .page-gradient {
+    background: var(--page-gradient);
+    min-height: 100vh;
+  }
+
   .glass {
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
@@ -167,6 +188,7 @@
 
   .gradient-header {
     background: var(--gradient-header);
+    box-shadow: var(--header-glow);
   }
 
   .shadow-card {
@@ -199,6 +221,11 @@
     transform: scale(0.98) translateY(0);
   }
 
+  .premium-card-alt {
+    @apply premium-card;
+    background: var(--card-alt-bg);
+  }
+
   .hero-card {
     @apply glass rounded-2xl;
     box-shadow: var(--shadow-hero);
@@ -211,6 +238,15 @@
     position: absolute;
     inset: 0;
     background: var(--hero-glow);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .hero-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--hero-overlay);
     pointer-events: none;
     z-index: 0;
   }
@@ -273,6 +309,29 @@
   .expense-zone {
     background: var(--expense-bg);
     border-color: var(--expense-border);
+  }
+
+  .fab-button {
+    background: var(--fab-gradient);
+    box-shadow: var(--fab-shadow);
+    @apply transition-all duration-200 ease-out;
+  }
+  .fab-button:hover {
+    transform: translateY(-2px) scale(1.05);
+    filter: brightness(1.1);
+  }
+  .fab-button:active {
+    transform: scale(0.92);
+  }
+
+  .grocery-item {
+    @apply premium-card p-3 transition-all duration-200;
+  }
+  .grocery-item-checked {
+    opacity: 0.55;
+  }
+  .grocery-item-checked .grocery-item-name {
+    text-decoration: line-through;
   }
 
   .no-scrollbar::-webkit-scrollbar {

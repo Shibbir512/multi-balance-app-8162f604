@@ -149,9 +149,9 @@ const LedgerDetailPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen page-gradient">
       {/* Compact Dark Header */}
-      <div className="sticky top-0 z-10 gradient-header px-4 pt-3 pb-4" style={{ boxShadow: '0 4px 16px -4px rgba(0,0,0,0.5)' }}>
+      <div className="sticky top-0 z-10 gradient-header px-4 pt-3 pb-4">
         <div className="max-w-lg mx-auto flex items-center gap-3">
           <Button
             variant="ghost"
@@ -413,6 +413,15 @@ const LedgerDetailPage = () => {
         categories={categories ?? []}
         ledgerId={ledgerId!}
       />
+
+      {/* Floating Action Button */}
+      <button
+        onClick={() => openTxDialog("expense")}
+        className="fixed bottom-6 right-6 w-14 h-14 rounded-full fab-button flex items-center justify-center z-50 text-white"
+        aria-label="Add transaction"
+      >
+        <Plus className="w-6 h-6" />
+      </button>
     </div>
   );
 };
