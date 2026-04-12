@@ -243,7 +243,7 @@ const LedgerDetailPage = () => {
         {/* Tab Content */}
         {activeTab === "transactions" && (
           <div className="space-y-2.5 pb-8">
-            <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="premium-card p-3 flex items-center justify-between flex-wrap gap-2">
               <TransactionFilters
                 month={filterMonth}
                 year={filterYear}
