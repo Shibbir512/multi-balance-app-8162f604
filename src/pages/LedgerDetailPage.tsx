@@ -246,6 +246,7 @@ const LedgerDetailPage = () => {
         {activeTab === "transactions" && (
           <div className="space-y-2.5 pb-8">
             <MonthlyChart transactions={transactions ?? []} />
+            <ExpensePieChart transactions={transactions as any ?? []} />
             <div className="premium-card p-3 flex items-center justify-between flex-wrap gap-2">
               <TransactionFilters
                 month={filterMonth}
