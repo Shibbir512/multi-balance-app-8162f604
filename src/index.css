@@ -334,6 +334,28 @@
     text-decoration: line-through;
   }
 
+  /* Premium form inputs */
+  .form-input {
+    @apply w-full h-12 rounded-xl border px-3 text-base transition-all duration-200;
+    background: hsl(var(--muted));
+    border-color: var(--glass-border);
+  }
+  .form-input:focus {
+    @apply outline-none ring-2;
+    --tw-ring-color: hsl(var(--primary));
+    border-color: hsl(var(--primary));
+  }
+  .form-input-amount {
+    @apply form-input text-xl font-semibold h-14;
+  }
+
+  .form-section {
+    @apply space-y-4;
+  }
+  .form-section-gap {
+    @apply space-y-5;
+  }
+
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
