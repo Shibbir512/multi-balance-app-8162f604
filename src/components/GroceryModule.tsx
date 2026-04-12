@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
 import {
-  Plus, ShoppingCart, Package, Minus, Check, ArrowRight, ArrowLeft, Pencil, Trash2, Clock, Sparkles, CheckCircle2, Circle
+  Plus, ShoppingCart, Package, Minus, Check, ArrowRight, ArrowLeft, Pencil, Trash2, Clock, Sparkles, CheckCircle2, Circle, Download
 } from "lucide-react";
 import { toast } from "sonner";
 import { useGroceryReminders } from "@/hooks/useGroceryReminders";
