@@ -1,6 +1,6 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
+import { X, CalendarDays, Calendar } from "lucide-react";
 
 const MONTHS = [
   "জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন",
@@ -21,9 +21,11 @@ const TransactionFilters = ({ month, year, onMonthChange, onYearChange, onClear 
   const hasFilter = month !== "all" || year !== "all";
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 flex-wrap">
+      {/* Month pill */}
       <Select value={month} onValueChange={onMonthChange}>
-        <SelectTrigger className="h-9 text-xs w-[110px] rounded-xl">
+        <SelectTrigger className="h-9 text-xs rounded-full px-3 gap-1.5 w-auto border-0 bg-muted hover:bg-accent transition-colors">
+          <CalendarDays className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
           <SelectValue placeholder="মাস" />
         </SelectTrigger>
         <SelectContent>
@@ -33,8 +35,11 @@ const TransactionFilters = ({ month, year, onMonthChange, onYearChange, onClear 
           ))}
         </SelectContent>
       </Select>
+
+      {/* Year pill */}
       <Select value={year} onValueChange={onYearChange}>
-        <SelectTrigger className="h-9 text-xs w-[90px] rounded-xl">
+        <SelectTrigger className="h-9 text-xs rounded-full px-3 gap-1.5 w-auto border-0 bg-muted hover:bg-accent transition-colors">
+          <Calendar className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
           <SelectValue placeholder="সাল" />
         </SelectTrigger>
         <SelectContent>
@@ -44,8 +49,15 @@ const TransactionFilters = ({ month, year, onMonthChange, onYearChange, onClear 
           ))}
         </SelectContent>
       </Select>
+
+      {/* Clear filter */}
       {hasFilter && (
-        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl" onClick={onClear}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 rounded-full bg-muted hover:bg-destructive/10 hover:text-destructive transition-colors"
+          onClick={onClear}
+        >
           <X className="w-3.5 h-3.5" />
         </Button>
       )}
