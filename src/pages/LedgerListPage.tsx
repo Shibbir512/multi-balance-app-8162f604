@@ -97,7 +97,7 @@ const LedgerListPage = () => {
   return (
     <div className="min-h-screen page-gradient">
       {/* Header */}
-      <div className="gradient-header px-4 pt-4 pb-10">
+      <div className="gradient-header px-4 pt-4 pb-14">
         <div className="flex items-center justify-between max-w-lg mx-auto">
           <div className="flex items-center gap-2.5">
             <img src="/favicon.png" alt="জমা খরচ" className="w-9 h-9 rounded-xl shadow-md" />
@@ -120,7 +120,7 @@ const LedgerListPage = () => {
       <div className="max-w-lg mx-auto px-4 -mt-3 pb-8">
         {/* Title + Add Button */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-bold text-foreground">আমার খাতাসমূহ</h2>
+          <h2 className="text-base font-bold text-foreground">খাতাসমূহ</h2>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="gap-1.5 rounded-xl btn-primary text-xs h-8 px-3">
