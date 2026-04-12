@@ -53,6 +53,7 @@ const LedgerDetailPage = () => {
   const [txAccount, setTxAccount] = useState("");
   const [txDate, setTxDate] = useState(new Date().toISOString().split("T")[0]);
   const [txNote, setTxNote] = useState("");
+  const [txTime, setTxTime] = useState(new Date().toTimeString().slice(0, 5));
   const [activeTab, setActiveTab] = useState("transactions");
 
   const [filterMonth, setFilterMonth] = useState("all");
@@ -142,8 +143,9 @@ const LedgerDetailPage = () => {
         type: txType,
         amount: parseFloat(txAmount),
         date: txDate,
+        time: txTime || null,
         note: txNote || null,
-      });
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -374,7 +376,7 @@ const LedgerDetailPage = () => {
                       <div>
                         <p className="text-sm font-semibold text-foreground">{(tx.categories as any)?.name || "—"}</p>
                         <p className="text-[11px] text-muted-foreground">
-                          {(tx.accounts as any)?.name || "—"} • {tx.date}
+                          {(tx.accounts as any)?.name || "—"} • {formatBengaliDate(tx.date, (tx as any).time)}
                         </p>
                         {tx.note && <p className="text-[11px] text-muted-foreground mt-0.5">{tx.note}</p>}
                       </div>
@@ -565,10 +567,16 @@ const LedgerDetailPage = () => {
               </div>
             </div>
 
-            {/* Date */}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">তারিখ</Label>
-              <Input type="date" value={txDate} onChange={(e) => setTxDate(e.target.value)} required className="form-input" />
+            {/* Date + Time */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">তারিখ</Label>
+                <Input type="date" value={txDate} onChange={(e) => setTxDate(e.target.value)} required className="form-input" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">সময়</Label>
+                <Input type="time" value={txTime} onChange={(e) => setTxTime(e.target.value)} className="form-input" />
+              </div>
             </div>
 
             {/* Note */}
