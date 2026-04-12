@@ -308,17 +308,26 @@ const LedgerDetailPage = () => {
             <MonthlyChart transactions={transactions ?? []} />
             <ExpensePieChart transactions={transactions as any ?? []} />
             <CategoryBreakdownTable transactions={transactions as any ?? []} />
-            <div className="premium-card p-3 flex items-center justify-between flex-wrap gap-2">
+            <div className="premium-card p-3 space-y-2">
               <TransactionFilters
                 month={filterMonth}
                 year={filterYear}
                 onMonthChange={setFilterMonth}
                 onYearChange={setFilterYear}
-                onClear={() => { setFilterMonth("all"); setFilterYear("all"); }}
+                onClear={() => { setFilterMonth("all"); setFilterYear("all"); setFilterCategory("all"); setFilterDateFrom(""); setFilterDateTo(""); }}
+                categoryFilter={filterCategory}
+                onCategoryChange={setFilterCategory}
+                categories={categories ?? []}
+                dateFrom={filterDateFrom}
+                dateTo={filterDateTo}
+                onDateFromChange={setFilterDateFrom}
+                onDateToChange={setFilterDateTo}
               />
-              {filteredTransactions.length > 0 && (
-                <AdvancedExport ledgerName={ledger?.name ?? "Report"} transactions={filteredTransactions as any} categories={categories ?? []} />
-              )}
+              <div className="flex justify-end">
+                {filteredTransactions.length > 0 && (
+                  <AdvancedExport ledgerName={ledger?.name ?? "Report"} transactions={filteredTransactions as any} categories={categories ?? []} />
+                )}
+              </div>
             </div>
 
             {!filteredTransactions.length ? (
