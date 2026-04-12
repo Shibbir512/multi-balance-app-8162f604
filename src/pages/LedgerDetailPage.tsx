@@ -90,7 +90,15 @@ const LedgerDetailPage = () => {
     },
   });
 
-  const { data: categories } = useQuery({
+  // Default select "নগদ" account
+  useEffect(() => {
+    if (accounts?.length && !txAccount) {
+      const nagad = accounts.find(a => a.name === "নগদ" || a.name.toLowerCase() === "cash");
+      if (nagad) setTxAccount(nagad.id);
+    }
+  }, [accounts]);
+
+
     queryKey: ["categories", ledgerId],
     queryFn: async () => {
       const { data, error } = await supabase.from("categories").select("*").eq("ledger_id", ledgerId!);
