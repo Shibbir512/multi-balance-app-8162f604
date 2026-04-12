@@ -97,6 +97,53 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
     },
   });
 
+  // Fetch all ledgers for import
+  const { data: allLedgers } = useQuery({
+    queryKey: ["ledgers"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("ledgers").select("id, name").order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const otherLedgers = useMemo(() => allLedgers?.filter(l => l.id !== ledgerId) ?? [], [allLedgers, ledgerId]);
+
+  // Fetch master items from selected source ledger
+  const { data: importSourceItems } = useQuery({
+    queryKey: ["grocery-master-import", importSourceLedger],
+    enabled: !!importSourceLedger,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("grocery_master_items").select("*").eq("ledger_id", importSourceLedger).order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const handleImport = async () => {
+    if (!importSourceItems || importSelectedItems.size === 0) return;
+    setImportLoading(true);
+    try {
+      const itemsToImport = importSourceItems.filter(i => importSelectedItems.has(i.id));
+      const existingNames = new Set(masterItems?.map(i => i.name.toLowerCase()) ?? []);
+      const newItems = itemsToImport.filter(i => !existingNames.has(i.name.toLowerCase()));
+      if (newItems.length === 0) {
+        toast.info("সব আইটেম আগে থেকেই এই লেজারে আছে");
+        return;
+      }
+      const { error } = await supabase.from("grocery_master_items").insert(
+        newItems.map(item => ({
+          ledger_id: ledgerId, user_id: user!.id, name: item.name, unit: item.unit, default_quantity: item.default_quantity,
+        }))
+      );
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["grocery-master", ledgerId] });
+      toast.success(`${newItems.length}টি আইটেম আমদানি হয়েছে!`);
+      setImportOpen(false); setImportSourceLedger(""); setImportSelectedItems(new Set());
+    } catch (e: any) { toast.error(e.message); }
+    finally { setImportLoading(false); }
+  };
+
   // Auto-suggest items based on purchase frequency
   const suggestedItems = useMemo(() => {
     if (!masterItems) return [];
