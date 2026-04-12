@@ -357,53 +357,66 @@ const LedgerDetailPage = () => {
         )}
       </div>
 
-      {/* Add Transaction Dialog */}
-      <Dialog open={txDialogOpen} onOpenChange={setTxDialogOpen}>
-        <DialogContent className="max-w-sm rounded-2xl bg-popover border-white/10">
-          <DialogHeader>
-            <DialogTitle className="text-lg">{txType === "income" ? "আয় যোগ করুন" : "খরচ যোগ করুন"}</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleAddTx} className="space-y-4">
-            <div className="space-y-2">
-              <Label>পরিমাণ (৳)</Label>
-              <CalculatorInput value={txAmount} onChange={setTxAmount} placeholder="যেমন: 500+200" required />
+      {/* Add Transaction Bottom Sheet */}
+      <BottomSheet open={txDialogOpen} onOpenChange={setTxDialogOpen}>
+        <BottomSheetContent>
+          <BottomSheetHeader>
+            <BottomSheetTitle>{txType === "income" ? "আয় যোগ করুন" : "খরচ যোগ করুন"}</BottomSheetTitle>
+            <BottomSheetDescription>
+              {txType === "income" ? "আয়ের বিবরণ দিন" : "খরচের বিবরণ দিন"}
+            </BottomSheetDescription>
+          </BottomSheetHeader>
+          <form onSubmit={handleAddTx} className="form-section-gap">
+            {/* Amount - special highlighted */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">পরিমাণ (৳)</Label>
+              <CalculatorInput value={txAmount} onChange={setTxAmount} placeholder="যেমন: 500 + 200" required className="form-input-amount" />
             </div>
-            <div className="space-y-2">
-              <Label>ক্যাটাগরি (ঐচ্ছিক)</Label>
-              <Select value={txCategory} onValueChange={setTxCategory}>
-                <SelectTrigger className="rounded-xl"><SelectValue placeholder="ক্যাটাগরি বাছুন" /></SelectTrigger>
-                <SelectContent>
-                  {filteredCategories.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+
+            {/* Category + Account side by side */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">ক্যাটাগরি</Label>
+                <Select value={txCategory} onValueChange={setTxCategory}>
+                  <SelectTrigger className="form-input"><SelectValue placeholder="বাছুন" /></SelectTrigger>
+                  <SelectContent>
+                    {filteredCategories.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">অ্যাকাউন্ট</Label>
+                <Select value={txAccount} onValueChange={setTxAccount}>
+                  <SelectTrigger className="form-input"><SelectValue placeholder="বাছুন" /></SelectTrigger>
+                  <SelectContent>
+                    {accounts?.map((a) => (
+                      <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>অ্যাকাউন্ট (ঐচ্ছিক)</Label>
-              <Select value={txAccount} onValueChange={setTxAccount}>
-                <SelectTrigger className="rounded-xl"><SelectValue placeholder="অ্যাকাউন্ট বাছুন" /></SelectTrigger>
-                <SelectContent>
-                  {accounts?.map((a) => (
-                    <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+
+            {/* Date */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">তারিখ</Label>
+              <Input type="date" value={txDate} onChange={(e) => setTxDate(e.target.value)} required className="form-input" />
             </div>
-            <div className="space-y-2">
-              <Label>তারিখ</Label>
-              <Input type="date" value={txDate} onChange={(e) => setTxDate(e.target.value)} required className="rounded-xl" />
+
+            {/* Note */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">নোট (ঐচ্ছিক)</Label>
+              <Input value={txNote} onChange={(e) => setTxNote(e.target.value)} placeholder="নোট লিখুন..." className="form-input" />
             </div>
-            <div className="space-y-2">
-              <Label>নোট (ঐচ্ছিক)</Label>
-              <Input value={txNote} onChange={(e) => setTxNote(e.target.value)} placeholder="নোট লিখুন..." className="rounded-xl" />
-            </div>
-            <Button type="submit" className="w-full h-11 rounded-2xl text-base btn-primary" disabled={addTransaction.isPending}>
+
+            <Button type="submit" className="w-full h-12 rounded-2xl text-base btn-primary mt-2" disabled={addTransaction.isPending}>
               {addTransaction.isPending ? "যোগ হচ্ছে..." : "যোগ করুন"}
             </Button>
           </form>
-        </DialogContent>
-      </Dialog>
+        </BottomSheetContent>
+      </BottomSheet>
 
       {/* Edit Transaction Dialog */}
       <TransactionEditDialog

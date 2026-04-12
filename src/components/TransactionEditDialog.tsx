@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetTitle, BottomSheetDescription } from "@/components/ui/bottom-sheet";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import CalculatorInput from "./CalculatorInput";
 import { toast } from "sonner";
@@ -92,60 +92,71 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-sm rounded-2xl bg-popover border-white/10">
-          <DialogHeader>
-            <DialogTitle className="text-lg">লেনদেন সম্পাদনা</DialogTitle>
-          </DialogHeader>
+      <BottomSheet open={open} onOpenChange={onOpenChange}>
+        <BottomSheetContent>
+          <BottomSheetHeader>
+            <BottomSheetTitle>লেনদেন সম্পাদনা</BottomSheetTitle>
+            <BottomSheetDescription>লেনদেনের তথ্য পরিবর্তন করুন</BottomSheetDescription>
+          </BottomSheetHeader>
           <form
             onSubmit={(e) => { e.preventDefault(); updateMutation.mutate(); }}
-            className="space-y-4"
+            className="form-section-gap"
           >
-            <div className="space-y-2">
-              <Label>পরিমাণ (৳)</Label>
-              <CalculatorInput value={amount} onChange={setAmount} required />
+            {/* Amount - highlighted */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">পরিমাণ (৳)</Label>
+              <CalculatorInput value={amount} onChange={setAmount} required className="form-input-amount" />
             </div>
-            <div className="space-y-2">
-              <Label>ক্যাটাগরি (ঐচ্ছিক)</Label>
-              <Select value={categoryId} onValueChange={setCategoryId}>
-                <SelectTrigger className="rounded-xl"><SelectValue placeholder="বাছুন" /></SelectTrigger>
-                <SelectContent>
-                  {filteredCategories.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+
+            {/* Category + Account side by side */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">ক্যাটাগরি</Label>
+                <Select value={categoryId} onValueChange={setCategoryId}>
+                  <SelectTrigger className="form-input"><SelectValue placeholder="বাছুন" /></SelectTrigger>
+                  <SelectContent>
+                    {filteredCategories.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">অ্যাকাউন্ট</Label>
+                <Select value={accountId} onValueChange={setAccountId}>
+                  <SelectTrigger className="form-input"><SelectValue placeholder="বাছুন" /></SelectTrigger>
+                  <SelectContent>
+                    {accounts.map((a) => (
+                      <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>অ্যাকাউন্ট (ঐচ্ছিক)</Label>
-              <Select value={accountId} onValueChange={setAccountId}>
-                <SelectTrigger className="rounded-xl"><SelectValue placeholder="বাছুন" /></SelectTrigger>
-                <SelectContent>
-                  {accounts.map((a) => (
-                    <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+
+            {/* Date */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">তারিখ</Label>
+              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="form-input" />
             </div>
-            <div className="space-y-2">
-              <Label>তারিখ</Label>
-              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="rounded-xl" />
+
+            {/* Note */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">নোট (ঐচ্ছিক)</Label>
+              <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="নোট..." className="form-input" />
             </div>
-            <div className="space-y-2">
-              <Label>নোট (ঐচ্ছিক)</Label>
-              <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="নোট..." className="rounded-xl" />
-            </div>
-            <div className="flex gap-2">
-              <Button type="submit" className="flex-1 h-11 rounded-2xl gradient-primary shadow-md font-semibold" disabled={updateMutation.isPending}>
+
+            <div className="flex gap-3 mt-2">
+              <Button type="submit" className="flex-1 h-12 rounded-2xl btn-primary text-base" disabled={updateMutation.isPending}>
                 {updateMutation.isPending ? "আপডেট হচ্ছে..." : "আপডেট"}
               </Button>
-              <Button type="button" variant="destructive" onClick={() => setDeleteOpen(true)} className="rounded-2xl h-11">
+              <Button type="button" variant="destructive" onClick={() => setDeleteOpen(true)} className="rounded-2xl h-12 px-5">
                 মুছুন
               </Button>
             </div>
           </form>
-        </DialogContent>
-      </Dialog>
+        </BottomSheetContent>
+      </BottomSheet>
 
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent className="rounded-2xl bg-popover border-white/10">
