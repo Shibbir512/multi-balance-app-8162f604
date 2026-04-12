@@ -99,7 +99,7 @@ const LedgerDetailPage = () => {
   }, [accounts]);
 
 
-    queryKey: ["categories", ledgerId],
+    const { data: categories } = useQuery({
     queryFn: async () => {
       const { data, error } = await supabase.from("categories").select("*").eq("ledger_id", ledgerId!);
       if (error) throw error;
