@@ -413,6 +413,15 @@ const LedgerDetailPage = () => {
         categories={categories ?? []}
         ledgerId={ledgerId!}
       />
+
+      {/* Floating Action Button */}
+      <button
+        onClick={() => openTxDialog("expense")}
+        className="fixed bottom-6 right-6 w-14 h-14 rounded-full fab-button flex items-center justify-center z-50 text-white"
+        aria-label="Add transaction"
+      >
+        <Plus className="w-6 h-6" />
+      </button>
     </div>
   );
 };
