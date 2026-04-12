@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetTitle, BottomSheetDescription } from "@/components/ui/bottom-sheet";
-import { ArrowLeft, Plus, TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, Pencil, ShoppingCart, Calculator, CreditCard, Tag } from "lucide-react";
+import { ArrowLeft, Plus, TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, Pencil, ShoppingCart, Calculator, CreditCard, Tag, Trash2, X } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import { toast } from "sonner";
 import GroceryModule from "@/components/GroceryModule";
@@ -16,7 +16,8 @@ import { useGroceryReminders } from "@/hooks/useGroceryReminders";
 import GroceryReminders from "@/components/GroceryReminders";
 import ZakatCalculator from "@/components/ZakatCalculator";
 import TransactionFilters from "@/components/TransactionFilters";
-import PdfExport from "@/components/PdfExport";
+import AdvancedExport from "@/components/AdvancedExport";
+import CategoryBreakdownTable from "@/components/CategoryBreakdownTable";
 import TransactionEditDialog from "@/components/TransactionEditDialog";
 import CalculatorInput from "@/components/CalculatorInput";
 import MonthlyChart from "@/components/MonthlyChart";
@@ -44,6 +45,8 @@ const LedgerDetailPage = () => {
   const [fabOpen, setFabOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [showNewCategory, setShowNewCategory] = useState(false);
+  const [editCategoryId, setEditCategoryId] = useState<string | null>(null);
+  const [editCategoryName, setEditCategoryName] = useState("");
 
   const { data: ledger } = useQuery({
     queryKey: ["ledger", ledgerId],
@@ -147,6 +150,32 @@ const LedgerDetailPage = () => {
       setNewCategoryName("");
       setShowNewCategory(false);
       toast.success("ক্যাটাগরি যোগ হয়েছে!");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const updateCategory = useMutation({
+    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+      const { error } = await supabase.from("categories").update({ name }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories", ledgerId] });
+      setEditCategoryId(null);
+      setEditCategoryName("");
+      toast.success("ক্যাটাগরি আপডেট হয়েছে!");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const deleteCategory = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("categories").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories", ledgerId] });
+      toast.success("ক্যাটাগরি মুছে ফেলা হয়েছে!");
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -270,6 +299,7 @@ const LedgerDetailPage = () => {
           <div className="space-y-2.5 pb-8">
             <MonthlyChart transactions={transactions ?? []} />
             <ExpensePieChart transactions={transactions as any ?? []} />
+            <CategoryBreakdownTable transactions={transactions as any ?? []} />
             <div className="premium-card p-3 flex items-center justify-between flex-wrap gap-2">
               <TransactionFilters
                 month={filterMonth}
@@ -279,7 +309,7 @@ const LedgerDetailPage = () => {
                 onClear={() => { setFilterMonth("all"); setFilterYear("all"); }}
               />
               {filteredTransactions.length > 0 && (
-                <PdfExport ledgerName={ledger?.name ?? "Report"} transactions={filteredTransactions as any} />
+                <AdvancedExport ledgerName={ledger?.name ?? "Report"} transactions={filteredTransactions as any} categories={categories ?? []} />
               )}
             </div>
 
@@ -356,30 +386,70 @@ const LedgerDetailPage = () => {
 
         {activeTab === "categories" && (
           <div className="space-y-4 pb-8">
-            <div>
-              <h3 className="text-sm font-bold text-emerald-400 mb-2 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-emerald-400" /> আয়ের ক্যাটাগরি
-              </h3>
-              <div className="space-y-1.5">
-                {categories?.filter((c) => c.type === "income").map((c) => (
-                  <div key={c.id} className="premium-card p-3">
-                    <p className="text-sm font-medium text-foreground">{c.name}</p>
-                  </div>
-                ))}
+            {["income", "expense"].map((type) => (
+              <div key={type}>
+                <h3 className={`text-sm font-bold mb-2 flex items-center gap-2 ${type === "income" ? "text-emerald-400" : "text-red-400"}`}>
+                  <div className={`w-2 h-2 rounded-full ${type === "income" ? "bg-emerald-400" : "bg-red-400"}`} />
+                  {type === "income" ? "আয়ের ক্যাটাগরি" : "খরচের ক্যাটাগরি"}
+                </h3>
+                <div className="space-y-1.5">
+                  {categories?.filter((c) => c.type === type).map((c) => (
+                    <div key={c.id} className="premium-card p-3 flex items-center justify-between gap-2">
+                      {editCategoryId === c.id ? (
+                        <div className="flex items-center gap-2 flex-1">
+                          <Input
+                            value={editCategoryName}
+                            onChange={(e) => setEditCategoryName(e.target.value)}
+                            className="form-input flex-1 h-9"
+                            autoFocus
+                          />
+                          <Button
+                            size="icon"
+                            className="h-9 w-9 rounded-xl btn-primary shrink-0"
+                            disabled={!editCategoryName.trim() || updateCategory.isPending}
+                            onClick={() => updateCategory.mutate({ id: c.id, name: editCategoryName.trim() })}
+                          >
+                            ✓
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-9 w-9 rounded-xl shrink-0"
+                            onClick={() => { setEditCategoryId(null); setEditCategoryName(""); }}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-sm font-medium text-foreground flex-1">{c.name}</p>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 rounded-lg"
+                              onClick={() => { setEditCategoryId(c.id); setEditCategoryName(c.name); }}
+                            >
+                              <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 rounded-lg text-destructive hover:text-destructive"
+                              onClick={() => {
+                                if (confirm("এই ক্যাটাগরি মুছে ফেলতে চান?")) deleteCategory.mutate(c.id);
+                              }}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-red-400 mb-2 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-red-400" /> খরচের ক্যাটাগরি
-              </h3>
-              <div className="space-y-1.5">
-                {categories?.filter((c) => c.type === "expense").map((c) => (
-                  <div key={c.id} className="premium-card p-3">
-                    <p className="text-sm font-medium text-foreground">{c.name}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
+            ))}
           </div>
         )}
       </div>
