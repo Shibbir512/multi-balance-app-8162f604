@@ -279,6 +279,7 @@ export type Database = {
           id: string
           ledger_id: string
           note: string | null
+          time: string | null
           type: string
           user_id: string
         }
@@ -291,6 +292,7 @@ export type Database = {
           id?: string
           ledger_id: string
           note?: string | null
+          time?: string | null
           type: string
           user_id: string
         }
@@ -303,6 +305,7 @@ export type Database = {
           id?: string
           ledger_id?: string
           note?: string | null
+          time?: string | null
           type?: string
           user_id?: string
         }
