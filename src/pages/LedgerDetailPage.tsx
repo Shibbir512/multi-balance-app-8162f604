@@ -414,14 +414,47 @@ const LedgerDetailPage = () => {
         ledgerId={ledgerId!}
       />
 
-      {/* Floating Action Button */}
-      <button
-        onClick={() => openTxDialog("expense")}
-        className="fixed bottom-6 right-6 w-14 h-14 rounded-full fab-button flex items-center justify-center z-50 text-white"
-        aria-label="Add transaction"
-      >
-        <Plus className="w-6 h-6" />
-      </button>
+      {/* Expandable FAB */}
+      {fabOpen && (
+        <div
+          className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-40 transition-opacity duration-200"
+          onClick={() => setFabOpen(false)}
+        />
+      )}
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+        {fabOpen && (
+          <>
+            <button
+              onClick={() => { setFabOpen(false); openTxDialog("income"); }}
+              className="flex items-center gap-2 animate-fade-in"
+              style={{ animationDuration: '0.15s' }}
+            >
+              <span className="text-xs font-semibold text-foreground bg-popover/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-md">আয়</span>
+              <div className="w-11 h-11 rounded-full bg-emerald-500 shadow-lg flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-transform">
+                <ArrowUpRight className="w-5 h-5" />
+              </div>
+            </button>
+            <button
+              onClick={() => { setFabOpen(false); openTxDialog("expense"); }}
+              className="flex items-center gap-2 animate-fade-in"
+              style={{ animationDuration: '0.2s' }}
+            >
+              <span className="text-xs font-semibold text-foreground bg-popover/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-md">খরচ</span>
+              <div className="w-11 h-11 rounded-full bg-red-500 shadow-lg flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-transform">
+                <ArrowDownRight className="w-5 h-5" />
+              </div>
+            </button>
+          </>
+        )}
+        <button
+          onClick={() => setFabOpen((v) => !v)}
+          className="w-14 h-14 rounded-full fab-button flex items-center justify-center text-white shadow-xl transition-transform duration-200"
+          style={{ transform: fabOpen ? 'rotate(45deg)' : 'rotate(0deg)' }}
+          aria-label="Add transaction"
+        >
+          <Plus className="w-6 h-6" />
+        </button>
+      </div>
     </div>
   );
 };
