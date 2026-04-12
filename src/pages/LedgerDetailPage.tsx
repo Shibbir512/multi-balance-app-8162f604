@@ -494,19 +494,17 @@ const LedgerDetailPage = () => {
       {/* Add Transaction Bottom Sheet - Premium Fintech UI */}
       <BottomSheet open={txDialogOpen} onOpenChange={setTxDialogOpen}>
         <BottomSheetContent className="p-0 rounded-t-3xl">
-          {/* Header with subtle gradient tint */}
-          <div className="px-5 pt-6 pb-4 relative" style={{ background: 'linear-gradient(180deg, hsl(var(--primary) / 0.06), transparent)' }}>
-            {/* Drag handle */}
-            <div className="flex justify-center mb-4">
+          <div className="px-4 pt-4 pb-2 relative" style={{ background: 'linear-gradient(180deg, hsl(var(--primary) / 0.06), transparent)' }}>
+            <div className="flex justify-center mb-2">
               <div className="w-10 h-1 rounded-full bg-muted-foreground/20" />
             </div>
 
             {/* Segmented Toggle */}
-            <div className="flex gap-1 p-1 rounded-2xl mb-4" style={{ background: 'hsl(var(--muted))' }}>
+            <div className="flex gap-1 p-0.5 rounded-xl mb-2.5" style={{ background: 'hsl(var(--muted))' }}>
               <button
                 type="button"
                 onClick={() => { setTxType("income"); setTxCategory(""); }}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
                   txType === "income"
                     ? "bg-gradient-to-r from-[#6D5DFC] to-[#8B5CF6] text-white shadow-md"
                     : "text-muted-foreground hover:text-foreground"
@@ -517,7 +515,7 @@ const LedgerDetailPage = () => {
               <button
                 type="button"
                 onClick={() => { setTxType("expense"); setTxCategory(""); }}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
                   txType === "expense"
                     ? "bg-gradient-to-r from-[#6D5DFC] to-[#8B5CF6] text-white shadow-md"
                     : "text-muted-foreground hover:text-foreground"
@@ -528,95 +526,94 @@ const LedgerDetailPage = () => {
             </div>
 
             {/* Title row */}
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{
                 background: txType === "income" ? 'var(--income-bg)' : 'var(--expense-bg)',
               }}>
                 {txType === "income" ? (
-                  <TrendingUp className="w-4 h-4" style={{ color: 'var(--income-text-soft)' }} />
+                  <TrendingUp className="w-3.5 h-3.5" style={{ color: 'var(--income-text-soft)' }} />
                 ) : (
-                  <TrendingDown className="w-4 h-4" style={{ color: 'var(--expense-text-soft)' }} />
+                  <TrendingDown className="w-3.5 h-3.5" style={{ color: 'var(--expense-text-soft)' }} />
                 )}
               </div>
               <div>
-                <h2 className="text-base font-bold text-foreground">
+                <h2 className="text-sm font-bold text-foreground">
                   {txType === "income" ? "আয় যোগ করুন" : "খরচ যোগ করুন"}
                 </h2>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[10px] text-muted-foreground">
                   {txType === "income" ? "আয়ের বিবরণ দিন" : "খরচের বিবরণ দিন"}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Form Body */}
-          <form onSubmit={handleAddTx} className="px-5 pb-6 space-y-4">
-            {/* Amount Input - Premium card style */}
-            <div className="rounded-2xl p-4 border transition-all duration-200" style={{
+          {/* Form Body - compact */}
+          <form onSubmit={handleAddTx} className="px-4 pb-4 space-y-2.5">
+            {/* Amount Input */}
+            <div className="rounded-xl p-3 border transition-all duration-200" style={{
               background: 'hsl(var(--card))',
               borderColor: 'var(--glass-border)',
               boxShadow: 'var(--shadow-card)',
             }}>
-              <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">পরিমাণ (৳)</label>
+              <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">পরিমাণ (৳)</label>
               <CalculatorInput
                 value={txAmount}
                 onChange={setTxAmount}
                 placeholder="যেমন: 500 + 200"
                 required
-                className="border-0 bg-transparent text-xl font-semibold h-12 px-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/40"
+                className="border-0 bg-transparent text-lg font-semibold h-10 px-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/40"
               />
               {txAmount && parseFloat(txAmount) > 0 && (
-                <p className="text-xs mt-1.5 font-medium" style={{ color: txType === "income" ? 'var(--income-text-soft)' : 'var(--expense-text-soft)' }}>
+                <p className="text-[11px] mt-1 font-medium" style={{ color: txType === "income" ? 'var(--income-text-soft)' : 'var(--expense-text-soft)' }}>
                   মোট: ৳{parseFloat(txAmount).toLocaleString("bn-BD")}
                 </p>
               )}
             </div>
 
-            {/* Category Selection - Card-based */}
+            {/* Category Selection */}
             <div>
-              <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">ক্যাটাগরি</label>
+              <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">ক্যাটাগরি</label>
               {showNewCategory ? (
-                <div className="flex gap-2">
+                <div className="flex gap-1.5">
                   <Input
                     value={newCategoryName}
                     onChange={(e) => setNewCategoryName(e.target.value)}
-                    placeholder="ক্যাটাগরি নাম লিখুন"
-                    className="form-input flex-1"
+                    placeholder="ক্যাটাগরি নাম"
+                    className="form-input flex-1 h-8 text-xs"
                     autoFocus
                   />
                   <Button
                     type="button"
                     size="icon"
-                    className="h-12 w-12 shrink-0 rounded-xl btn-primary"
+                    className="h-8 w-8 shrink-0 rounded-lg btn-primary"
                     disabled={!newCategoryName.trim() || addCategory.isPending}
                     onClick={() => addCategory.mutate()}
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-3.5 h-3.5" />
                   </Button>
                   <Button
                     type="button"
                     size="icon"
                     variant="ghost"
-                    className="h-12 w-10 shrink-0 rounded-xl"
+                    className="h-8 w-8 shrink-0 rounded-lg"
                     onClick={() => { setShowNewCategory(false); setNewCategoryName(""); }}
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-3.5 h-3.5" />
                   </Button>
                 </div>
               ) : (
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {filteredCategories.map((c) => (
                     <button
                       key={c.id}
                       type="button"
                       onClick={() => setTxCategory(c.id)}
-                      className={`relative flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-200 border overflow-hidden ${
+                      className={`relative flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 border overflow-hidden ${
                         txCategory === c.id
                           ? "border-primary bg-primary/8 text-foreground shadow-sm"
                           : "border-border/60 bg-card text-muted-foreground hover:border-primary/30 hover:bg-primary/4"
                       }`}
                     >
-                      {/* Left accent bar */}
                       <div
                         className={`absolute left-0 top-0 bottom-0 w-[3px] rounded-r transition-opacity duration-200 ${txCategory === c.id ? "opacity-100" : "opacity-0"}`}
                         style={{ background: txType === "income" ? 'var(--income-text-soft)' : 'var(--expense-text-soft)' }}
@@ -627,24 +624,24 @@ const LedgerDetailPage = () => {
                   <button
                     type="button"
                     onClick={() => setShowNewCategory(true)}
-                    className="flex items-center gap-1 px-3.5 py-2 rounded-xl text-sm font-medium border border-dashed border-primary/30 text-primary hover:bg-primary/5 transition-all duration-200"
+                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-dashed border-primary/30 text-primary hover:bg-primary/5 transition-all duration-200"
                   >
-                    <Plus className="w-3.5 h-3.5" /> নতুন
+                    <Plus className="w-3 h-3" /> নতুন
                   </button>
                 </div>
               )}
             </div>
 
-            {/* Account Selection - Card-based */}
+            {/* Account Selection */}
             <div>
-              <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">অ্যাকাউন্ট</label>
-              <div className="flex flex-wrap gap-2">
+              <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">অ্যাকাউন্ট</label>
+              <div className="flex flex-wrap gap-1.5">
                 {accounts?.map((a) => (
                   <button
                     key={a.id}
                     type="button"
                     onClick={() => setTxAccount(a.id)}
-                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-200 border ${
+                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 border ${
                       txAccount === a.id
                         ? "border-primary bg-primary/8 text-foreground shadow-sm"
                         : "border-border/60 bg-card text-muted-foreground hover:border-primary/30 hover:bg-primary/4"
@@ -656,56 +653,54 @@ const LedgerDetailPage = () => {
               </div>
             </div>
 
-            {/* Date & Time - Clean single row */}
-            <div className="grid grid-cols-2 gap-2">
-              <div className="flex items-center gap-2 rounded-xl border px-3 py-2.5 transition-all duration-200" style={{
+            {/* Date & Time */}
+            <div className="grid grid-cols-2 gap-1.5">
+              <div className="flex items-center gap-1.5 rounded-lg border px-2.5 py-2" style={{
                 background: 'hsl(var(--muted))',
                 borderColor: 'var(--glass-border)',
               }}>
-                <span className="text-sm">📅</span>
+                <span className="text-xs">📅</span>
                 <input
                   type="date"
                   value={txDate}
                   onChange={(e) => setTxDate(e.target.value)}
                   required
-                  className="bg-transparent border-0 outline-none text-sm font-medium text-foreground flex-1 w-full"
+                  className="bg-transparent border-0 outline-none text-xs font-medium text-foreground flex-1 w-full"
                 />
               </div>
-              <div className="flex items-center gap-2 rounded-xl border px-3 py-2.5 transition-all duration-200" style={{
+              <div className="flex items-center gap-1.5 rounded-lg border px-2.5 py-2" style={{
                 background: 'hsl(var(--muted))',
                 borderColor: 'var(--glass-border)',
               }}>
-                <span className="text-sm">🕒</span>
+                <span className="text-xs">🕒</span>
                 <input
                   type="time"
                   value={txTime}
                   onChange={(e) => setTxTime(e.target.value)}
-                  className="bg-transparent border-0 outline-none text-sm font-medium text-foreground flex-1 w-full"
+                  className="bg-transparent border-0 outline-none text-xs font-medium text-foreground flex-1 w-full"
                 />
               </div>
             </div>
 
             {/* Note */}
-            <div>
-              <textarea
-                value={txNote}
-                onChange={(e) => setTxNote(e.target.value)}
-                placeholder="কিসের জন্য?"
-                rows={1}
-                className="w-full rounded-xl border px-3 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200"
-                style={{
-                  background: 'hsl(var(--muted))',
-                  borderColor: 'var(--glass-border)',
-                }}
-                onFocus={(e) => { e.currentTarget.rows = 3; }}
-                onBlur={(e) => { if (!e.currentTarget.value) e.currentTarget.rows = 1; }}
-              />
-            </div>
+            <textarea
+              value={txNote}
+              onChange={(e) => setTxNote(e.target.value)}
+              placeholder="কিসের জন্য?"
+              rows={1}
+              className="w-full rounded-lg border px-2.5 py-2 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200"
+              style={{
+                background: 'hsl(var(--muted))',
+                borderColor: 'var(--glass-border)',
+              }}
+              onFocus={(e) => { e.currentTarget.rows = 2; }}
+              onBlur={(e) => { if (!e.currentTarget.value) e.currentTarget.rows = 1; }}
+            />
 
-            {/* CTA Button - Premium */}
+            {/* CTA Button */}
             <Button
               type="submit"
-              className="w-full h-12 rounded-2xl text-base font-semibold btn-primary mt-1 active:scale-[0.96] transition-all duration-200"
+              className="w-full h-11 rounded-xl text-sm font-semibold btn-primary active:scale-[0.96] transition-all duration-200"
               disabled={addTransaction.isPending}
             >
               {addTransaction.isPending
