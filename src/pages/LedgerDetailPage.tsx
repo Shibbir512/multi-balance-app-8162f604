@@ -360,12 +360,22 @@ const LedgerDetailPage = () => {
                 <p className="text-xs text-muted-foreground mt-1">আয় বা খরচ যোগ করুন</p>
               </div>
             ) : (
-              filteredTransactions.map((tx, index) => (
-                <div
-                  key={tx.id}
-                  className="premium-card p-3.5 cursor-pointer stagger-item"
+              filteredTransactions.map((tx, index) => {
+                const cardId = tx.id;
+                return (
+                <SwipeableCard
+                  key={cardId}
+                  onEdit={() => { setEditTx(tx); setEditOpen(true); }}
+                  onDelete={async () => {
+                    if (confirm("এই লেনদেন মুছে ফেলতে চান?")) {
+                      const { error } = await supabase.from("transactions").delete().eq("id", tx.id);
+                      if (error) { toast.error("মুছতে ব্যর্থ"); return; }
+                      queryClient.invalidateQueries({ queryKey: ["transactions", ledgerId] });
+                      toast.success("লেনদেন মুছে ফেলা হয়েছে");
+                    }
+                  }}
+                  className="stagger-item"
                   style={{ animationDelay: `${Math.min(index * 0.05, 0.5)}s` }}
-                  onClick={() => { setEditTx(tx); setEditOpen(true); }}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
@@ -386,8 +396,9 @@ const LedgerDetailPage = () => {
                       {tx.type === "income" ? "+" : "-"}৳{tx.amount.toLocaleString("bn-BD")}
                     </p>
                   </div>
-                </div>
-              ))
+                </SwipeableCard>
+                );
+              }))
             )}
           </div>
         )}
