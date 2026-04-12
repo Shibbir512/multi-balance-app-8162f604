@@ -97,7 +97,7 @@ const LedgerListPage = () => {
   return (
     <div className="min-h-screen page-gradient">
       {/* Header */}
-      <div className="gradient-header px-4 pt-4 pb-6">
+      <div className="gradient-header px-4 pt-4 pb-10">
         <div className="flex items-center justify-between max-w-lg mx-auto">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center shadow-md">
