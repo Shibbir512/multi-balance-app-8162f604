@@ -20,6 +20,7 @@ import PdfExport from "@/components/PdfExport";
 import TransactionEditDialog from "@/components/TransactionEditDialog";
 import CalculatorInput from "@/components/CalculatorInput";
 import MonthlyChart from "@/components/MonthlyChart";
+import ExpensePieChart from "@/components/ExpensePieChart";
 
 const LedgerDetailPage = () => {
   const { ledgerId } = useParams<{ ledgerId: string }>();
