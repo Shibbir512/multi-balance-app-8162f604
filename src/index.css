@@ -51,7 +51,7 @@
 
     /* Premium tokens - Light */
     --gradient-primary: linear-gradient(135deg, #6366F1, #8B5CF6);
-    --gradient-header: linear-gradient(135deg, #4338CA, #7C3AED, #4F46E5);
+    --gradient-header: linear-gradient(135deg, #4338CA, #7C3AED, #6D28D9);
     --shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.06);
     --shadow-card-hover: 0 8px 24px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.06);
     --shadow-hero: 0 8px 32px rgba(79,70,229,0.12), 0 2px 8px rgba(0,0,0,0.06);
@@ -70,16 +70,20 @@
     --action-btn-bg: rgba(0, 0, 0, 0.02);
     --action-btn-border: rgba(0, 0, 0, 0.08);
     --action-btn-hover: rgba(0, 0, 0, 0.05);
-    --tab-inactive-bg: rgba(0, 0, 0, 0.03);
+    --tab-inactive-bg: transparent;
     --tab-inactive: #94A3B8;
     --tab-glow: 0 2px 12px rgba(99,102,241,0.25);
     --card-alt-bg: #F1F5F9;
     --page-gradient: linear-gradient(180deg, #F8FAFC 0%, #EEF2FF 100%);
-    --header-glow: 0 8px 25px rgba(99,102,241,0.3);
+    --header-glow: 0 4px 20px rgba(99,102,241,0.25);
     --fab-gradient: linear-gradient(135deg, #6366F1, #8B5CF6);
     --fab-shadow: 0 8px 24px rgba(99,102,241,0.4);
     --grocery-check-bg: rgba(5, 150, 105, 0.1);
     --grocery-check-color: #059669;
+    --stat-pill-bg: rgba(0, 0, 0, 0.03);
+    --stat-pill-active-bg: rgba(99, 102, 241, 0.08);
+    --stat-pill-active-border: rgba(99, 102, 241, 0.2);
+    --donut-center-bg: rgba(255, 255, 255, 0.95);
   }
 
   /* ─── Dark Mode ─── */
@@ -145,16 +149,20 @@
     --action-btn-bg: rgba(255, 255, 255, 0.04);
     --action-btn-border: rgba(255, 255, 255, 0.08);
     --action-btn-hover: rgba(255, 255, 255, 0.07);
-    --tab-inactive-bg: rgba(255, 255, 255, 0.05);
+    --tab-inactive-bg: transparent;
     --tab-inactive: rgba(255, 255, 255, 0.4);
     --tab-glow: 0 2px 16px rgba(99,102,241,0.3);
     --card-alt-bg: rgba(255, 255, 255, 0.03);
     --page-gradient: linear-gradient(180deg, #0F172A 0%, #1E1B4B 50%, #0F172A 100%);
-    --header-glow: 0 8px 25px rgba(99,102,241,0.2);
+    --header-glow: 0 4px 20px rgba(99,102,241,0.2);
     --fab-gradient: linear-gradient(135deg, #6366F1, #8B5CF6);
     --fab-shadow: 0 8px 24px rgba(99,102,241,0.35);
     --grocery-check-bg: rgba(16, 185, 129, 0.15);
     --grocery-check-color: #34D399;
+    --stat-pill-bg: rgba(255, 255, 255, 0.05);
+    --stat-pill-active-bg: rgba(99, 102, 241, 0.12);
+    --stat-pill-active-border: rgba(99, 102, 241, 0.25);
+    --donut-center-bg: rgba(30, 27, 75, 0.95);
   }
 }
 
@@ -214,11 +222,11 @@
 
   .premium-card:hover {
     box-shadow: var(--shadow-card-hover);
-    transform: translateY(-2px);
+    transform: translateY(-1px);
   }
 
   .premium-card:active {
-    transform: scale(0.98) translateY(0);
+    transform: scale(0.99) translateY(0);
   }
 
   .premium-card-alt {
@@ -227,7 +235,7 @@
   }
 
   .hero-card {
-    @apply glass rounded-2xl;
+    @apply glass rounded-3xl;
     box-shadow: var(--shadow-hero);
     position: relative;
     overflow: hidden;
@@ -257,7 +265,7 @@
   }
 
   .pill-tab {
-    @apply rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ease-out;
+    @apply rounded-full px-4 py-2 text-xs font-semibold transition-all duration-200 ease-out;
     background: var(--tab-inactive-bg);
     color: var(--tab-inactive);
   }
@@ -362,5 +370,29 @@
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  /* Quick stat pill */
+  .stat-pill {
+    @apply rounded-xl px-3 py-2 text-xs font-semibold transition-all duration-200 border shrink-0;
+    background: var(--stat-pill-bg);
+    border-color: transparent;
+  }
+  .stat-pill:hover {
+    background: var(--stat-pill-active-bg);
+  }
+  .stat-pill-active {
+    background: var(--stat-pill-active-bg);
+    border-color: var(--stat-pill-active-border);
+    color: hsl(var(--primary));
+  }
+
+  /* Ledger switcher */
+  .ledger-switcher {
+    @apply flex items-center gap-1.5 px-2 py-1 rounded-lg transition-all duration-200 cursor-pointer;
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .ledger-switcher:hover {
+    background: rgba(255, 255, 255, 0.15);
   }
 }
