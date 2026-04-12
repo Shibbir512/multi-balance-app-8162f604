@@ -1,9 +1,8 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -12,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
 import {
-  Plus, ShoppingCart, Package, Minus, Check, ArrowRight, ArrowLeft, Pencil, Trash2, Clock
+  Plus, ShoppingCart, Package, Minus, Check, ArrowRight, ArrowLeft, Pencil, Trash2, Clock, Sparkles, CheckCircle2, Circle
 } from "lucide-react";
 import { toast } from "sonner";
 import { useGroceryReminders } from "@/hooks/useGroceryReminders";
@@ -53,6 +52,7 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
   const [newQty, setNewQty] = useState("1");
   const [selectedAccount, setSelectedAccount] = useState("");
   const [saving, setSaving] = useState(false);
+  const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
 
   const { data: masterItems, isLoading } = useQuery({
     queryKey: ["grocery-master", ledgerId],
@@ -92,6 +92,41 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
       }).slice(0, 8);
     },
   });
+
+  // Auto-suggest items based on purchase frequency
+  const suggestedItems = useMemo(() => {
+    if (!masterItems) return [];
+    const today = new Date();
+    return masterItems
+      .filter((item) => {
+        if (!item.average_interval || !item.last_purchase_date) return false;
+        const lastPurchase = new Date(item.last_purchase_date);
+        const daysSince = Math.floor((today.getTime() - lastPurchase.getTime()) / (1000 * 60 * 60 * 24));
+        // Suggest if days since last purchase >= 80% of average interval
+        return daysSince >= item.average_interval * 0.8;
+      })
+      .sort((a, b) => {
+        const daysA = Math.floor((today.getTime() - new Date(a.last_purchase_date!).getTime()) / (1000 * 60 * 60 * 24));
+        const daysB = Math.floor((today.getTime() - new Date(b.last_purchase_date!).getTime()) / (1000 * 60 * 60 * 24));
+        const ratioA = daysA / (a.average_interval || 1);
+        const ratioB = daysB / (b.average_interval || 1);
+        return ratioB - ratioA; // Most overdue first
+      })
+      .slice(0, 6);
+  }, [masterItems]);
+
+  // Split master items into remaining and completed
+  const remainingItems = useMemo(() => masterItems?.filter((i) => !checkedItems.has(i.id)) ?? [], [masterItems, checkedItems]);
+  const completedItems = useMemo(() => masterItems?.filter((i) => checkedItems.has(i.id)) ?? [], [masterItems, checkedItems]);
+
+  const toggleChecked = (id: string) => {
+    setCheckedItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const addMasterItem = useMutation({
     mutationFn: async () => {
@@ -264,6 +299,51 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
     finally { setSaving(false); }
   };
 
+  const renderMasterItem = (item: any, isCompleted: boolean) => (
+    <div
+      key={item.id}
+      className={`premium-card p-3.5 group transition-all duration-300 ${isCompleted ? "opacity-60" : ""}`}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => toggleChecked(item.id)}
+            className="shrink-0 transition-all duration-200"
+          >
+            {isCompleted ? (
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'var(--grocery-check-bg)' }}>
+                <CheckCircle2 className="w-5 h-5" style={{ color: 'var(--grocery-check-color)' }} />
+              </div>
+            ) : (
+              <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center hover:bg-accent transition-colors">
+                <Circle className="w-5 h-5 text-muted-foreground" />
+              </div>
+            )}
+          </button>
+          <div>
+            <p className={`text-sm font-semibold transition-all duration-200 ${isCompleted ? "line-through text-muted-foreground" : ""}`}>
+              {item.name}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {item.default_quantity} {item.unit}
+              {item.last_purchase_date && ` • শেষ কেনা: ${item.last_purchase_date}`}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={() => { setEditItem(item); setNewName(item.name); setNewUnit(item.unit); setNewQty(item.default_quantity.toString()); }}>
+            <Pencil className="w-3.5 h-3.5" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity text-destructive"
+            onClick={() => setDeleteItemId(item.id)}>
+            <Trash2 className="w-3.5 h-3.5" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+
   // === MASTER LIST VIEW ===
   if (step === "master") {
     return (
@@ -282,6 +362,41 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
 
         {reminders && reminders.length > 0 && <GroceryReminders reminders={reminders} />}
 
+        {/* Auto-suggested items */}
+        {suggestedItems.length > 0 && (
+          <div className="premium-card p-3.5 space-y-2.5">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--income-bg)' }}>
+                <Sparkles className="w-3.5 h-3.5" style={{ color: 'var(--income-text-soft)' }} />
+              </div>
+              <div>
+                <p className="text-xs font-bold">কেনার সময় হয়েছে</p>
+                <p className="text-[10px] text-muted-foreground">পূর্ববর্তী কেনাকাটার ভিত্তিতে</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {suggestedItems.map((item) => {
+                const daysSince = Math.floor((new Date().getTime() - new Date(item.last_purchase_date!).getTime()) / (1000 * 60 * 60 * 24));
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => toggleChecked(item.id)}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
+                      checkedItems.has(item.id)
+                        ? "opacity-50 line-through"
+                        : "hover:scale-105"
+                    }`}
+                    style={{ background: 'var(--expense-bg)', color: 'var(--expense-text-soft)' }}
+                  >
+                    {item.name}
+                    <span className="text-[10px] opacity-70">{daysSince}দিন</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {isLoading ? (
           <div className="space-y-2">{[1, 2, 3].map((i) => <div key={i} className="h-14 bg-muted animate-pulse rounded-2xl" />)}</div>
         ) : !masterItems?.length ? (
@@ -293,40 +408,50 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
             <p className="text-xs text-muted-foreground mt-1">আইটেম যোগ করুন</p>
           </div>
         ) : (
-          <div className="space-y-2">
-            {masterItems.map((item) => (
-              <div key={item.id} className="premium-card p-3.5 group">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
-                      <Package className="w-4 h-4 text-emerald-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold">{item.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {item.default_quantity} {item.unit}
-                        {item.last_purchase_date && ` • শেষ কেনা: ${item.last_purchase_date}`}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => { setEditItem(item); setNewName(item.name); setNewUnit(item.unit); setNewQty(item.default_quantity.toString()); }}>
-                      <Pencil className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-red-50"
-                      onClick={() => setDeleteItemId(item.id)}>
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </Button>
-                  </div>
+          <>
+            {/* Progress bar */}
+            {masterItems.length > 0 && checkedItems.size > 0 && (
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{checkedItems.size}/{masterItems.length} সম্পন্ন</span>
+                  <span>{Math.round((checkedItems.size / masterItems.length) * 100)}%</span>
+                </div>
+                <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-500 ease-out"
+                    style={{
+                      width: `${(checkedItems.size / masterItems.length) * 100}%`,
+                      background: 'var(--gradient-primary)',
+                    }}
+                  />
                 </div>
               </div>
-            ))}
-          </div>
+            )}
+
+            {/* Remaining items */}
+            {remainingItems.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                  <Circle className="w-3 h-3" /> বাকি আইটেম ({remainingItems.length})
+                </h4>
+                {remainingItems.map((item) => renderMasterItem(item, false))}
+              </div>
+            )}
+
+            {/* Completed items */}
+            {completedItems.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5" style={{ color: 'var(--grocery-check-color)' }}>
+                  <CheckCircle2 className="w-3 h-3" /> সম্পন্ন ({completedItems.length})
+                </h4>
+                {completedItems.map((item) => renderMasterItem(item, true))}
+              </div>
+            )}
+          </>
         )}
 
         {/* Recent items quick access */}
-        {recentItems && recentItems.length > 0 && step === "master" && (
+        {recentItems && recentItems.length > 0 && (
           <div className="mt-5">
             <h3 className="text-sm font-bold mb-2.5 flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-muted-foreground" /> সাম্প্রতিক বাজার আইটেম
@@ -359,7 +484,7 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
               {batches.map((b) => (
                 <div key={b.id} className="premium-card p-3.5 flex items-center justify-between">
                   <p className="text-sm text-muted-foreground">{b.batch_date}</p>
-                  <p className="text-sm font-bold text-red-500">৳{b.total_amount.toLocaleString("bn-BD")}</p>
+                  <p className="text-sm font-bold" style={{ color: 'var(--expense-text)' }}>৳{b.total_amount.toLocaleString("bn-BD")}</p>
                 </div>
               ))}
             </div>
@@ -484,18 +609,19 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
               key={index}
               className={`premium-card p-3.5 transition-all duration-200 ${
                 item.selected
-                  ? "border-emerald-300 bg-emerald-50/50 shadow-card-hover ring-1 ring-emerald-200"
+                  ? "ring-1"
                   : ""
               }`}
+              style={item.selected ? { borderColor: 'var(--income-border)', background: 'var(--income-bg)', boxShadow: 'var(--shadow-card-hover)' } : undefined}
             >
               <div className="flex items-center gap-3">
                 <Checkbox
                   checked={item.selected}
                   onCheckedChange={() => toggleItem(index)}
-                  className="shrink-0 w-5 h-5 rounded-md border-2 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                  className="shrink-0 w-5 h-5 rounded-md border-2"
                 />
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-semibold truncate ${item.selected ? "text-emerald-700" : ""}`}>{item.name}</p>
+                  <p className={`text-sm font-semibold truncate ${item.selected ? "" : ""}`}>{item.name}</p>
                   <p className="text-xs text-muted-foreground">{item.unit}</p>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
@@ -547,7 +673,7 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
                   <p className="text-sm font-bold">{item.name}</p>
                   <p className="text-xs text-muted-foreground">{item.quantity} {item.unit}</p>
                 </div>
-                {subtotal > 0 && <p className="text-base font-bold text-emerald-600">৳{subtotal.toLocaleString("bn-BD")}</p>}
+                {subtotal > 0 && <p className="text-base font-bold" style={{ color: 'var(--income-text)' }}>৳{subtotal.toLocaleString("bn-BD")}</p>}
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <span className={!item.useDirectTotal ? "font-semibold text-foreground" : ""}>একক দাম</span>
