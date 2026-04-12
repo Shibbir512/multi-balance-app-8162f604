@@ -23,6 +23,24 @@ import CalculatorInput from "@/components/CalculatorInput";
 import MonthlyChart from "@/components/MonthlyChart";
 import ExpensePieChart from "@/components/ExpensePieChart";
 
+const BENGALI_MONTHS = ["জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"];
+
+const formatBengaliDate = (dateStr: string, timeStr?: string | null) => {
+  const [y, m, d] = dateStr.split("-");
+  const day = parseInt(d).toLocaleString("bn-BD");
+  const month = BENGALI_MONTHS[parseInt(m) - 1];
+  const year = parseInt(y).toLocaleString("bn-BD").replace(/,/g, "");
+  let result = `${day} ${month}, ${year}`;
+  if (timeStr) {
+    const [h, min] = timeStr.split(":");
+    const hour = parseInt(h);
+    const period = hour >= 12 ? "PM" : "AM";
+    const h12 = hour % 12 || 12;
+    result += ` ${h12.toLocaleString("bn-BD")}:${min} ${period}`;
+  }
+  return result;
+};
+
 const LedgerDetailPage = () => {
   const { ledgerId } = useParams<{ ledgerId: string }>();
   const navigate = useNavigate();
@@ -35,10 +53,14 @@ const LedgerDetailPage = () => {
   const [txAccount, setTxAccount] = useState("");
   const [txDate, setTxDate] = useState(new Date().toISOString().split("T")[0]);
   const [txNote, setTxNote] = useState("");
+  const [txTime, setTxTime] = useState(new Date().toTimeString().slice(0, 5));
   const [activeTab, setActiveTab] = useState("transactions");
 
   const [filterMonth, setFilterMonth] = useState("all");
   const [filterYear, setFilterYear] = useState("all");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [filterDateFrom, setFilterDateFrom] = useState("");
+  const [filterDateTo, setFilterDateTo] = useState("");
 
   const [editTx, setEditTx] = useState<any>(null);
   const [editOpen, setEditOpen] = useState(false);
@@ -96,6 +118,11 @@ const LedgerDetailPage = () => {
       if (filterMonth !== "all" && m !== filterMonth) return false;
       if (filterYear !== "all" && y !== filterYear) return false;
     }
+    if (filterCategory !== "all") {
+      if ((t.categories as any)?.name !== filterCategory) return false;
+    }
+    if (filterDateFrom && t.date < filterDateFrom) return false;
+    if (filterDateTo && t.date > filterDateTo) return false;
     return true;
   }) ?? [];
 
@@ -116,8 +143,9 @@ const LedgerDetailPage = () => {
         type: txType,
         amount: parseFloat(txAmount),
         date: txDate,
+        time: txTime || null,
         note: txNote || null,
-      });
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -300,17 +328,26 @@ const LedgerDetailPage = () => {
             <MonthlyChart transactions={transactions ?? []} />
             <ExpensePieChart transactions={transactions as any ?? []} />
             <CategoryBreakdownTable transactions={transactions as any ?? []} />
-            <div className="premium-card p-3 flex items-center justify-between flex-wrap gap-2">
+            <div className="premium-card p-3 space-y-2">
               <TransactionFilters
                 month={filterMonth}
                 year={filterYear}
                 onMonthChange={setFilterMonth}
                 onYearChange={setFilterYear}
-                onClear={() => { setFilterMonth("all"); setFilterYear("all"); }}
+                onClear={() => { setFilterMonth("all"); setFilterYear("all"); setFilterCategory("all"); setFilterDateFrom(""); setFilterDateTo(""); }}
+                categoryFilter={filterCategory}
+                onCategoryChange={setFilterCategory}
+                categories={categories ?? []}
+                dateFrom={filterDateFrom}
+                dateTo={filterDateTo}
+                onDateFromChange={setFilterDateFrom}
+                onDateToChange={setFilterDateTo}
               />
-              {filteredTransactions.length > 0 && (
-                <AdvancedExport ledgerName={ledger?.name ?? "Report"} transactions={filteredTransactions as any} categories={categories ?? []} />
-              )}
+              <div className="flex justify-end">
+                {filteredTransactions.length > 0 && (
+                  <AdvancedExport ledgerName={ledger?.name ?? "Report"} transactions={filteredTransactions as any} categories={categories ?? []} />
+                )}
+              </div>
             </div>
 
             {!filteredTransactions.length ? (
@@ -339,7 +376,7 @@ const LedgerDetailPage = () => {
                       <div>
                         <p className="text-sm font-semibold text-foreground">{(tx.categories as any)?.name || "—"}</p>
                         <p className="text-[11px] text-muted-foreground">
-                          {(tx.accounts as any)?.name || "—"} • {tx.date}
+                          {(tx.accounts as any)?.name || "—"} • {formatBengaliDate(tx.date, (tx as any).time)}
                         </p>
                         {tx.note && <p className="text-[11px] text-muted-foreground mt-0.5">{tx.note}</p>}
                       </div>
@@ -530,10 +567,16 @@ const LedgerDetailPage = () => {
               </div>
             </div>
 
-            {/* Date */}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">তারিখ</Label>
-              <Input type="date" value={txDate} onChange={(e) => setTxDate(e.target.value)} required className="form-input" />
+            {/* Date + Time */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">তারিখ</Label>
+                <Input type="date" value={txDate} onChange={(e) => setTxDate(e.target.value)} required className="form-input" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">সময়</Label>
+                <Input type="time" value={txTime} onChange={(e) => setTxTime(e.target.value)} className="form-input" />
+              </div>
             </div>
 
             {/* Note */}
