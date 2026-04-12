@@ -40,10 +40,6 @@ const BottomSheetContent = React.forwardRef<
       )}
       {...props}
     >
-      {/* Drag handle indicator */}
-      <div className="flex justify-center mb-3">
-        <div className="w-10 h-1 rounded-full bg-muted-foreground/20" />
-      </div>
       {children}
       <DialogPrimitive.Close className="absolute right-4 top-4 w-8 h-8 rounded-full bg-muted/80 flex items-center justify-center opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring">
         <X className="h-3.5 w-3.5" />
