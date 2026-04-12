@@ -44,7 +44,7 @@ const AuthPage = () => {
           <div className="mx-auto w-12 h-12 rounded-xl gradient-primary flex items-center justify-center mb-2">
             <Wallet className="w-6 h-6 text-white" />
           </div>
-          <h1 className="text-xl font-bold text-foreground">FinTrack</h1>
+          <h1 className="text-xl font-bold text-foreground">জমা খরচ</h1>
           <p className="text-sm text-muted-foreground">
             {isLogin ? "আপনার অ্যাকাউন্টে লগইন করুন" : "নতুন অ্যাকাউন্ট তৈরি করুন"}
           </p>
