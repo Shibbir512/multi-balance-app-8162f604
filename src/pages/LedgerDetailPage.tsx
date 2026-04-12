@@ -20,6 +20,7 @@ import PdfExport from "@/components/PdfExport";
 import TransactionEditDialog from "@/components/TransactionEditDialog";
 import CalculatorInput from "@/components/CalculatorInput";
 import MonthlyChart from "@/components/MonthlyChart";
+import ExpensePieChart from "@/components/ExpensePieChart";
 
 const LedgerDetailPage = () => {
   const { ledgerId } = useParams<{ ledgerId: string }>();
@@ -41,6 +42,8 @@ const LedgerDetailPage = () => {
   const [editTx, setEditTx] = useState<any>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [showNewCategory, setShowNewCategory] = useState(false);
 
   const { data: ledger } = useQuery({
     queryKey: ["ledger", ledgerId],
@@ -123,6 +126,27 @@ const LedgerDetailPage = () => {
       setTxAccount("");
       setTxNote("");
       toast.success(txType === "income" ? "আয় যোগ হয়েছে!" : "খরচ যোগ হয়েছে!");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const addCategory = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.from("categories").insert({
+        ledger_id: ledgerId!,
+        user_id: user!.id,
+        name: newCategoryName.trim(),
+        type: txType,
+      }).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["categories", ledgerId] });
+      setTxCategory(data.id);
+      setNewCategoryName("");
+      setShowNewCategory(false);
+      toast.success("ক্যাটাগরি যোগ হয়েছে!");
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -245,6 +269,7 @@ const LedgerDetailPage = () => {
         {activeTab === "transactions" && (
           <div className="space-y-2.5 pb-8">
             <MonthlyChart transactions={transactions ?? []} />
+            <ExpensePieChart transactions={transactions as any ?? []} />
             <div className="premium-card p-3 flex items-center justify-between flex-wrap gap-2">
               <TransactionFilters
                 month={filterMonth}
@@ -379,14 +404,48 @@ const LedgerDetailPage = () => {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">ক্যাটাগরি</Label>
-                <Select value={txCategory} onValueChange={setTxCategory}>
-                  <SelectTrigger className="form-input"><SelectValue placeholder="বাছুন" /></SelectTrigger>
-                  <SelectContent>
-                    {filteredCategories.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {showNewCategory ? (
+                  <div className="flex gap-1.5">
+                    <Input
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      placeholder="নাম লিখুন"
+                      className="form-input flex-1"
+                      autoFocus
+                    />
+                    <Button
+                      type="button"
+                      size="icon"
+                      className="h-12 w-12 shrink-0 rounded-xl btn-primary"
+                      disabled={!newCategoryName.trim() || addCategory.isPending}
+                      onClick={() => addCategory.mutate()}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="h-12 w-10 shrink-0 rounded-xl"
+                      onClick={() => { setShowNewCategory(false); setNewCategoryName(""); }}
+                    >
+                      ✕
+                    </Button>
+                  </div>
+                ) : (
+                  <Select value={txCategory} onValueChange={(v) => {
+                    if (v === "__new__") { setShowNewCategory(true); return; }
+                    setTxCategory(v);
+                  }}>
+                    <SelectTrigger className="form-input"><SelectValue placeholder="বাছুন" /></SelectTrigger>
+                    <SelectContent>
+                      {filteredCategories.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      ))}
+                      <SelectItem value="__new__" className="text-primary font-semibold">+ নতুন ক্যাটাগরি</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">অ্যাকাউন্ট</Label>
