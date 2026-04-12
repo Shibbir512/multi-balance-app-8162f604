@@ -404,14 +404,48 @@ const LedgerDetailPage = () => {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">ক্যাটাগরি</Label>
-                <Select value={txCategory} onValueChange={setTxCategory}>
-                  <SelectTrigger className="form-input"><SelectValue placeholder="বাছুন" /></SelectTrigger>
-                  <SelectContent>
-                    {filteredCategories.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {showNewCategory ? (
+                  <div className="flex gap-1.5">
+                    <Input
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      placeholder="নাম লিখুন"
+                      className="form-input flex-1"
+                      autoFocus
+                    />
+                    <Button
+                      type="button"
+                      size="icon"
+                      className="h-12 w-12 shrink-0 rounded-xl btn-primary"
+                      disabled={!newCategoryName.trim() || addCategory.isPending}
+                      onClick={() => addCategory.mutate()}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="h-12 w-10 shrink-0 rounded-xl"
+                      onClick={() => { setShowNewCategory(false); setNewCategoryName(""); }}
+                    >
+                      ✕
+                    </Button>
+                  </div>
+                ) : (
+                  <Select value={txCategory} onValueChange={(v) => {
+                    if (v === "__new__") { setShowNewCategory(true); return; }
+                    setTxCategory(v);
+                  }}>
+                    <SelectTrigger className="form-input"><SelectValue placeholder="বাছুন" /></SelectTrigger>
+                    <SelectContent>
+                      {filteredCategories.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      ))}
+                      <SelectItem value="__new__" className="text-primary font-semibold">+ নতুন ক্যাটাগরি</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">অ্যাকাউন্ট</Label>
