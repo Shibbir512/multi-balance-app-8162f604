@@ -40,9 +40,8 @@ const AuthPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm glass rounded-2xl p-6 animate-fade-in">
-        <div className="text-center space-y-2 mb-6">
-          <img src="/favicon.png" alt="জমা খরচ" className="mx-auto w-12 h-12 rounded-xl mb-2" />
-          <h1 className="text-xl font-bold text-foreground">জমা খরচ</h1>
+        <div className="text-center space-y-3 mb-6">
+          <img src="/banner.png" alt="জমা খরচ" className="mx-auto w-56 rounded-xl" />
           <p className="text-sm text-muted-foreground">
             {isLogin ? "আপনার অ্যাকাউন্টে লগইন করুন" : "নতুন অ্যাকাউন্ট তৈরি করুন"}
           </p>
