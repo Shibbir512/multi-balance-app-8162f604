@@ -41,19 +41,17 @@ const AuthPage = () => {
       <div className="w-full max-w-sm glass rounded-2xl p-6 animate-fade-in">
         {/* Premium Glass Badge */}
         <div className="flex flex-col items-center mb-0">
-          <div
-            className="flex flex-col items-center gap-1.5 w-fit max-w-[220px] rounded-[20px]"
-            style={{
-              padding: "18px 24px",
-              background: "rgba(255,255,255,0.06)",
-              backdropFilter: "blur(14px)",
-              WebkitBackdropFilter: "blur(14px)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              boxShadow: "0 10px 30px rgba(0,0,0,0.25), 0 0 20px rgba(99,102,241,0.1)",
-            }}
-          >
+          <div className="relative flex flex-col items-center gap-1.5 w-fit max-w-[220px] py-4 px-6">
+            {/* Subtle glow behind text */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: "radial-gradient(circle at center, rgba(99,102,241,0.12) 0%, transparent 70%)",
+                filter: "blur(25px)",
+              }}
+            />
             <h1
-              className="text-2xl font-bold text-center"
+              className="relative text-2xl font-bold text-center"
               style={{
                 background: "linear-gradient(135deg, hsl(252,56%,57%), hsl(245,40%,70%))",
                 WebkitBackgroundClip: "text",
@@ -63,7 +61,7 @@ const AuthPage = () => {
             >
               জমা খরচ
             </h1>
-            <span className="text-xs text-center" style={{ color: "rgba(255,255,255,0.65)" }}>
+            <span className="relative text-xs text-center" style={{ color: "rgba(255,255,255,0.65)" }}>
               আয় বুঝে ব্যয়
             </span>
           </div>
