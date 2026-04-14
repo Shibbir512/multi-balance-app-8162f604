@@ -142,10 +142,10 @@
     --income-border: rgba(16, 185, 129, 0.18);
     --income-text: #6EE7B7;
     --income-text-soft: #34D399;
-    --expense-bg: rgba(239, 68, 68, 0.12);
-    --expense-border: rgba(239, 68, 68, 0.22);
-    --expense-text: #F87171;
-    --expense-text-soft: #EF4444;
+    --expense-bg: rgba(248, 113, 113, 0.14);
+    --expense-border: rgba(248, 113, 113, 0.25);
+    --expense-text: #FCA5A5;
+    --expense-text-soft: #F87171;
     --action-btn-bg: rgba(255, 255, 255, 0.04);
     --action-btn-border: rgba(255, 255, 255, 0.08);
     --action-btn-hover: rgba(255, 255, 255, 0.07);
