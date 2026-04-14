@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Wallet } from "lucide-react";
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -40,12 +39,50 @@ const AuthPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm glass rounded-2xl p-6 animate-fade-in">
-        <div className="text-center space-y-3 mb-6">
-          <img src="/banner.png" alt="জমা খরচ" className="mx-auto w-56 rounded-xl" />
-          <p className="text-sm text-muted-foreground">
+        {/* Premium Glass Badge */}
+        <div className="flex flex-col items-center mb-0">
+          <div
+            className="flex flex-col items-center gap-1.5 w-fit max-w-[220px] rounded-[20px]"
+            style={{
+              padding: "18px 24px",
+              background: "rgba(255,255,255,0.06)",
+              backdropFilter: "blur(14px)",
+              WebkitBackdropFilter: "blur(14px)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              boxShadow: "0 10px 30px rgba(0,0,0,0.25), 0 0 20px rgba(99,102,241,0.1)",
+            }}
+          >
+            <h1
+              className="text-2xl font-bold text-center"
+              style={{
+                background: "linear-gradient(135deg, hsl(252,56%,57%), hsl(245,40%,70%))",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                filter: "drop-shadow(0 0 8px rgba(99,102,241,0.3))",
+              }}
+            >
+              জমা খরচ
+            </h1>
+            <span className="text-xs text-center" style={{ color: "rgba(255,255,255,0.65)" }}>
+              আয় বুঝে ব্যয়
+            </span>
+          </div>
+
+          {/* Tagline */}
+          <p className="text-xs text-center mt-2.5" style={{ color: "#9CA3AF" }}>
             {isLogin ? "আপনার অ্যাকাউন্টে লগইন করুন" : "নতুন অ্যাকাউন্ট তৈরি করুন"}
           </p>
+
+          {/* Gradient Divider */}
+          <div
+            className="w-full my-5"
+            style={{
+              height: "1px",
+              background: "linear-gradient(90deg, transparent, #E5E7EB, transparent)",
+            }}
+          />
         </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">ইমেইল</Label>
