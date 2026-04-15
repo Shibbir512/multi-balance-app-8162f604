@@ -146,7 +146,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
               <div>
                 <h2 className="text-sm font-bold text-foreground">লেনদেন সম্পাদনা</h2>
                 <p className="text-[10px] text-muted-foreground">
-                  {isIncome ? "আয়ের তথ্য পরিবর্তন করুন" : "খরচের তথ্য পরিবর্তন করুন"}
+                  {isIncome ? "জমার তথ্য পরিবর্তন করুন" : "খরচের তথ্য পরিবর্তন করুন"}
                 </p>
               </div>
             </div>
@@ -172,7 +172,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
                 }}
               >
                 <TrendingUp className="w-3.5 h-3.5" style={{ color: type === "income" ? 'var(--income-text-soft)' : undefined }} />
-                আয়
+                জমা
               </button>
               <button
                 type="button"
