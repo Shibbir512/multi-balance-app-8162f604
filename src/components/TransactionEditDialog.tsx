@@ -34,6 +34,7 @@ interface Props {
 const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, categories, ledgerId }: Props) => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const [type, setType] = useState("expense");
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [accountId, setAccountId] = useState("");
