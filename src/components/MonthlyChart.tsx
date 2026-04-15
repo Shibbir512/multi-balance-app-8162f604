@@ -43,7 +43,7 @@ const MonthlyChart = ({ transactions }: MonthlyChartProps) => {
         <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--action-btn-bg)' }}>
           <BarChart3 className="w-3.5 h-3.5 text-muted-foreground" />
         </div>
-        <p className="text-xs font-bold text-foreground">মাসিক আয় vs খরচ</p>
+        <p className="text-xs font-bold text-foreground">মাসিক জমা vs খরচ</p>
       </div>
       <div className="h-40">
         <ResponsiveContainer width="100%" height="100%">
@@ -61,7 +61,7 @@ const MonthlyChart = ({ transactions }: MonthlyChartProps) => {
               }}
               formatter={(value: number, name: string) => [
                 `৳${value.toLocaleString("bn-BD")}`,
-                name === "income" ? "আয়" : "খরচ",
+                name === "income" ? "জমা" : "খরচ",
               ]}
               labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 600 }}
             />
@@ -73,7 +73,7 @@ const MonthlyChart = ({ transactions }: MonthlyChartProps) => {
       <div className="flex items-center justify-center gap-4 mt-2">
         <div className="flex items-center gap-1.5">
           <div className="w-2.5 h-2.5 rounded-sm bg-[hsl(var(--success))]" />
-          <span className="text-[10px] text-muted-foreground">আয়</span>
+          <span className="text-[10px] text-muted-foreground">জমা</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-2.5 h-2.5 rounded-sm bg-[hsl(var(--destructive))]" />

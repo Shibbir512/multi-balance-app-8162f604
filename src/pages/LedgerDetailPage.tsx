@@ -457,7 +457,7 @@ const LedgerDetailPage = () => {
                   <TrendingUp className="w-4 h-4" style={{ color: 'var(--income-text-soft)' }} />
                 </div>
                 <div>
-                  <p className="text-[10px] font-medium" style={{ color: 'var(--income-text-soft)', opacity: 0.7 }}>আয়</p>
+                  <p className="text-[10px] font-medium" style={{ color: 'var(--income-text-soft)', opacity: 0.7 }}>জমা</p>
                   <p className="text-sm font-bold" style={{ color: 'var(--income-text)' }}>৳{totalIncome.toLocaleString("bn-BD")}</p>
                 </div>
               </div>
@@ -491,7 +491,7 @@ const LedgerDetailPage = () => {
                     <CreditCard className="w-5 h-5 text-muted-foreground" />
                   </div>
                   <p className="text-muted-foreground font-medium text-sm">কোনো লেনদেন নেই</p>
-                  <p className="text-xs text-muted-foreground mt-1">আয় বা খরচ যোগ করুন</p>
+                  <p className="text-xs text-muted-foreground mt-1">জমা বা খরচ যোগ করুন</p>
                 </div>
               ) : (
                 <>
@@ -622,7 +622,7 @@ const LedgerDetailPage = () => {
               <div key={type}>
                 <h3 className="text-sm font-bold mb-2.5 flex items-center gap-2" style={{ color: type === "income" ? 'var(--income-text-soft)' : 'var(--expense-text-soft)' }}>
                   <div className="w-2 h-2 rounded-full" style={{ background: type === "income" ? 'var(--income-text-soft)' : 'var(--expense-text-soft)' }} />
-                  {type === "income" ? "আয়ের ক্যাটাগরি" : "খরচের ক্যাটাগরি"}
+                  {type === "income" ? "জমার ক্যাটাগরি" : "খরচের ক্যাটাগরি"}
                 </h3>
                 <div className="space-y-1.5">
                   {categories?.filter((c) => c.type === type).map((c) => (
