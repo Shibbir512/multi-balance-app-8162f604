@@ -68,7 +68,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
         ledger_id: ledgerId,
         user_id: user!.id,
         name: newCategoryName.trim(),
-        type: transaction!.type,
+        type: type,
       }).select().single();
       if (error) throw error;
       return data;
