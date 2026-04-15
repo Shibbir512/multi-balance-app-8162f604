@@ -88,6 +88,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
       const { error } = await supabase
         .from("transactions")
         .update({
+          type,
           amount: parseFloat(amount),
           category_id: categoryId || null,
           account_id: accountId || null,
