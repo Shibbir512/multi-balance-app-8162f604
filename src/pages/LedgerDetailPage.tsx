@@ -229,7 +229,7 @@ const LedgerDetailPage = () => {
       const nagad = accounts?.find(a => a.name === "নগদ" || a.name.toLowerCase() === "cash");
       setTxAccount(nagad?.id || "");
       setTxNote("");
-      toast.success(txType === "income" ? "আয় যোগ হয়েছে!" : "খরচ যোগ হয়েছে!");
+      toast.success(txType === "income" ? "জমা যোগ হয়েছে!" : "খরচ যোগ হয়েছে!");
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -705,7 +705,7 @@ const LedgerDetailPage = () => {
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                💰 আয়
+                💰 জমা
               </button>
               <button
                 type="button"
@@ -733,10 +733,10 @@ const LedgerDetailPage = () => {
               </div>
               <div>
                 <h2 className="text-sm font-bold text-foreground">
-                  {txType === "income" ? "আয় যোগ করুন" : "খরচ যোগ করুন"}
+                  {txType === "income" ? "জমা যোগ করুন" : "খরচ যোগ করুন"}
                 </h2>
                 <p className="text-[10px] text-muted-foreground">
-                  {txType === "income" ? "আয়ের বিবরণ দিন" : "খরচের বিবরণ দিন"}
+                  {txType === "income" ? "জমার বিবরণ দিন" : "খরচের বিবরণ দিন"}
                 </p>
               </div>
             </div>
@@ -934,7 +934,7 @@ const LedgerDetailPage = () => {
               className="flex items-center gap-2 animate-fade-in"
               style={{ animationDuration: '0.15s' }}
             >
-              <span className="text-xs font-semibold text-foreground bg-popover/90 backdrop-blur-sm px-3 py-1.5 rounded-xl shadow-md">আয়</span>
+              <span className="text-xs font-semibold text-foreground bg-popover/90 backdrop-blur-sm px-3 py-1.5 rounded-xl shadow-md">জমা</span>
               <div className="w-11 h-11 rounded-full shadow-lg flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-transform" style={{ background: 'var(--income-text-soft)' }}>
                 <ArrowUpRight className="w-5 h-5" />
               </div>
