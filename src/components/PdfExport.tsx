@@ -100,7 +100,7 @@ const PdfExport = ({ ledgerName, transactions }: PdfExportProps) => {
               <SelectTrigger className="form-input"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">সব লেনদেন</SelectItem>
-                <SelectItem value="income">শুধু আয়</SelectItem>
+                <SelectItem value="income">শুধু জমা</SelectItem>
                 <SelectItem value="expense">শুধু খরচ</SelectItem>
               </SelectContent>
             </Select>

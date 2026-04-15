@@ -55,7 +55,7 @@ const LedgerListPage = () => {
       const defaultCategories = [
         { ledger_id: data.id, user_id: user!.id, name: "বেতন", type: "income" },
         { ledger_id: data.id, user_id: user!.id, name: "ব্যবসা", type: "income" },
-        { ledger_id: data.id, user_id: user!.id, name: "অন্যান্য আয়", type: "income" },
+        { ledger_id: data.id, user_id: user!.id, name: "অন্যান্য জমা", type: "income" },
         { ledger_id: data.id, user_id: user!.id, name: "খাবার", type: "expense" },
         { ledger_id: data.id, user_id: user!.id, name: "যাতায়াত", type: "expense" },
         { ledger_id: data.id, user_id: user!.id, name: "বিল", type: "expense" },

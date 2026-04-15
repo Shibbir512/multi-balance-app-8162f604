@@ -98,7 +98,7 @@ const AdvancedExport = ({ ledgerName, transactions, categories }: Props) => {
 
     const data = filtered.map((t) => ({
       "তারিখ": t.date,
-      "ধরন": t.type === "income" ? "আয়" : "খরচ",
+      "ধরন": t.type === "income" ? "জমা" : "খরচ",
       "ক্যাটাগরি": (t.categories as any)?.name || "-",
       "অ্যাকাউন্ট": (t.accounts as any)?.name || "-",
       "পরিমাণ (৳)": t.amount,
@@ -109,7 +109,7 @@ const AdvancedExport = ({ ledgerName, transactions, categories }: Props) => {
     const totalExpense = filtered.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
 
     data.push(
-      { "তারিখ": "", "ধরন": "", "ক্যাটাগরি": "", "অ্যাকাউন্ট": "মোট আয়", "পরিমাণ (৳)": totalIncome, "নোট": "" },
+      { "তারিখ": "", "ধরন": "", "ক্যাটাগরি": "", "অ্যাকাউন্ট": "মোট জমা", "পরিমাণ (৳)": totalIncome, "নোট": "" },
       { "তারিখ": "", "ধরন": "", "ক্যাটাগরি": "", "অ্যাকাউন্ট": "মোট খরচ", "পরিমাণ (৳)": totalExpense, "নোট": "" },
       { "তারিখ": "", "ধরন": "", "ক্যাটাগরি": "", "অ্যাকাউন্ট": "ব্যালেন্স", "পরিমাণ (৳)": totalIncome - totalExpense, "নোট": "" },
     );
@@ -142,7 +142,7 @@ const AdvancedExport = ({ ledgerName, transactions, categories }: Props) => {
                   <SelectTrigger className="form-input"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">সব</SelectItem>
-                    <SelectItem value="income">আয়</SelectItem>
+                    <SelectItem value="income">জমা</SelectItem>
                     <SelectItem value="expense">খরচ</SelectItem>
                   </SelectContent>
                 </Select>
