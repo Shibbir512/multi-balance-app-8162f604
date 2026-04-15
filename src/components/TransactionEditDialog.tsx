@@ -157,6 +157,40 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
             onSubmit={(e) => { e.preventDefault(); updateMutation.mutate(); }}
             className="px-4 pb-4 space-y-2.5"
           >
+            {/* Type Toggle */}
+            <div className="flex rounded-xl overflow-hidden border" style={{ borderColor: 'var(--glass-border)' }}>
+              <button
+                type="button"
+                onClick={() => { setType("income"); setCategoryId(""); }}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold transition-all duration-200 ${
+                  type === "income"
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:text-foreground/70"
+                }`}
+                style={{
+                  background: type === "income" ? 'var(--income-bg)' : 'transparent',
+                }}
+              >
+                <TrendingUp className="w-3.5 h-3.5" style={{ color: type === "income" ? 'var(--income-text-soft)' : undefined }} />
+                আয়
+              </button>
+              <button
+                type="button"
+                onClick={() => { setType("expense"); setCategoryId(""); }}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold transition-all duration-200 ${
+                  type === "expense"
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:text-foreground/70"
+                }`}
+                style={{
+                  background: type === "expense" ? 'var(--expense-bg)' : 'transparent',
+                }}
+              >
+                <TrendingDown className="w-3.5 h-3.5" style={{ color: type === "expense" ? 'var(--expense-text-soft)' : undefined }} />
+                খরচ
+              </button>
+            </div>
+
             {/* Amount */}
             <div className="rounded-xl p-3 border transition-all duration-200" style={{
               background: 'hsl(var(--card))',
