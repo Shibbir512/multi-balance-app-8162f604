@@ -47,6 +47,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
 
   useEffect(() => {
     if (transaction) {
+      setType(transaction.type);
       setAmount(transaction.amount.toString());
       setCategoryId(transaction.category_id || "");
       setAccountId(transaction.account_id || "");
@@ -58,8 +59,8 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
     }
   }, [transaction]);
 
-  const filteredCategories = categories.filter((c) => c.type === transaction?.type);
-  const isIncome = transaction?.type === "income";
+  const filteredCategories = categories.filter((c) => c.type === type);
+  const isIncome = type === "income";
 
   const addCategory = useMutation({
     mutationFn: async () => {
