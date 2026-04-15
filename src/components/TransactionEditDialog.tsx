@@ -34,6 +34,7 @@ interface Props {
 const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, categories, ledgerId }: Props) => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const [type, setType] = useState("expense");
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [accountId, setAccountId] = useState("");
@@ -46,6 +47,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
 
   useEffect(() => {
     if (transaction) {
+      setType(transaction.type);
       setAmount(transaction.amount.toString());
       setCategoryId(transaction.category_id || "");
       setAccountId(transaction.account_id || "");
@@ -57,8 +59,8 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
     }
   }, [transaction]);
 
-  const filteredCategories = categories.filter((c) => c.type === transaction?.type);
-  const isIncome = transaction?.type === "income";
+  const filteredCategories = categories.filter((c) => c.type === type);
+  const isIncome = type === "income";
 
   const addCategory = useMutation({
     mutationFn: async () => {
@@ -66,7 +68,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
         ledger_id: ledgerId,
         user_id: user!.id,
         name: newCategoryName.trim(),
-        type: transaction!.type,
+        type: type,
       }).select().single();
       if (error) throw error;
       return data;
@@ -86,6 +88,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
       const { error } = await supabase
         .from("transactions")
         .update({
+          type,
           amount: parseFloat(amount),
           category_id: categoryId || null,
           account_id: accountId || null,
@@ -154,6 +157,40 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
             onSubmit={(e) => { e.preventDefault(); updateMutation.mutate(); }}
             className="px-4 pb-4 space-y-2.5"
           >
+            {/* Type Toggle */}
+            <div className="flex rounded-xl overflow-hidden border" style={{ borderColor: 'var(--glass-border)' }}>
+              <button
+                type="button"
+                onClick={() => { setType("income"); setCategoryId(""); }}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold transition-all duration-200 ${
+                  type === "income"
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:text-foreground/70"
+                }`}
+                style={{
+                  background: type === "income" ? 'var(--income-bg)' : 'transparent',
+                }}
+              >
+                <TrendingUp className="w-3.5 h-3.5" style={{ color: type === "income" ? 'var(--income-text-soft)' : undefined }} />
+                আয়
+              </button>
+              <button
+                type="button"
+                onClick={() => { setType("expense"); setCategoryId(""); }}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold transition-all duration-200 ${
+                  type === "expense"
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:text-foreground/70"
+                }`}
+                style={{
+                  background: type === "expense" ? 'var(--expense-bg)' : 'transparent',
+                }}
+              >
+                <TrendingDown className="w-3.5 h-3.5" style={{ color: type === "expense" ? 'var(--expense-text-soft)' : undefined }} />
+                খরচ
+              </button>
+            </div>
+
             {/* Amount */}
             <div className="rounded-xl p-3 border transition-all duration-200" style={{
               background: 'hsl(var(--card))',
