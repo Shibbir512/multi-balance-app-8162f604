@@ -36,13 +36,13 @@ const AdvancedExport = ({ ledgerName, transactions, categories }: Props) => {
   const getFiltered = () => {
     let filtered = [...transactions];
     if (exportType !== "all") filtered = filtered.filter((t) => t.type === exportType);
-    if (categoryFilter !== "all") filtered = filtered.filter((t) => (t.categories as any)?.name === categoryFilter);
+    if (categoryFilter !== "all") filtered = filtered.filter((t) => (t.categories as { name: string })?.name === categoryFilter);
     if (dateFrom) filtered = filtered.filter((t) => t.date >= dateFrom);
     if (dateTo) filtered = filtered.filter((t) => t.date <= dateTo);
     return filtered.sort((a, b) => a.date.localeCompare(b.date));
   };
 
-  const catNames = [...new Set(transactions.map((t) => (t.categories as any)?.name).filter(Boolean))];
+  const catNames = [...new Set(transactions.map((t) => (t.categories as { name: string })?.name).filter(Boolean))];
 
   const downloadPdf = () => {
     const filtered = getFiltered();
@@ -66,15 +66,15 @@ const AdvancedExport = ({ ledgerName, transactions, categories }: Props) => {
     const totalIncome = filtered.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
     const totalExpense = filtered.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
 
-    let y = 38;
+    const y = 38;
     doc.setFontSize(10);
     doc.text(`Income: ${totalIncome.toLocaleString()} BDT | Expense: ${totalExpense.toLocaleString()} BDT | Balance: ${(totalIncome - totalExpense).toLocaleString()} BDT`, 14, y);
 
     const rows = filtered.map((t) => [
       t.date,
       t.type === "income" ? "Income" : "Expense",
-      (t.categories as any)?.name || "-",
-      (t.accounts as any)?.name || "-",
+      (t.categories as { name: string })?.name || "-",
+      (t.accounts as { name: string })?.name || "-",
       `${t.amount.toLocaleString()} BDT`,
       t.note || "",
     ]);
@@ -99,8 +99,8 @@ const AdvancedExport = ({ ledgerName, transactions, categories }: Props) => {
     const data = filtered.map((t) => ({
       "তারিখ": t.date,
       "ধরন": t.type === "income" ? "জমা" : "খরচ",
-      "ক্যাটাগরি": (t.categories as any)?.name || "-",
-      "অ্যাকাউন্ট": (t.accounts as any)?.name || "-",
+      "ক্যাটাগরি": (t.categories as { name: string })?.name || "-",
+      "অ্যাকাউন্ট": (t.accounts as { name: string })?.name || "-",
       "পরিমাণ (৳)": t.amount,
       "নোট": t.note || "",
     }));
@@ -138,7 +138,7 @@ const AdvancedExport = ({ ledgerName, transactions, categories }: Props) => {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-muted-foreground">ধরন</Label>
-                <Select value={exportType} onValueChange={(v: any) => setExportType(v)}>
+                <Select value={exportType} onValueChange={(v: "all" | "income" | "expense") => setExportType(v)}>
                   <SelectTrigger className="form-input"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">সব</SelectItem>

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BottomSheet, BottomSheetContent } from "@/components/ui/bottom-sheet";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { TrendingUp, TrendingDown, Trash2, Plus, X } from "lucide-react";
+import { TrendingUp, TrendingDown, Trash2, Plus, X, Calendar } from "lucide-react";
 import CalculatorInput from "./CalculatorInput";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -34,7 +34,6 @@ interface Props {
 const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, categories, ledgerId }: Props) => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const [type, setType] = useState("expense");
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [accountId, setAccountId] = useState("");
@@ -44,23 +43,24 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   useEffect(() => {
     if (transaction) {
-      setType(transaction.type);
       setAmount(transaction.amount.toString());
       setCategoryId(transaction.category_id || "");
       setAccountId(transaction.account_id || "");
       setDate(transaction.date);
-      setTime((transaction as any).time || "");
+      setTime(transaction.time || "");
       setNote(transaction.note || "");
       setShowNewCategory(false);
       setNewCategoryName("");
+      setShowDatePicker(false);
     }
   }, [transaction]);
 
-  const filteredCategories = categories.filter((c) => c.type === type);
-  const isIncome = type === "income";
+  const filteredCategories = categories.filter((c) => c.type === transaction?.type);
+  const isIncome = transaction?.type === "income";
 
   const addCategory = useMutation({
     mutationFn: async () => {
@@ -68,7 +68,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
         ledger_id: ledgerId,
         user_id: user!.id,
         name: newCategoryName.trim(),
-        type: type,
+        type: transaction!.type,
       }).select().single();
       if (error) throw error;
       return data;
@@ -80,7 +80,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
       setShowNewCategory(false);
       toast.success("ক্যাটাগরি যোগ হয়েছে!");
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const updateMutation = useMutation({
@@ -88,7 +88,6 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
       const { error } = await supabase
         .from("transactions")
         .update({
-          type,
           amount: parseFloat(amount),
           category_id: categoryId || null,
           account_id: accountId || null,
@@ -105,7 +104,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
       onOpenChange(false);
       toast.success("লেনদেন আপডেট হয়েছে!");
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const deleteMutation = useMutation({
@@ -119,7 +118,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
       onOpenChange(false);
       toast.success("লেনদেন মুছে ফেলা হয়েছে!");
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: Error) => toast.error(e.message),
   });
 
   if (!transaction) return null;
@@ -157,40 +156,6 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
             onSubmit={(e) => { e.preventDefault(); updateMutation.mutate(); }}
             className="px-4 pb-4 space-y-2.5"
           >
-            {/* Type Toggle */}
-            <div className="flex rounded-xl overflow-hidden border" style={{ borderColor: 'var(--glass-border)' }}>
-              <button
-                type="button"
-                onClick={() => { setType("income"); setCategoryId(""); }}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold transition-all duration-200 ${
-                  type === "income"
-                    ? "text-foreground"
-                    : "text-muted-foreground hover:text-foreground/70"
-                }`}
-                style={{
-                  background: type === "income" ? 'var(--income-bg)' : 'transparent',
-                }}
-              >
-                <TrendingUp className="w-3.5 h-3.5" style={{ color: type === "income" ? 'var(--income-text-soft)' : undefined }} />
-                জমা
-              </button>
-              <button
-                type="button"
-                onClick={() => { setType("expense"); setCategoryId(""); }}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold transition-all duration-200 ${
-                  type === "expense"
-                    ? "text-foreground"
-                    : "text-muted-foreground hover:text-foreground/70"
-                }`}
-                style={{
-                  background: type === "expense" ? 'var(--expense-bg)' : 'transparent',
-                }}
-              >
-                <TrendingDown className="w-3.5 h-3.5" style={{ color: type === "expense" ? 'var(--expense-text-soft)' : undefined }} />
-                খরচ
-              </button>
-            </div>
-
             {/* Amount */}
             <div className="rounded-xl p-3 border transition-all duration-200" style={{
               background: 'hsl(var(--card))',
@@ -288,39 +253,69 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
                         : "border-border/60 bg-card text-muted-foreground hover:border-primary/30 hover:bg-primary/4"
                     }`}
                   >
-                    {(a as any).type === "bank" ? "🏦" : (a as any).type === "mobile_banking" ? "📱" : "💵"} {a.name}
+                    {a.type === "bank" ? "🏦" : a.type === "mobile_banking" ? "📱" : "💵"} {a.name}
                   </button>
                 ))}
               </div>
             </div>
 
             {/* Date & Time */}
-            <div className="grid grid-cols-2 gap-1.5">
-              <div className="flex items-center gap-1.5 rounded-lg border px-2.5 py-2" style={{
-                background: 'hsl(var(--muted))',
-                borderColor: 'var(--glass-border)',
-              }}>
-                <span className="text-xs">📅</span>
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  required
-                  className="bg-transparent border-0 outline-none text-xs font-medium text-foreground flex-1 w-full"
-                />
-              </div>
-              <div className="flex items-center gap-1.5 rounded-lg border px-2.5 py-2" style={{
-                background: 'hsl(var(--muted))',
-                borderColor: 'var(--glass-border)',
-              }}>
-                <span className="text-xs">🕒</span>
-                <input
-                  type="time"
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
-                  className="bg-transparent border-0 outline-none text-xs font-medium text-foreground flex-1 w-full"
-                />
-              </div>
+            <div>
+              <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">তারিখ ও সময়</label>
+              {!showDatePicker ? (
+                <button
+                  type="button"
+                  onClick={() => setShowDatePicker(true)}
+                  className="w-full flex items-center justify-between border rounded-xl px-2.5 py-2 transition-all duration-200 hover:bg-primary/5 hover:border-primary/30"
+                  style={{
+                    background: 'hsl(var(--card))',
+                    borderColor: 'var(--glass-border)',
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-primary/10 text-primary shrink-0">
+                      <Calendar className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-xs font-semibold text-foreground">
+                        {date === new Date().toISOString().split("T")[0] ? "আজ" : date}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
+                        {time || ""}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-semibold text-primary underline underline-offset-2">পরিবর্তন করুন</span>
+                </button>
+              ) : (
+                <div className="grid grid-cols-2 gap-1.5 animate-fade-in">
+                  <div className="flex items-center gap-1.5 rounded-lg border px-2.5 py-2" style={{
+                    background: 'hsl(var(--muted))',
+                    borderColor: 'var(--glass-border)',
+                  }}>
+                    <span className="text-xs">📅</span>
+                    <input
+                      type="date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      required
+                      className="bg-transparent border-0 outline-none text-xs font-medium text-foreground flex-1 w-full"
+                    />
+                  </div>
+                  <div className="flex items-center gap-1.5 rounded-lg border px-2.5 py-2" style={{
+                    background: 'hsl(var(--muted))',
+                    borderColor: 'var(--glass-border)',
+                  }}>
+                    <span className="text-xs">🕒</span>
+                    <input
+                      type="time"
+                      value={time}
+                      onChange={(e) => setTime(e.target.value)}
+                      className="bg-transparent border-0 outline-none text-xs font-medium text-foreground flex-1 w-full"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Note */}

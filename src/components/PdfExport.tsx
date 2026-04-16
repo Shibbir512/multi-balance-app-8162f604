@@ -53,7 +53,7 @@ const PdfExport = ({ ledgerName, transactions }: PdfExportProps) => {
     const totalExpense = filtered.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
 
     doc.setFontSize(11);
-    let y = 44;
+    const y = 44;
     doc.text(`Total Income: ${totalIncome.toLocaleString()} BDT`, 14, y);
     doc.text(`Total Expense: ${totalExpense.toLocaleString()} BDT`, 14, y + 7);
     doc.text(`Balance: ${(totalIncome - totalExpense).toLocaleString()} BDT`, 14, y + 14);
@@ -61,8 +61,8 @@ const PdfExport = ({ ledgerName, transactions }: PdfExportProps) => {
     const tableData = filtered.map((t) => [
       t.date,
       t.type === "income" ? "Income" : "Expense",
-      (t.categories as any)?.name || "-",
-      (t.accounts as any)?.name || "-",
+      (t.categories as { name: string })?.name || "-",
+      (t.accounts as { name: string })?.name || "-",
       `${t.amount.toLocaleString()} BDT`,
       t.note || "",
     ]);
@@ -96,7 +96,7 @@ const PdfExport = ({ ledgerName, transactions }: PdfExportProps) => {
             <BottomSheetDescription>লেনদেনের ধরন বাছাই করুন</BottomSheetDescription>
           </BottomSheetHeader>
           <div className="form-section-gap">
-            <Select value={exportType} onValueChange={(v: any) => setExportType(v)}>
+            <Select value={exportType} onValueChange={(v: "all" | "income" | "expense") => setExportType(v)}>
               <SelectTrigger className="form-input"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">সব লেনদেন</SelectItem>

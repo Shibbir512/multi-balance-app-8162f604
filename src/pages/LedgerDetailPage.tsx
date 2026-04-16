@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetTitle, BottomSheetDescription } from "@/components/ui/bottom-sheet";
-import { ArrowLeft, Plus, TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, Pencil, ShoppingCart, Calculator, CreditCard, Tag, Trash2, X, ChevronDown, BarChart3 } from "lucide-react";
+import { ArrowLeft, Plus, TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, Pencil, ShoppingCart, Calculator, CreditCard, Tag, Trash2, X, ChevronDown, BarChart3, Calendar, Search } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import { toast } from "sonner";
 import GroceryModule from "@/components/GroceryModule";
@@ -58,6 +58,9 @@ const LedgerDetailPage = () => {
   const [txDate, setTxDate] = useState(new Date().toISOString().split("T")[0]);
   const [txNote, setTxNote] = useState("");
   const [txTime, setTxTime] = useState(new Date().toTimeString().slice(0, 5));
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showNoteSuggestions, setShowNoteSuggestions] = useState(false);
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   const [activeTab, setActiveTab] = useState("transactions");
 
   const [filterMonth, setFilterMonth] = useState("all");
@@ -66,7 +69,7 @@ const LedgerDetailPage = () => {
   const [filterDateFrom, setFilterDateFrom] = useState("");
   const [filterDateTo, setFilterDateTo] = useState("");
 
-  const [editTx, setEditTx] = useState<any>(null);
+  const [editTx, setEditTx] = useState<Record<string, unknown> | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -104,13 +107,19 @@ const LedgerDetailPage = () => {
     },
   });
 
-  // Default select "নগদ" account
+  // Default select last used account or "নগদ"
   useEffect(() => {
     if (accounts?.length && !txAccount) {
-      const nagad = accounts.find(a => a.name === "নগদ" || a.name.toLowerCase() === "cash");
-      if (nagad) setTxAccount(nagad.id);
+      const lastAccountId = localStorage.getItem(`lastAccount_${ledgerId}`);
+      const lastAccount = lastAccountId ? accounts.find(a => a.id === lastAccountId) : null;
+      if (lastAccount) {
+        setTxAccount(lastAccount.id);
+      } else {
+        const nagad = accounts.find(a => a.name === "নগদ" || a.name.toLowerCase() === "cash");
+        if (nagad) setTxAccount(nagad.id);
+      }
     }
-  }, [accounts]);
+  }, [accounts, txAccount, ledgerId]);
 
 
   const { data: categories } = useQuery({
@@ -133,9 +142,53 @@ const LedgerDetailPage = () => {
         .order("created_at", { ascending: false })
         .limit(500);
       if (error) throw error;
-      return data;
+      return data as any[];
     },
   });
+
+  // Smart note suggestions from past transactions
+  const noteSuggestions = useMemo(() => {
+    if (!transactions) return [];
+    const noteCount = new Map<string, number>();
+    transactions.forEach((t: any) => {
+      if (t.note && t.note.trim()) {
+        const note = t.note.trim();
+        noteCount.set(note, (noteCount.get(note) || 0) + 1);
+      }
+    });
+    return Array.from(noteCount.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8)
+      .map(([note]) => note);
+  }, [transactions]);
+
+  const filteredNoteSuggestions = useMemo(() => {
+    if (!txNote) return noteSuggestions;
+    return noteSuggestions.filter(n => n.toLowerCase().includes(txNote.toLowerCase()));
+  }, [noteSuggestions, txNote]);
+
+  // Success animation handler
+  const triggerSuccessAnimation = useCallback(() => {
+    // Haptic vibration
+    try {
+      if (navigator.vibrate) {
+        navigator.vibrate([50, 30, 50]);
+      }
+    } catch (_) { /* vibrate not supported */ }
+    // Confetti burst
+    setShowSuccessAnimation(true);
+    import('canvas-confetti').then((mod) => {
+      const confettiFn = mod.default;
+      confettiFn({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.7 },
+        colors: ['#6366f1', '#22c55e', '#f59e0b', '#ec4899'],
+        zIndex: 9999,
+      });
+    }).catch(() => { /* confetti not available */ });
+    setTimeout(() => setShowSuccessAnimation(false), 1500);
+  }, []);
 
   // Report tab filters
   const reportFilteredTransactions = useMemo(() => {
@@ -146,7 +199,7 @@ const LedgerDetailPage = () => {
         if (filterYear !== "all" && y !== filterYear) return false;
       }
       if (filterCategory !== "all") {
-        if ((t.categories as any)?.name !== filterCategory) return false;
+        if ((t.categories as { name: string })?.name !== filterCategory) return false;
       }
       if (filterDateFrom && t.date < filterDateFrom) return false;
       if (filterDateTo && t.date > filterDateTo) return false;
@@ -173,7 +226,7 @@ const LedgerDetailPage = () => {
 
     // Apply chart category filter
     if (chartCategory) {
-      filtered = filtered.filter(t => (t.categories as any)?.name === chartCategory);
+      filtered = filtered.filter(t => (t.categories as { name: string })?.name === chartCategory);
     }
 
     return filtered;
@@ -217,21 +270,25 @@ const LedgerDetailPage = () => {
         date: txDate,
         time: txTime || null,
         note: txNote || null,
-      } as any);
+      });
       if (error) throw error;
     },
     onSuccess: () => {
+      // Remember last used account
+      if (txAccount) {
+        localStorage.setItem(`lastAccount_${ledgerId}`, txAccount);
+      }
       queryClient.invalidateQueries({ queryKey: ["transactions", ledgerId] });
       queryClient.invalidateQueries({ queryKey: ["ledger-balances"] });
       setTxDialogOpen(false);
       setTxAmount("");
       setTxCategory("");
-      const nagad = accounts?.find(a => a.name === "নগদ" || a.name.toLowerCase() === "cash");
-      setTxAccount(nagad?.id || "");
+      // Keep the same account for next entry (remembered)
       setTxNote("");
+      triggerSuccessAnimation();
       toast.success(txType === "income" ? "জমা যোগ হয়েছে!" : "খরচ যোগ হয়েছে!");
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const addCategory = useMutation({
@@ -252,7 +309,7 @@ const LedgerDetailPage = () => {
       setShowNewCategory(false);
       toast.success("ক্যাটাগরি যোগ হয়েছে!");
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const updateCategory = useMutation({
@@ -266,7 +323,7 @@ const LedgerDetailPage = () => {
       setEditCategoryName("");
       toast.success("ক্যাটাগরি আপডেট হয়েছে!");
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const deleteCategory = useMutation({
@@ -278,7 +335,7 @@ const LedgerDetailPage = () => {
       queryClient.invalidateQueries({ queryKey: ["categories", ledgerId] });
       toast.success("ক্যাটাগরি মুছে ফেলা হয়েছে!");
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const handleAddTx = (e: React.FormEvent) => {
@@ -293,6 +350,9 @@ const LedgerDetailPage = () => {
   const openTxDialog = (type: "income" | "expense") => {
     setTxType(type);
     setTxCategory("");
+    setTxDate(new Date().toISOString().split("T")[0]);
+    setTxTime(new Date().toTimeString().slice(0, 5));
+    setShowDatePicker(false);
     setTxDialogOpen(true);
   };
 
@@ -520,9 +580,9 @@ const LedgerDetailPage = () => {
                           {tx.type === "income" ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-foreground">{(tx.categories as any)?.name || "—"}</p>
+                          <p className="text-sm font-semibold text-foreground">{(tx.categories as { name: string })?.name || "—"}</p>
                           <p className="text-[11px] text-muted-foreground">
-                            {(tx.accounts as any)?.name || "—"} • {formatBengaliDate(tx.date, (tx as any).time)}
+                            {(tx.accounts as { name: string })?.name || "—"} • {formatBengaliDate(tx.date, (tx as { time?: string }).time)}
                           </p>
                           {tx.note && <p className="text-[11px] text-muted-foreground mt-0.5">{tx.note}</p>}
                         </div>
@@ -558,7 +618,7 @@ const LedgerDetailPage = () => {
         {activeTab === "reports" && (
           <div className="space-y-3 pb-8">
             <MonthlyChart transactions={transactions ?? []} />
-            <CategoryBreakdownTable transactions={transactions as any ?? []} />
+            <CategoryBreakdownTable transactions={(transactions as any) ?? []} />
 
             <div className="premium-card p-4 space-y-3">
               <h3 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
@@ -600,7 +660,7 @@ const LedgerDetailPage = () => {
                           {tx.type === "income" ? <TrendingUp className="w-3 h-3" style={{ color: 'var(--income-text-soft)' }} /> : <TrendingDown className="w-3 h-3" style={{ color: 'var(--expense-text-soft)' }} />}
                         </div>
                         <div>
-                          <p className="text-xs font-semibold text-foreground">{(tx.categories as any)?.name || "—"}</p>
+                          <p className="text-xs font-semibold text-foreground">{(tx.categories as { name: string })?.name || "—"}</p>
                           <p className="text-[10px] text-muted-foreground">{formatBengaliDate(tx.date)}</p>
                         </div>
                       </div>
@@ -688,221 +748,209 @@ const LedgerDetailPage = () => {
 
       {/* ─── ADD TRANSACTION BOTTOM SHEET ─── */}
       <BottomSheet open={txDialogOpen} onOpenChange={setTxDialogOpen}>
-        <BottomSheetContent className="p-0 rounded-t-3xl">
-          <div className="px-5 pt-5 pb-3 relative" style={{ background: 'linear-gradient(180deg, hsl(var(--primary) / 0.06), transparent)' }}>
-            <div className="flex justify-center mb-3">
-              <div className="w-10 h-1 rounded-full bg-muted-foreground/20" />
+        <BottomSheetContent className="p-0 rounded-t-[32px] bg-white dark:bg-zinc-950 border-t-0 shadow-2xl">
+          {/* Header */}
+          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-zinc-800">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">নতুন</h2>
+            <button onClick={() => setTxDialogOpen(false)} type="button" className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-zinc-900 text-gray-500 hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <form onSubmit={handleAddTx} className="px-5 py-5 space-y-5 max-h-[85vh] overflow-y-auto no-scrollbar">
+            
+            {/* Date & Time (Side by Side) */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-blue-500">
+                  <Calendar className="w-4 h-4" />
+                </div>
+                <input
+                  type="date"
+                  value={txDate}
+                  onChange={(e) => setTxDate(e.target.value)}
+                  required
+                  className="w-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-semibold text-sm rounded-2xl py-3 pl-10 pr-3 outline-none"
+                />
+              </div>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-blue-500">
+                  <span className="text-sm">🕒</span>
+                </div>
+                <input
+                  type="time"
+                  value={txTime}
+                  onChange={(e) => setTxTime(e.target.value)}
+                  className="w-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-semibold text-sm rounded-2xl py-3 pl-10 pr-3 outline-none"
+                />
+              </div>
             </div>
 
-            {/* Segmented Toggle */}
-            <div className="flex gap-1 p-0.5 rounded-2xl mb-3" style={{ background: 'hsl(var(--muted))' }}>
+            {/* Income/Expense Toggle */}
+            <div className="flex p-1 bg-gray-100 dark:bg-zinc-900 rounded-2xl">
               <button
                 type="button"
                 onClick={() => { setTxType("income"); setTxCategory(""); }}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
-                  txType === "income"
-                    ? "gradient-primary text-white shadow-md"
-                    : "text-muted-foreground hover:text-foreground"
+                className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all duration-300 ${
+                  txType === "income" ? "bg-green-500 text-white shadow-md shadow-green-500/20" : "text-gray-500 hover:text-gray-700 dark:text-gray-400"
                 }`}
               >
-                💰 জমা
+                জমা
               </button>
               <button
                 type="button"
                 onClick={() => { setTxType("expense"); setTxCategory(""); }}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
-                  txType === "expense"
-                    ? "gradient-primary text-white shadow-md"
-                    : "text-muted-foreground hover:text-foreground"
+                className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all duration-300 ${
+                  txType === "expense" ? "bg-red-500 text-white shadow-md shadow-red-500/20" : "text-gray-500 hover:text-gray-700 dark:text-gray-400"
                 }`}
               >
-                💸 খরচ
+                ব্যয়
               </button>
             </div>
 
-            {/* Title row */}
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{
-                background: txType === "income" ? 'var(--income-bg)' : 'var(--expense-bg)',
-              }}>
-                {txType === "income" ? (
-                  <TrendingUp className="w-4 h-4" style={{ color: 'var(--income-text-soft)' }} />
-                ) : (
-                  <TrendingDown className="w-4 h-4" style={{ color: 'var(--expense-text-soft)' }} />
-                )}
-              </div>
-              <div>
-                <h2 className="text-sm font-bold text-foreground">
-                  {txType === "income" ? "জমা যোগ করুন" : "খরচ যোগ করুন"}
-                </h2>
-                <p className="text-[10px] text-muted-foreground">
-                  {txType === "income" ? "জমার বিবরণ দিন" : "খরচের বিবরণ দিন"}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Form Body */}
-          <form onSubmit={handleAddTx} className="px-5 pb-5 space-y-3">
-            {/* Amount Input */}
-            <div className="rounded-2xl p-4 border transition-all duration-200" style={{
-              background: 'hsl(var(--card))',
-              borderColor: 'var(--glass-border)',
-              boxShadow: 'var(--shadow-card)',
-            }}>
-              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5 block">পরিমাণ (৳)</label>
-              <CalculatorInput
-                value={txAmount}
-                onChange={setTxAmount}
-                placeholder="যেমন: 500 + 200"
-                required
-                className="border-0 bg-transparent text-xl font-bold h-12 px-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/40"
-              />
-              {txAmount && parseFloat(txAmount) > 0 && (
-                <p className="text-[11px] mt-1.5 font-medium" style={{ color: txType === "income" ? 'var(--income-text-soft)' : 'var(--expense-text-soft)' }}>
-                  মোট: ৳{parseFloat(txAmount).toLocaleString("bn-BD")}
-                </p>
-              )}
-            </div>
-
-            {/* Category Selection */}
+            {/* Account Choice (Horizontal) */}
             <div>
-              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 block">ক্যাটাগরি</label>
+              <div className="flex gap-2 overflow-x-auto no-scrollbar py-1 items-center">
+                <div className="w-10 h-10 shrink-0 flex items-center justify-center rounded-2xl bg-gray-100 dark:bg-zinc-900 text-gray-500 shadow-sm border border-transparent">
+                  <Search className="w-4 h-4" />
+                </div>
+                {accounts?.map((a) => (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onClick={() => setTxAccount(a.id)}
+                    className={`shrink-0 px-4 py-2.5 rounded-2xl text-sm font-semibold transition-all duration-200 border ${
+                      txAccount === a.id
+                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 shadow-sm shadow-blue-500/10"
+                        : "border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-900 shadow-sm"
+                    }`}
+                  >
+                    {a.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Category Choice (Horizontal) */}
+            <div>
               {showNewCategory ? (
-                <div className="flex gap-1.5">
+                <div className="flex gap-2 mb-2">
                   <Input
                     value={newCategoryName}
                     onChange={(e) => setNewCategoryName(e.target.value)}
                     placeholder="ক্যাটাগরি নাম"
-                    className="form-input flex-1 h-9 text-xs"
+                    className="flex-1 h-11 rounded-2xl text-sm"
                     autoFocus
                   />
                   <Button
                     type="button"
-                    size="icon"
-                    className="h-9 w-9 shrink-0 rounded-xl btn-primary"
+                    className="h-11 w-11 rounded-2xl bg-blue-500 hover:bg-blue-600 shrink-0"
                     disabled={!newCategoryName.trim() || addCategory.isPending}
                     onClick={() => addCategory.mutate()}
                   >
-                    <Plus className="w-3.5 h-3.5" />
+                    <Plus className="w-4 h-4 text-white" />
                   </Button>
                   <Button
                     type="button"
-                    size="icon"
                     variant="ghost"
-                    className="h-9 w-9 shrink-0 rounded-xl"
+                    className="h-11 w-11 rounded-2xl bg-gray-100 dark:bg-zinc-900 hover:bg-gray-200 dark:hover:bg-zinc-800 shrink-0"
                     onClick={() => { setShowNewCategory(false); setNewCategoryName(""); }}
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <X className="w-4 h-4" />
                   </Button>
                 </div>
               ) : (
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex gap-2 overflow-x-auto no-scrollbar py-1 items-center">
+                  <div className="w-10 h-10 shrink-0 flex items-center justify-center rounded-2xl bg-gray-100 dark:bg-zinc-900 text-gray-500 shadow-sm border border-transparent">
+                    <Search className="w-4 h-4" />
+                  </div>
                   {filteredCategories.map((c) => (
                     <button
                       key={c.id}
                       type="button"
                       onClick={() => setTxCategory(c.id)}
-                      className={`relative flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 border overflow-hidden ${
+                      className={`shrink-0 px-4 py-2.5 rounded-2xl text-sm font-semibold transition-all duration-200 border ${
                         txCategory === c.id
-                          ? "border-primary bg-primary/8 text-foreground shadow-sm"
-                          : "border-border/60 bg-card text-muted-foreground hover:border-primary/30 hover:bg-primary/4"
+                          ? (txType === "income" ? "border-green-500 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 shadow-sm shadow-green-500/10" : "border-red-500 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 shadow-sm shadow-red-500/10")
+                          : "border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-900 shadow-sm"
                       }`}
                     >
-                      <div
-                        className={`absolute left-0 top-0 bottom-0 w-[3px] rounded-r transition-opacity duration-200 ${txCategory === c.id ? "opacity-100" : "opacity-0"}`}
-                        style={{ background: txType === "income" ? 'var(--income-text-soft)' : 'var(--expense-text-soft)' }}
-                      />
                       {c.name}
                     </button>
                   ))}
                   <button
                     type="button"
                     onClick={() => setShowNewCategory(true)}
-                    className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-medium border border-dashed border-primary/30 text-primary hover:bg-primary/5 transition-all duration-200"
+                    className="shrink-0 flex items-center justify-center w-10 h-10 rounded-2xl border border-dashed border-gray-300 dark:border-zinc-700 text-gray-500 hover:bg-gray-50 dark:hover:bg-zinc-900"
                   >
-                    <Plus className="w-3 h-3" /> নতুন
+                    <Plus className="w-4 h-4" />
                   </button>
                 </div>
               )}
             </div>
 
-            {/* Account Selection */}
-            <div>
-              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 block">অ্যাকাউন্ট</label>
-              <div className="flex flex-wrap gap-1.5">
-                {accounts?.map((a) => (
-                  <button
-                    key={a.id}
-                    type="button"
-                    onClick={() => setTxAccount(a.id)}
-                    className={`flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 border ${
-                      txAccount === a.id
-                        ? "border-primary bg-primary/8 text-foreground shadow-sm"
-                        : "border-border/60 bg-card text-muted-foreground hover:border-primary/30 hover:bg-primary/4"
-                    }`}
-                  >
-                    {a.type === "bank" ? "🏦" : a.type === "mobile_banking" ? "📱" : "💵"} {a.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Date & Time */}
-            <div className="grid grid-cols-2 gap-2">
-              <div className="flex items-center gap-1.5 rounded-xl border px-3 py-2.5" style={{
-                background: 'hsl(var(--muted))',
-                borderColor: 'var(--glass-border)',
-              }}>
-                <span className="text-xs">📅</span>
-                <input
-                  type="date"
-                  value={txDate}
-                  onChange={(e) => setTxDate(e.target.value)}
+            {/* Inputs (Amount and Description) */}
+            <div className="space-y-3 pt-1">
+              <div className="relative flex items-center bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-2xl px-4 focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10 transition-all shadow-sm">
+                <span className="text-xl mr-3">🪙</span>
+                <CalculatorInput
+                  value={txAmount}
+                  onChange={setTxAmount}
+                  placeholder="টাকার পরিমাণ"
                   required
-                  className="bg-transparent border-0 outline-none text-xs font-medium text-foreground flex-1 w-full"
+                  className="w-full bg-transparent border-0 text-gray-900 dark:text-gray-100 font-bold text-lg h-14 px-0 outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
               </div>
-              <div className="flex items-center gap-1.5 rounded-xl border px-3 py-2.5" style={{
-                background: 'hsl(var(--muted))',
-                borderColor: 'var(--glass-border)',
-              }}>
-                <span className="text-xs">🕒</span>
-                <input
-                  type="time"
-                  value={txTime}
-                  onChange={(e) => setTxTime(e.target.value)}
-                  className="bg-transparent border-0 outline-none text-xs font-medium text-foreground flex-1 w-full"
+
+              <div className="relative">
+                <div className="absolute top-4 left-4 flex items-start pointer-events-none">
+                  <span className="text-xl">📝</span>
+                </div>
+                <textarea
+                  value={txNote}
+                  onChange={(e) => setTxNote(e.target.value)}
+                  placeholder="বিবরণ (অপশনাল)"
+                  rows={2}
+                  className="w-full bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-gray-100 font-medium text-sm rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all resize-none shadow-sm"
+                  onFocus={() => setShowNoteSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowNoteSuggestions(false), 200)}
                 />
+                
+                {showNoteSuggestions && filteredNoteSuggestions.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {filteredNoteSuggestions.map((suggestion) => (
+                      <button
+                        key={suggestion}
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => { setTxNote(suggestion); setShowNoteSuggestions(false); }}
+                        className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 dark:bg-zinc-900 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Note */}
-            <textarea
-              value={txNote}
-              onChange={(e) => setTxNote(e.target.value)}
-              placeholder="কিসের জন্য?"
-              rows={1}
-              className="w-full rounded-xl border px-3 py-2.5 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200"
-              style={{
-                background: 'hsl(var(--muted))',
-                borderColor: 'var(--glass-border)',
-              }}
-              onFocus={(e) => { e.currentTarget.rows = 2; }}
-              onBlur={(e) => { if (!e.currentTarget.value) e.currentTarget.rows = 1; }}
-            />
-
-            {/* CTA Button */}
+            {/* Submit Button */}
             <Button
               type="submit"
-              className="w-full h-12 rounded-2xl text-sm font-bold btn-primary active:scale-[0.96] transition-all duration-200"
-              disabled={addTransaction.isPending}
+              className={`w-full h-14 rounded-2xl text-base font-bold shadow-lg transition-all duration-300 ${
+                !txAmount || parseFloat(txAmount) <= 0
+                  ? "bg-gray-200 hover:bg-gray-200 text-gray-400 dark:bg-zinc-800 dark:text-zinc-500 shadow-none pointer-events-none"
+                  : txType === "income" 
+                    ? "bg-green-500 hover:bg-green-600 text-white shadow-green-500/30 active:scale-[0.98]"
+                    : "bg-red-500 hover:bg-red-600 text-white shadow-red-500/30 active:scale-[0.98]"
+              }`}
+              disabled={addTransaction.isPending || !txAmount || parseFloat(txAmount) <= 0}
             >
               {addTransaction.isPending
                 ? "সংরক্ষণ হচ্ছে..."
                 : txType === "income"
-                  ? "💰 টাকা যোগ করুন"
-                  : "💸 খরচ সেভ করুন"
+                  ? "জমা যোগ করুন"
+                  : "ব্যয় যোগ করুন"
               }
             </Button>
           </form>
@@ -911,7 +959,7 @@ const LedgerDetailPage = () => {
 
       {/* Edit Transaction Dialog */}
       <TransactionEditDialog
-        transaction={editTx}
+        transaction={editTx as any}
         open={editOpen}
         onOpenChange={setEditOpen}
         accounts={accounts ?? []}

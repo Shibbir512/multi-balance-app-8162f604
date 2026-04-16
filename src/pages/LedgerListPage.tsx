@@ -72,7 +72,7 @@ const LedgerListPage = () => {
       setDialogOpen(false);
       toast.success("নতুন খাতা তৈরি হয়েছে!");
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const deleteLedger = useMutation({
@@ -86,7 +86,7 @@ const LedgerListPage = () => {
       setDeleteTarget(null);
       toast.success("খাতা মুছে ফেলা হয়েছে!");
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const handleCreate = (e: React.FormEvent) => {
