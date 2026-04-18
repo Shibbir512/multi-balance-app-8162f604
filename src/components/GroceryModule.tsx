@@ -11,8 +11,25 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
 import {
-  Plus, ShoppingCart, Package, Minus, Check, ArrowRight, ArrowLeft, Pencil, Trash2, Clock, Sparkles, CheckCircle2, Circle, Download
+  Plus, ShoppingCart, Package, Minus, Check, ArrowRight, ArrowLeft, Pencil, Trash2, Clock, Sparkles, CheckCircle2, Circle, Download, ListChecks, History, Wallet, Receipt
 } from "lucide-react";
+
+const SectionLabel = ({ icon: Icon, label, accent }: { icon: any; label: string; accent?: string }) => (
+  <div className="flex items-center gap-1.5 mb-2 px-0.5">
+    <Icon className="w-3 h-3 text-muted-foreground/70" strokeWidth={2.5} style={accent ? { color: accent } : undefined} />
+    <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground/80">{label}</span>
+    <div className="flex-1 h-px bg-gradient-to-r from-border to-transparent" />
+  </div>
+);
+
+const getAccountEmoji = (name: string) => {
+  const n = name.toLowerCase();
+  if (n.includes("bkash") || n.includes("nagad") || n.includes("rocket") || n.includes("মোবাইল") || n.includes("বিকাশ") || n.includes("নগদ")) return "📱";
+  if (n.includes("cash") || n.includes("নগদ") || n.includes("হাত")) return "💵";
+  if (n.includes("bank") || n.includes("ব্যাংক")) return "🏦";
+  if (n.includes("card") || n.includes("কার্ড")) return "💳";
+  return "💰";
+};
 import { toast } from "sonner";
 import { useGroceryReminders } from "@/hooks/useGroceryReminders";
 import GroceryReminders from "@/components/GroceryReminders";
@@ -403,20 +420,35 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
   if (step === "master") {
     return (
       <div className="space-y-5">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold">মাস্টার আইটেম</h3>
-          <div className="flex gap-1.5">
-            {otherLedgers.length > 0 && (
-              <Button size="sm" variant="outline" onClick={() => setImportOpen(true)} className="gap-1 rounded-xl text-xs px-2">
-                <Download className="w-3 h-3" /> আমদানি
+        {/* Premium Header with accent halo */}
+        <div className="relative overflow-hidden rounded-2xl premium-card p-4">
+          <div
+            className="absolute -top-16 -right-12 w-44 h-44 rounded-full opacity-40 blur-3xl pointer-events-none"
+            style={{ background: 'var(--gradient-primary)' }}
+          />
+          <div className="relative flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm" style={{ background: 'var(--gradient-primary)' }}>
+                <ShoppingCart className="w-5 h-5 text-white" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-sm font-bold leading-tight">বাজার তালিকা</h3>
+                <p className="text-[10px] text-muted-foreground">{masterItems?.length ?? 0}টি আইটেম</p>
+              </div>
+            </div>
+            <div className="flex gap-1.5 shrink-0">
+              {otherLedgers.length > 0 && (
+                <Button size="icon" variant="outline" onClick={() => setImportOpen(true)} className="h-9 w-9 rounded-xl">
+                  <Download className="w-3.5 h-3.5" />
+                </Button>
+              )}
+              <Button size="icon" variant="outline" onClick={() => setAddItemOpen(true)} className="h-9 w-9 rounded-xl">
+                <Plus className="w-3.5 h-3.5" />
               </Button>
-            )}
-            <Button size="sm" variant="outline" onClick={() => setAddItemOpen(true)} className="gap-1 rounded-xl text-xs px-2">
-              <Plus className="w-3 h-3" /> যোগ
-            </Button>
-            <Button size="sm" onClick={startShopping} disabled={!masterItems?.length} className="gap-1 rounded-xl gradient-primary shadow-sm font-semibold text-xs px-2">
-              <ShoppingCart className="w-3 h-3" /> বাজার
-            </Button>
+              <Button size="sm" onClick={startShopping} disabled={!masterItems?.length} className="gap-1 h-9 rounded-xl gradient-primary shadow-sm font-semibold text-xs px-3">
+                <ShoppingCart className="w-3.5 h-3.5" /> শুরু
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -491,9 +523,7 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
             {/* Remaining items */}
             {remainingItems.length > 0 && (
               <div className="space-y-2">
-                <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                  <Circle className="w-3 h-3" /> বাকি আইটেম ({remainingItems.length})
-                </h4>
+                <SectionLabel icon={ListChecks} label={`বাকি আইটেম (${remainingItems.length})`} />
                 {remainingItems.map((item) => renderMasterItem(item, false))}
               </div>
             )}
@@ -501,9 +531,7 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
             {/* Completed items */}
             {completedItems.length > 0 && (
               <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5" style={{ color: 'var(--grocery-check-color)' }}>
-                  <CheckCircle2 className="w-3 h-3" /> সম্পন্ন ({completedItems.length})
-                </h4>
+                <SectionLabel icon={CheckCircle2} label={`সম্পন্ন (${completedItems.length})`} accent="var(--grocery-check-color)" />
                 {completedItems.map((item) => renderMasterItem(item, true))}
               </div>
             )}
@@ -513,12 +541,11 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
         {/* Recent items quick access */}
         {recentItems && recentItems.length > 0 && (
           <div className="mt-5">
-            <h3 className="text-sm font-bold mb-2.5 flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-muted-foreground" /> সাম্প্রতিক বাজার আইটেম
-            </h3>
-            <div className="flex flex-wrap gap-2">
+            <SectionLabel icon={Clock} label="সাম্প্রতিক বাজার আইটেম" />
+            <div className="flex flex-wrap gap-1.5">
               {recentItems.map((item, i) => (
-                <Button key={i} variant="outline" size="sm" className="text-xs h-8 rounded-xl gap-1"
+                <button key={i}
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-muted hover:bg-accent transition-all hover:scale-105"
                   onClick={() => {
                     if (!masterItems?.some((m) => m.name === item.name)) {
                       supabase.from("grocery_master_items").insert({
@@ -529,8 +556,8 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
                       toast.info("এই আইটেম আগে থেকেই মাস্টার লিস্টে আছে");
                     }
                   }}>
-                  <Plus className="w-3 h-3" /> {item.name}
-                </Button>
+                  <Plus className="w-3 h-3 opacity-60" /> {item.name}
+                </button>
               ))}
             </div>
           </div>
@@ -539,7 +566,7 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
         {/* Recent batches */}
         {batches && batches.length > 0 && (
           <div className="mt-5">
-            <h3 className="text-sm font-bold mb-2.5">সাম্প্রতিক বাজার</h3>
+            <SectionLabel icon={History} label="সাম্প্রতিক বাজার" />
             <div className="space-y-2">
               {batches.map((b) => (
                 <div key={b.id} className="premium-card p-3.5 flex items-center justify-between">
@@ -704,74 +731,93 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
   if (step === "shopping") {
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <Button size="sm" variant="ghost" onClick={() => setStep("master")} className="gap-1 rounded-xl">
-            <ArrowLeft className="w-3 h-3" /> ফিরে যান
-          </Button>
-          <h3 className="text-sm font-bold">বাজারের তালিকা</h3>
-          <Button size="sm" onClick={() => setStep("pricing")} disabled={selectedItems.length === 0} className="gap-1 rounded-xl gradient-primary shadow-sm font-semibold">
-            পরবর্তী <ArrowRight className="w-3 h-3" />
-          </Button>
+        {/* Header with accent halo */}
+        <div className="relative overflow-hidden rounded-2xl premium-card p-3.5">
+          <div
+            className="absolute -top-16 -right-12 w-44 h-44 rounded-full opacity-40 blur-3xl pointer-events-none"
+            style={{ background: 'var(--gradient-primary)' }}
+          />
+          <div className="relative flex items-center justify-between gap-2">
+            <Button size="sm" variant="ghost" onClick={() => setStep("master")} className="gap-1 rounded-xl h-9 px-2">
+              <ArrowLeft className="w-3.5 h-3.5" /> ফিরে
+            </Button>
+            <div className="text-center min-w-0">
+              <h3 className="text-sm font-bold leading-tight">বাজার চলছে</h3>
+              <p className="text-[10px] text-muted-foreground">{selectedItems.length}টি সিলেক্ট</p>
+            </div>
+            <Button size="sm" onClick={() => setStep("pricing")} disabled={selectedItems.length === 0}
+              className="gap-1 rounded-xl gradient-primary shadow-sm font-semibold h-9 px-3 text-xs">
+              পরবর্তী <ArrowRight className="w-3.5 h-3.5" />
+            </Button>
+          </div>
         </div>
 
-        <div className="bg-muted/50 rounded-xl px-3 py-2 text-center">
-          <p className="text-xs text-muted-foreground font-medium">{selectedItems.length} টি আইটেম সিলেক্ট করা হয়েছে</p>
-        </div>
-
-        {/* Recent items quick add in shopping */}
+        {/* Recent items quick add */}
         {recentItems && recentItems.length > 0 && (
           <div>
-            <p className="text-xs font-semibold text-muted-foreground mb-1.5">সাম্প্রতিক আইটেম দ্রুত যোগ:</p>
+            <SectionLabel icon={Sparkles} label="দ্রুত যোগ" />
             <div className="flex flex-wrap gap-1.5">
               {recentItems.slice(0, 5).map((item, i) => (
-                <Button key={i} variant="outline" size="sm" className="text-xs h-8 rounded-xl gap-1" onClick={() => addRecentItemToShopping(item)}>
-                  <Plus className="w-3 h-3" /> {item.name}
-                </Button>
+                <button key={i}
+                  onClick={() => addRecentItemToShopping(item)}
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-muted hover:bg-accent transition-all hover:scale-105">
+                  <Plus className="w-3 h-3 opacity-60" /> {item.name}
+                </button>
               ))}
             </div>
           </div>
         )}
 
-        <div className="space-y-2">
-          {shoppingItems.map((item, index) => (
-            <div
-              key={index}
-              className={`premium-card p-3.5 transition-all duration-200 ${
-                item.selected
-                  ? "ring-1"
-                  : ""
-              }`}
-              style={item.selected ? { borderColor: 'var(--income-border)', background: 'var(--income-bg)', boxShadow: 'var(--shadow-card-hover)' } : undefined}
-            >
-              <div className="flex items-center gap-3">
-                <Checkbox
-                  checked={item.selected}
-                  onCheckedChange={() => toggleItem(index)}
-                  className="shrink-0 w-5 h-5 rounded-md border-2"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-semibold truncate ${item.selected ? "" : ""}`}>{item.name}</p>
-                  <p className="text-xs text-muted-foreground">{item.unit}</p>
+        <div>
+          <SectionLabel icon={ListChecks} label={`আইটেম (${shoppingItems.length})`} />
+          <div className="space-y-1.5">
+            {shoppingItems.map((item, index) => (
+              <button
+                key={index}
+                type="button"
+                onClick={() => toggleItem(index)}
+                className={`w-full text-left rounded-2xl p-3 transition-all duration-200 border ${
+                  item.selected
+                    ? "shadow-sm"
+                    : "bg-card border-border hover:bg-accent/40"
+                }`}
+                style={item.selected ? { borderColor: 'var(--income-border)', background: 'var(--income-bg)' } : undefined}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-all`}
+                    style={item.selected
+                      ? { background: 'var(--income-text-soft)' }
+                      : { background: 'hsl(var(--muted))' }}
+                  >
+                    {item.selected
+                      ? <Check className="w-4 h-4 text-white" strokeWidth={3} />
+                      : <Circle className="w-4 h-4 text-muted-foreground" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate">{item.name}</p>
+                    <p className="text-[10px] text-muted-foreground">{item.unit}</p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <Button size="icon" variant="outline" className="w-7 h-7 rounded-lg" onClick={() => adjustQty(index, -0.5)}>
+                      <Minus className="w-3 h-3" />
+                    </Button>
+                    <span className="w-8 text-center text-sm font-bold tabular-nums">{item.quantity}</span>
+                    <Button size="icon" variant="outline" className="w-7 h-7 rounded-lg" onClick={() => adjustQty(index, 0.5)}>
+                      <Plus className="w-3 h-3" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <Button size="icon" variant="outline" className="w-8 h-8 rounded-lg" onClick={() => adjustQty(index, -0.5)}>
-                    <Minus className="w-3 h-3" />
-                  </Button>
-                  <span className="w-9 text-center text-sm font-bold">{item.quantity}</span>
-                  <Button size="icon" variant="outline" className="w-8 h-8 rounded-lg" onClick={() => adjustQty(index, 0.5)}>
-                    <Plus className="w-3 h-3" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ))}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="premium-card p-3.5 border-dashed">
+        <div className="rounded-2xl p-3 border border-dashed border-border bg-muted/30">
           <div className="flex gap-2">
-            <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="নতুন আইটেম..."
-              className="flex-1 rounded-xl" onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addInlineItem())} />
-            <Button size="icon" variant="outline" onClick={addInlineItem} disabled={!newName.trim()} className="rounded-xl">
+            <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="নতুন আইটেম যোগ করুন..."
+              className="flex-1 rounded-xl bg-background" onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addInlineItem())} />
+            <Button size="icon" onClick={addInlineItem} disabled={!newName.trim()} className="rounded-xl gradient-primary">
               <Plus className="w-4 h-4" />
             </Button>
           </div>
@@ -783,67 +829,103 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
   // === PRICING / POST-SHOPPING ===
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <Button size="sm" variant="ghost" onClick={() => setStep("shopping")} className="gap-1 rounded-xl">
-          <ArrowLeft className="w-3 h-3" /> পিছনে
-        </Button>
-        <h3 className="text-sm font-bold">দাম লিখুন</h3>
-        <div className="w-16" />
-      </div>
-
-      <div className="space-y-2">
-        {selectedItems.map((item, idx) => {
-          const originalIndex = shoppingItems.findIndex((si) => si.name === item.name && si.masterId === item.masterId);
-          const subtotal = item.useDirectTotal ? item.directTotal : item.quantity * item.pricePerUnit;
-          return (
-            <div key={idx} className="premium-card p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-bold">{item.name}</p>
-                  <p className="text-xs text-muted-foreground">{item.quantity} {item.unit}</p>
-                </div>
-                {subtotal > 0 && <p className="text-base font-bold" style={{ color: 'var(--income-text)' }}>৳{subtotal.toLocaleString("bn-BD")}</p>}
-              </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span className={!item.useDirectTotal ? "font-semibold text-foreground" : ""}>একক দাম</span>
-                <Switch checked={item.useDirectTotal} onCheckedChange={() => togglePriceMode(originalIndex)} className="h-5 w-9" />
-                <span className={item.useDirectTotal ? "font-semibold text-foreground" : ""}>মোট দাম</span>
-              </div>
-              {item.useDirectTotal ? (
-                <CalculatorInput
-                  placeholder="মোট দাম (৳)"
-                  value={item.directTotal ? item.directTotal.toString() : ""}
-                  onChange={(v) => setDirectTotalPrice(originalIndex, v)}
-                  className="h-10 rounded-xl"
-                />
-              ) : (
-                <CalculatorInput
-                  placeholder="প্রতি একক দাম (৳)"
-                  value={item.pricePerUnit ? item.pricePerUnit.toString() : ""}
-                  onChange={(v) => setPrice(originalIndex, v)}
-                  className="h-10 rounded-xl"
-                />
-              )}
-            </div>
-          );
-        })}
+      {/* Header with accent halo */}
+      <div className="relative overflow-hidden rounded-2xl premium-card p-3.5">
+        <div
+          className="absolute -top-16 -right-12 w-44 h-44 rounded-full opacity-40 blur-3xl pointer-events-none"
+          style={{ background: 'var(--gradient-primary)' }}
+        />
+        <div className="relative flex items-center justify-between gap-2">
+          <Button size="sm" variant="ghost" onClick={() => setStep("shopping")} className="gap-1 rounded-xl h-9 px-2">
+            <ArrowLeft className="w-3.5 h-3.5" /> পিছনে
+          </Button>
+          <div className="text-center min-w-0">
+            <h3 className="text-sm font-bold leading-tight">দাম লিখুন</h3>
+            <p className="text-[10px] text-muted-foreground">{selectedItems.length}টি আইটেম</p>
+          </div>
+          <div className="w-14" />
+        </div>
       </div>
 
       {/* Grand total hero */}
-      <div className="gradient-primary rounded-2xl p-5 text-center shadow-hero">
-        <p className="text-white/70 text-xs font-medium">মোট বাজার</p>
-        <p className="text-3xl font-extrabold text-white">৳{grandTotal.toLocaleString("bn-BD")}</p>
+      <div className="relative gradient-primary rounded-2xl p-5 text-center shadow-hero overflow-hidden">
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+        <p className="relative text-white/70 text-xs font-semibold uppercase tracking-wider">মোট বাজার</p>
+        <p className="relative text-4xl font-extrabold text-white mt-1">৳{grandTotal.toLocaleString("bn-BD")}</p>
       </div>
 
-      <div className="space-y-2">
-        <Label className="font-semibold">পেমেন্ট অ্যাকাউন্ট</Label>
-        <Select value={selectedAccount} onValueChange={setSelectedAccount}>
-          <SelectTrigger className="rounded-xl"><SelectValue placeholder="অ্যাকাউন্ট বাছুন" /></SelectTrigger>
-          <SelectContent>{accounts.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}</SelectContent>
-        </Select>
+      <div>
+        <SectionLabel icon={Receipt} label="আইটেমের দাম" />
+        <div className="space-y-2">
+          {selectedItems.map((item, idx) => {
+            const originalIndex = shoppingItems.findIndex((si) => si.name === item.name && si.masterId === item.masterId);
+            const subtotal = item.useDirectTotal ? item.directTotal : item.quantity * item.pricePerUnit;
+            return (
+              <div key={idx} className="premium-card p-3.5 space-y-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold truncate">{item.name}</p>
+                    <p className="text-[10px] text-muted-foreground">{item.quantity} {item.unit}</p>
+                  </div>
+                  {subtotal > 0 && (
+                    <div className="px-2.5 py-1 rounded-lg shrink-0" style={{ background: 'var(--income-bg)' }}>
+                      <p className="text-sm font-bold tabular-nums" style={{ color: 'var(--income-text)' }}>৳{subtotal.toLocaleString("bn-BD")}</p>
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 text-[11px]">
+                  <span className={!item.useDirectTotal ? "font-bold text-foreground" : "text-muted-foreground"}>একক</span>
+                  <Switch checked={item.useDirectTotal} onCheckedChange={() => togglePriceMode(originalIndex)} className="h-5 w-9" />
+                  <span className={item.useDirectTotal ? "font-bold text-foreground" : "text-muted-foreground"}>মোট</span>
+                </div>
+                <CalculatorInput
+                  placeholder={item.useDirectTotal ? "মোট দাম (৳)" : "প্রতি একক দাম (৳)"}
+                  value={item.useDirectTotal
+                    ? (item.directTotal ? item.directTotal.toString() : "")
+                    : (item.pricePerUnit ? item.pricePerUnit.toString() : "")}
+                  onChange={(v) => item.useDirectTotal ? setDirectTotalPrice(originalIndex, v) : setPrice(originalIndex, v)}
+                  className="h-10 rounded-xl"
+                />
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      <Button onClick={saveBatch} className="w-full h-12 rounded-2xl gap-2 gradient-primary shadow-md text-base font-semibold" disabled={saving || grandTotal <= 0 || !selectedAccount}>
+      {/* Account selection grid */}
+      <div>
+        <SectionLabel icon={Wallet} label="পেমেন্ট অ্যাকাউন্ট" />
+        <div className="grid grid-cols-3 gap-1.5">
+          {accounts.map((a) => {
+            const isSelected = selectedAccount === a.id;
+            return (
+              <button
+                key={a.id}
+                type="button"
+                onClick={() => setSelectedAccount(a.id)}
+                className={`relative rounded-xl p-2.5 text-center transition-all border ${
+                  isSelected
+                    ? "shadow-sm scale-[0.98]"
+                    : "bg-card border-border hover:bg-accent/40"
+                }`}
+                style={isSelected ? { background: 'var(--stat-pill-active-bg)', borderColor: 'hsl(var(--primary))' } : undefined}
+              >
+                {isSelected && (
+                  <div className="absolute top-1 right-1 w-4 h-4 rounded-full flex items-center justify-center" style={{ background: 'hsl(var(--primary))' }}>
+                    <Check className="w-2.5 h-2.5 text-primary-foreground" strokeWidth={3} />
+                  </div>
+                )}
+                <div className="text-lg leading-none mb-1">{getAccountEmoji(a.name)}</div>
+                <p className="text-[10px] font-semibold truncate leading-tight">{a.name}</p>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <Button onClick={saveBatch}
+        className="w-full h-12 rounded-2xl gap-2 gradient-primary shadow-md text-base font-semibold"
+        disabled={saving || grandTotal <= 0 || !selectedAccount}>
         {saving ? "সেভ হচ্ছে..." : <><Check className="w-4 h-4" /> বাজার সেভ করুন</>}
       </Button>
     </div>
