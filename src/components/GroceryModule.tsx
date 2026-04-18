@@ -291,10 +291,14 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
     setSaving(true);
     try {
       const categoryId = groceryCategory?.id ?? categories.find((c) => c.type === "expense")?.id;
+      const itemNames = selectedItems.map((i) => i.name).join(", ");
+      const noteText = itemNames.length > 120 ? itemNames.slice(0, 117) + "..." : itemNames;
       const { data: tx, error: txError } = await supabase.from("transactions").insert({
         ledger_id: ledgerId, user_id: user!.id, account_id: selectedAccount,
         category_id: categoryId || null, type: "expense", amount: grandTotal,
-        date: new Date().toISOString().split("T")[0], note: `বাজার (${selectedItems.length} আইটেম)`,
+        date: new Date().toISOString().split("T")[0],
+        time: new Date().toTimeString().slice(0, 5),
+        note: noteText,
       }).select().single();
       if (txError) throw txError;
 

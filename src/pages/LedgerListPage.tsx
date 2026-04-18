@@ -48,7 +48,7 @@ const LedgerListPage = () => {
       const { data, error } = await supabase.from("ledgers").insert({ name, user_id: user!.id }).select().single();
       if (error) throw error;
       const defaultAccounts = [
-        { ledger_id: data.id, user_id: user!.id, name: "নগদ (Cash)", type: "cash" },
+        { ledger_id: data.id, user_id: user!.id, name: "নগদ", type: "cash" },
         { ledger_id: data.id, user_id: user!.id, name: "ব্যাংক (Bank)", type: "bank" },
         { ledger_id: data.id, user_id: user!.id, name: "মোবাইল ব্যাংকিং", type: "mobile_banking" },
       ];
