@@ -455,8 +455,8 @@ const LedgerDetailPage = () => {
                 {/* Dropdown */}
                 {ledgerDropdownOpen && (
                   <>
-                    <div className="fixed inset-0 z-30" onClick={() => setLedgerDropdownOpen(false)} />
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-56 rounded-2xl border bg-popover p-1.5 shadow-xl z-40 animate-scale-in">
+                    <div className="fixed inset-0 z-[60]" onClick={() => setLedgerDropdownOpen(false)} />
+                    <div className="fixed top-[58px] left-1/2 -translate-x-1/2 w-56 rounded-2xl border bg-popover p-1.5 shadow-xl z-[70] animate-scale-in">
                       {allLedgers?.map((l) => (
                         <button
                           key={l.id}
