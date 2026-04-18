@@ -447,18 +447,25 @@ const LedgerDetailPage = () => {
       {/* ─── TOP NAVIGATION TABS ─── */}
       <div className="sticky top-[52px] z-10 px-4 py-2" style={{ background: 'var(--page-gradient)' }}>
         <div className="max-w-lg mx-auto">
-          <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+          <div
+            className="flex gap-1 overflow-x-auto no-scrollbar p-1 rounded-2xl shadow-md"
+            style={{ background: 'var(--gradient-primary)' }}
+          >
             {tabs.map((tab) => {
               const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`pill-tab flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
-                    activeTab === tab.id ? "pill-tab-active" : ""
+                  className={`flex items-center gap-1.5 whitespace-nowrap shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
+                    isActive
+                      ? "bg-white text-primary shadow-sm scale-[1.02]"
+                      : "text-white/85 hover:text-white hover:bg-white/10"
                   }`}
+                  style={isActive ? { textShadow: 'none' } : { textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}
                 >
-                  <Icon className="w-3.5 h-3.5 shrink-0" />
+                  <Icon className="w-3.5 h-3.5 shrink-0" strokeWidth={isActive ? 2.5 : 2} />
                   <span>{tab.label}</span>
                 </button>
               );
