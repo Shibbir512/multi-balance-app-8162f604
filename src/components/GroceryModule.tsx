@@ -731,74 +731,93 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
   if (step === "shopping") {
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <Button size="sm" variant="ghost" onClick={() => setStep("master")} className="gap-1 rounded-xl">
-            <ArrowLeft className="w-3 h-3" /> ফিরে যান
-          </Button>
-          <h3 className="text-sm font-bold">বাজারের তালিকা</h3>
-          <Button size="sm" onClick={() => setStep("pricing")} disabled={selectedItems.length === 0} className="gap-1 rounded-xl gradient-primary shadow-sm font-semibold">
-            পরবর্তী <ArrowRight className="w-3 h-3" />
-          </Button>
+        {/* Header with accent halo */}
+        <div className="relative overflow-hidden rounded-2xl premium-card p-3.5">
+          <div
+            className="absolute -top-16 -right-12 w-44 h-44 rounded-full opacity-40 blur-3xl pointer-events-none"
+            style={{ background: 'var(--gradient-primary)' }}
+          />
+          <div className="relative flex items-center justify-between gap-2">
+            <Button size="sm" variant="ghost" onClick={() => setStep("master")} className="gap-1 rounded-xl h-9 px-2">
+              <ArrowLeft className="w-3.5 h-3.5" /> ফিরে
+            </Button>
+            <div className="text-center min-w-0">
+              <h3 className="text-sm font-bold leading-tight">বাজার চলছে</h3>
+              <p className="text-[10px] text-muted-foreground">{selectedItems.length}টি সিলেক্ট</p>
+            </div>
+            <Button size="sm" onClick={() => setStep("pricing")} disabled={selectedItems.length === 0}
+              className="gap-1 rounded-xl gradient-primary shadow-sm font-semibold h-9 px-3 text-xs">
+              পরবর্তী <ArrowRight className="w-3.5 h-3.5" />
+            </Button>
+          </div>
         </div>
 
-        <div className="bg-muted/50 rounded-xl px-3 py-2 text-center">
-          <p className="text-xs text-muted-foreground font-medium">{selectedItems.length} টি আইটেম সিলেক্ট করা হয়েছে</p>
-        </div>
-
-        {/* Recent items quick add in shopping */}
+        {/* Recent items quick add */}
         {recentItems && recentItems.length > 0 && (
           <div>
-            <p className="text-xs font-semibold text-muted-foreground mb-1.5">সাম্প্রতিক আইটেম দ্রুত যোগ:</p>
+            <SectionLabel icon={Sparkles} label="দ্রুত যোগ" />
             <div className="flex flex-wrap gap-1.5">
               {recentItems.slice(0, 5).map((item, i) => (
-                <Button key={i} variant="outline" size="sm" className="text-xs h-8 rounded-xl gap-1" onClick={() => addRecentItemToShopping(item)}>
-                  <Plus className="w-3 h-3" /> {item.name}
-                </Button>
+                <button key={i}
+                  onClick={() => addRecentItemToShopping(item)}
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-muted hover:bg-accent transition-all hover:scale-105">
+                  <Plus className="w-3 h-3 opacity-60" /> {item.name}
+                </button>
               ))}
             </div>
           </div>
         )}
 
-        <div className="space-y-2">
-          {shoppingItems.map((item, index) => (
-            <div
-              key={index}
-              className={`premium-card p-3.5 transition-all duration-200 ${
-                item.selected
-                  ? "ring-1"
-                  : ""
-              }`}
-              style={item.selected ? { borderColor: 'var(--income-border)', background: 'var(--income-bg)', boxShadow: 'var(--shadow-card-hover)' } : undefined}
-            >
-              <div className="flex items-center gap-3">
-                <Checkbox
-                  checked={item.selected}
-                  onCheckedChange={() => toggleItem(index)}
-                  className="shrink-0 w-5 h-5 rounded-md border-2"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-semibold truncate ${item.selected ? "" : ""}`}>{item.name}</p>
-                  <p className="text-xs text-muted-foreground">{item.unit}</p>
+        <div>
+          <SectionLabel icon={ListChecks} label={`আইটেম (${shoppingItems.length})`} />
+          <div className="space-y-1.5">
+            {shoppingItems.map((item, index) => (
+              <button
+                key={index}
+                type="button"
+                onClick={() => toggleItem(index)}
+                className={`w-full text-left rounded-2xl p-3 transition-all duration-200 border ${
+                  item.selected
+                    ? "shadow-sm"
+                    : "bg-card border-border hover:bg-accent/40"
+                }`}
+                style={item.selected ? { borderColor: 'var(--income-border)', background: 'var(--income-bg)' } : undefined}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-all`}
+                    style={item.selected
+                      ? { background: 'var(--income-text-soft)' }
+                      : { background: 'hsl(var(--muted))' }}
+                  >
+                    {item.selected
+                      ? <Check className="w-4 h-4 text-white" strokeWidth={3} />
+                      : <Circle className="w-4 h-4 text-muted-foreground" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate">{item.name}</p>
+                    <p className="text-[10px] text-muted-foreground">{item.unit}</p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <Button size="icon" variant="outline" className="w-7 h-7 rounded-lg" onClick={() => adjustQty(index, -0.5)}>
+                      <Minus className="w-3 h-3" />
+                    </Button>
+                    <span className="w-8 text-center text-sm font-bold tabular-nums">{item.quantity}</span>
+                    <Button size="icon" variant="outline" className="w-7 h-7 rounded-lg" onClick={() => adjustQty(index, 0.5)}>
+                      <Plus className="w-3 h-3" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <Button size="icon" variant="outline" className="w-8 h-8 rounded-lg" onClick={() => adjustQty(index, -0.5)}>
-                    <Minus className="w-3 h-3" />
-                  </Button>
-                  <span className="w-9 text-center text-sm font-bold">{item.quantity}</span>
-                  <Button size="icon" variant="outline" className="w-8 h-8 rounded-lg" onClick={() => adjustQty(index, 0.5)}>
-                    <Plus className="w-3 h-3" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ))}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="premium-card p-3.5 border-dashed">
+        <div className="rounded-2xl p-3 border border-dashed border-border bg-muted/30">
           <div className="flex gap-2">
-            <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="নতুন আইটেম..."
-              className="flex-1 rounded-xl" onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addInlineItem())} />
-            <Button size="icon" variant="outline" onClick={addInlineItem} disabled={!newName.trim()} className="rounded-xl">
+            <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="নতুন আইটেম যোগ করুন..."
+              className="flex-1 rounded-xl bg-background" onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addInlineItem())} />
+            <Button size="icon" onClick={addInlineItem} disabled={!newName.trim()} className="rounded-xl gradient-primary">
               <Plus className="w-4 h-4" />
             </Button>
           </div>
