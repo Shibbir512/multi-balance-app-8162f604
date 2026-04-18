@@ -367,6 +367,29 @@ const LedgerDetailPage = () => {
     { id: "categories", label: "ক্যাটাগরি", icon: Tag },
   ];
 
+  // Update sliding indicator position when active tab changes or layout changes
+  useEffect(() => {
+    const updateIndicator = () => {
+      const idx = tabs.findIndex((t) => t.id === activeTab);
+      const btn = tabRefs.current[idx];
+      const strip = tabStripRef.current;
+      if (!btn || !strip) return;
+      const stripRect = strip.getBoundingClientRect();
+      const btnRect = btn.getBoundingClientRect();
+      setIndicatorStyle({
+        left: btnRect.left - stripRect.left + strip.scrollLeft,
+        width: btnRect.width,
+      });
+    };
+    // Run after paint to ensure refs are measured correctly
+    const raf = requestAnimationFrame(updateIndicator);
+    window.addEventListener('resize', updateIndicator);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', updateIndicator);
+    };
+  }, [activeTab]);
+
   const statPeriods: { id: StatPeriod; label: string }[] = [
     { id: "today", label: "আজ" },
     { id: "month", label: "মাস" },
