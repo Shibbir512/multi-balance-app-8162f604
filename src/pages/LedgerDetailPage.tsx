@@ -503,20 +503,20 @@ const LedgerDetailPage = () => {
 
 
       {/* ─── TOP NAVIGATION TABS ─── */}
-      <div className="sticky top-[110px] z-10 px-4 py-2" style={{ background: 'var(--page-gradient)' }}>
+      <div className="sticky top-[60px] z-10 px-4 py-1.5" style={{ background: 'var(--page-gradient)' }}>
         <div className="max-w-lg mx-auto">
           <div
             ref={tabStripRef}
-            className="relative flex gap-1 overflow-x-auto no-scrollbar p-1 rounded-2xl border border-white/10"
+            className="relative flex gap-1 overflow-x-auto no-scrollbar p-0.5 rounded-xl border border-white/10"
             style={{
               background: 'var(--gradient-primary)',
-              boxShadow: '0 6px 20px -4px hsl(var(--primary) / 0.35), inset 0 1px 0 rgba(255,255,255,0.12)',
+              boxShadow: '0 4px 14px -4px hsl(var(--primary) / 0.35), inset 0 1px 0 rgba(255,255,255,0.12)',
             }}
           >
             {/* Animated sliding indicator (white pill behind active tab) */}
             <div
               aria-hidden
-              className="absolute top-1 bottom-1 rounded-xl bg-white pointer-events-none"
+              className="absolute top-0.5 bottom-0.5 rounded-lg bg-white pointer-events-none"
               style={{
                 left: 0,
                 width: indicatorStyle.width,
@@ -534,7 +534,7 @@ const LedgerDetailPage = () => {
                   key={tab.id}
                   ref={(el) => (tabRefs.current[idx] = el)}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`relative z-[1] flex items-center gap-1.5 whitespace-nowrap shrink-0 px-3 py-2 rounded-xl text-xs transition-colors duration-300 ${
+                  className={`relative z-[1] flex items-center gap-1.5 whitespace-nowrap shrink-0 px-2.5 py-1.5 rounded-lg text-xs transition-colors duration-300 ${
                     isActive
                       ? "text-primary font-extrabold"
                       : "text-white font-semibold hover:bg-white/10"
@@ -543,14 +543,6 @@ const LedgerDetailPage = () => {
                     ? { textShadow: 'none' }
                     : { textShadow: '0 1px 3px rgba(0,0,0,0.25)' }}
                 >
-                  <Icon className="w-3.5 h-3.5 shrink-0" strokeWidth={isActive ? 2.75 : 2.25} />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
 
       <div className="max-w-lg mx-auto px-4 pt-3">
         {reminders && reminders.length > 0 && activeTab === "transactions" && (
