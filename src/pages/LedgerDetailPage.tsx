@@ -512,23 +512,38 @@ const LedgerDetailPage = () => {
       <div className="sticky top-[110px] z-10 px-4 py-2" style={{ background: 'var(--page-gradient)' }}>
         <div className="max-w-lg mx-auto">
           <div
-            className="flex gap-1 overflow-x-auto no-scrollbar p-1 rounded-2xl border border-white/10"
+            ref={tabStripRef}
+            className="relative flex gap-1 overflow-x-auto no-scrollbar p-1 rounded-2xl border border-white/10"
             style={{
               background: 'var(--gradient-primary)',
               boxShadow: '0 6px 20px -4px hsl(var(--primary) / 0.35), inset 0 1px 0 rgba(255,255,255,0.12)',
             }}
           >
-            {tabs.map((tab) => {
+            {/* Animated sliding indicator (white pill behind active tab) */}
+            <div
+              aria-hidden
+              className="absolute top-1 bottom-1 rounded-xl bg-white pointer-events-none"
+              style={{
+                left: 0,
+                width: indicatorStyle.width,
+                transform: `translateX(${indicatorStyle.left}px)`,
+                transition: 'transform 350ms cubic-bezier(0.4, 0, 0.2, 1), width 350ms cubic-bezier(0.4, 0, 0.2, 1)',
+                boxShadow: '0 2px 8px -1px rgba(0,0,0,0.18), 0 1px 2px rgba(0,0,0,0.08)',
+                opacity: indicatorStyle.width ? 1 : 0,
+              }}
+            />
+            {tabs.map((tab, idx) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
+                  ref={(el) => (tabRefs.current[idx] = el)}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-1.5 whitespace-nowrap shrink-0 px-3 py-2 rounded-xl text-xs transition-all duration-300 ${
+                  className={`relative z-[1] flex items-center gap-1.5 whitespace-nowrap shrink-0 px-3 py-2 rounded-xl text-xs transition-colors duration-300 ${
                     isActive
-                      ? "bg-white text-primary font-extrabold shadow-md scale-[1.02]"
-                      : "text-white font-semibold hover:bg-white/15"
+                      ? "text-primary font-extrabold"
+                      : "text-white font-semibold hover:bg-white/10"
                   }`}
                   style={isActive
                     ? { textShadow: 'none' }
