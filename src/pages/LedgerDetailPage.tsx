@@ -706,28 +706,71 @@ const LedgerDetailPage = () => {
             <MonthlyChart transactions={transactions ?? []} />
             <CategoryBreakdownTable transactions={(transactions as any) ?? []} />
 
-            <div className="premium-card p-4 space-y-3">
-              <h3 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-                <BarChart3 className="w-3.5 h-3.5 text-muted-foreground" />
-                ফিল্টার ও রিপোর্ট
-              </h3>
-              <TransactionFilters
-                month={filterMonth}
-                year={filterYear}
-                onMonthChange={setFilterMonth}
-                onYearChange={setFilterYear}
-                onClear={() => { setFilterMonth("all"); setFilterYear("all"); setFilterCategory("all"); setFilterDateFrom(""); setFilterDateTo(""); }}
-                categoryFilter={filterCategory}
-                onCategoryChange={setFilterCategory}
-                categories={categories ?? []}
-                dateFrom={filterDateFrom}
-                dateTo={filterDateTo}
-                onDateFromChange={setFilterDateFrom}
-                onDateToChange={setFilterDateTo}
+            <div className="premium-card p-0 overflow-hidden relative">
+              {/* Decorative gradient halo */}
+              <div
+                className="absolute -top-12 -right-10 w-40 h-40 rounded-full opacity-20 blur-3xl pointer-events-none"
+                style={{ background: 'radial-gradient(circle, hsl(var(--primary)), transparent 70%)' }}
               />
-              <div className="flex justify-end pt-1">
+              {/* Header band */}
+              <div
+                className="relative flex items-center gap-2.5 px-4 py-3 border-b"
+                style={{
+                  background: 'linear-gradient(135deg, hsl(var(--primary) / 0.08), hsl(var(--primary) / 0.02))',
+                  borderColor: 'var(--glass-border)',
+                }}
+              >
+                <div
+                  className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+                  style={{
+                    background: 'var(--gradient-primary)',
+                    boxShadow: '0 4px 12px -2px hsl(var(--primary) / 0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
+                  }}
+                >
+                  <BarChart3 className="w-4 h-4 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-extrabold text-foreground leading-tight">
+                    ফিল্টার ও রিপোর্ট
+                  </h3>
+                  <p className="text-[10px] text-muted-foreground font-medium">
+                    নির্দিষ্ট সময়ের লেনদেন এক্সপোর্ট করুন
+                  </p>
+                </div>
+              </div>
+
+              <div className="relative p-4 space-y-3">
+                <TransactionFilters
+                  month={filterMonth}
+                  year={filterYear}
+                  onMonthChange={setFilterMonth}
+                  onYearChange={setFilterYear}
+                  onClear={() => { setFilterMonth("all"); setFilterYear("all"); setFilterCategory("all"); setFilterDateFrom(""); setFilterDateTo(""); }}
+                  categoryFilter={filterCategory}
+                  onCategoryChange={setFilterCategory}
+                  categories={categories ?? []}
+                  dateFrom={filterDateFrom}
+                  dateTo={filterDateTo}
+                  onDateFromChange={setFilterDateFrom}
+                  onDateToChange={setFilterDateTo}
+                />
+
                 {reportFilteredTransactions.length > 0 && (
-                  <AdvancedExport ledgerName={ledger?.name ?? "Report"} transactions={reportFilteredTransactions as any} categories={categories ?? []} />
+                  <div
+                    className="flex items-center justify-between gap-3 pt-3 mt-1 border-t"
+                    style={{ borderColor: 'var(--glass-border)' }}
+                  >
+                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground font-medium">
+                      <span
+                        className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full text-[10px] font-bold text-white"
+                        style={{ background: 'var(--gradient-primary)' }}
+                      >
+                        {reportFilteredTransactions.length}
+                      </span>
+                      টি লেনদেন প্রস্তুত
+                    </div>
+                    <AdvancedExport ledgerName={ledger?.name ?? "Report"} transactions={reportFilteredTransactions as any} categories={categories ?? []} />
+                  </div>
                 )}
               </div>
             </div>
