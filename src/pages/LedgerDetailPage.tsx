@@ -448,8 +448,11 @@ const LedgerDetailPage = () => {
       <div className="sticky top-[52px] z-10 px-4 py-2" style={{ background: 'var(--page-gradient)' }}>
         <div className="max-w-lg mx-auto">
           <div
-            className="flex gap-1 overflow-x-auto no-scrollbar p-1 rounded-2xl shadow-md"
-            style={{ background: 'var(--gradient-primary)' }}
+            className="flex gap-1 overflow-x-auto no-scrollbar p-1 rounded-2xl border border-white/10"
+            style={{
+              background: 'var(--gradient-primary)',
+              boxShadow: '0 6px 20px -4px hsl(var(--primary) / 0.35), inset 0 1px 0 rgba(255,255,255,0.12)',
+            }}
           >
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -458,14 +461,16 @@ const LedgerDetailPage = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-1.5 whitespace-nowrap shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
+                  className={`flex items-center gap-1.5 whitespace-nowrap shrink-0 px-3 py-2 rounded-xl text-xs transition-all duration-300 ${
                     isActive
-                      ? "bg-white text-primary shadow-sm scale-[1.02]"
-                      : "text-white/85 hover:text-white hover:bg-white/10"
+                      ? "bg-white text-primary font-extrabold shadow-md scale-[1.02]"
+                      : "text-white font-semibold hover:bg-white/15"
                   }`}
-                  style={isActive ? { textShadow: 'none' } : { textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}
+                  style={isActive
+                    ? { textShadow: 'none' }
+                    : { textShadow: '0 1px 3px rgba(0,0,0,0.25)' }}
                 >
-                  <Icon className="w-3.5 h-3.5 shrink-0" strokeWidth={isActive ? 2.5 : 2} />
+                  <Icon className="w-3.5 h-3.5 shrink-0" strokeWidth={isActive ? 2.75 : 2.25} />
                   <span>{tab.label}</span>
                 </button>
               );
