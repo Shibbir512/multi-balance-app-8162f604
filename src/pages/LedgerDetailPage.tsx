@@ -373,79 +373,143 @@ const LedgerDetailPage = () => {
 
   return (
     <div className="min-h-screen page-gradient">
-      {/* ─── HEADER ─── */}
-      <div className="sticky top-0 z-20 gradient-header px-4 pt-3 pb-3">
-        <div className="max-w-lg mx-auto flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/")}
-            className="text-white/50 hover:text-white hover:bg-white/10 rounded-xl h-9 w-9 shrink-0"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
+      {/* ─── PREMIUM HEADER ─── */}
+      <div className="sticky top-0 z-20 gradient-header px-4 pt-3 pb-3 relative overflow-hidden">
+        {/* Accent halos */}
+        <div
+          className="absolute -top-16 -right-10 w-48 h-48 rounded-full opacity-30 blur-3xl pointer-events-none"
+          style={{ background: 'radial-gradient(circle, #A78BFA, transparent 70%)' }}
+        />
+        <div
+          className="absolute -bottom-20 -left-12 w-40 h-40 rounded-full opacity-20 blur-3xl pointer-events-none"
+          style={{ background: 'radial-gradient(circle, #6366F1, transparent 70%)' }}
+        />
+        {/* Subtle dot pattern */}
+        <div
+          className="absolute inset-0 opacity-[0.06] pointer-events-none"
+          style={{
+            backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
+            backgroundSize: '20px 20px',
+          }}
+        />
 
-          {/* Ledger Switcher */}
-          <div className="flex-1 flex justify-center">
-            <div className="relative">
-              <button
-                onClick={() => setLedgerDropdownOpen(!ledgerDropdownOpen)}
-                className="ledger-switcher"
-              >
-                <span className="text-sm font-bold text-white truncate max-w-[180px]">
-                  {ledger?.name ?? "..."}
-                </span>
-                <ChevronDown className={`w-3.5 h-3.5 text-white/60 transition-transform duration-200 ${ledgerDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
+        <div className="relative max-w-lg mx-auto">
+          {/* Top row: back, ledger switcher, theme toggle */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/")}
+              className="text-white/80 hover:text-white hover:bg-white/15 rounded-xl h-9 w-9 shrink-0 backdrop-blur-sm"
+              style={{ background: 'rgba(255,255,255,0.08)' }}
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
 
-              {/* Dropdown */}
-              {ledgerDropdownOpen && (
-                <>
-                  <div className="fixed inset-0 z-30" onClick={() => setLedgerDropdownOpen(false)} />
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-56 rounded-2xl border bg-popover p-1.5 shadow-xl z-40 animate-scale-in">
-                    {allLedgers?.map((l) => (
-                      <button
-                        key={l.id}
-                        onClick={() => {
-                          setLedgerDropdownOpen(false);
-                          if (l.id !== ledgerId) navigate(`/ledger/${l.id}`);
-                        }}
-                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-sm font-medium transition-colors ${
-                          l.id === ledgerId
-                            ? "bg-primary/10 text-primary"
-                            : "text-foreground hover:bg-muted"
-                        }`}
-                      >
-                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                          l.id === ledgerId ? 'gradient-primary' : 'bg-muted'
-                        }`}>
-                          <Wallet className="w-3.5 h-3.5 text-white" />
-                        </div>
-                        <span className="truncate">{l.name}</span>
-                      </button>
-                    ))}
-                    <button
-                      onClick={() => { setLedgerDropdownOpen(false); navigate("/"); }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-sm font-medium text-muted-foreground hover:bg-muted transition-colors border-t mt-1 pt-2"
-                      style={{ borderColor: 'var(--glass-border)' }}
-                    >
-                      <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border border-dashed border-muted-foreground/30">
-                        <Plus className="w-3.5 h-3.5" />
-                      </div>
-                      <span>নতুন খাতা</span>
-                    </button>
+            {/* Ledger Switcher */}
+            <div className="flex-1 flex justify-center">
+              <div className="relative">
+                <button
+                  onClick={() => setLedgerDropdownOpen(!ledgerDropdownOpen)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all duration-200 backdrop-blur-sm hover:scale-[1.02]"
+                  style={{
+                    background: 'rgba(255,255,255,0.12)',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 8px rgba(0,0,0,0.15)',
+                  }}
+                >
+                  <div className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                    <Wallet className="w-3 h-3 text-white" />
                   </div>
-                </>
-              )}
+                  <span className="text-sm font-bold text-white truncate max-w-[140px]" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.25)' }}>
+                    {ledger?.name ?? "..."}
+                  </span>
+                  <ChevronDown className={`w-3.5 h-3.5 text-white/80 transition-transform duration-200 ${ledgerDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {/* Dropdown */}
+                {ledgerDropdownOpen && (
+                  <>
+                    <div className="fixed inset-0 z-30" onClick={() => setLedgerDropdownOpen(false)} />
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-56 rounded-2xl border bg-popover p-1.5 shadow-xl z-40 animate-scale-in">
+                      {allLedgers?.map((l) => (
+                        <button
+                          key={l.id}
+                          onClick={() => {
+                            setLedgerDropdownOpen(false);
+                            if (l.id !== ledgerId) navigate(`/ledger/${l.id}`);
+                          }}
+                          className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-sm font-medium transition-colors ${
+                            l.id === ledgerId
+                              ? "bg-primary/10 text-primary"
+                              : "text-foreground hover:bg-muted"
+                          }`}
+                        >
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                            l.id === ledgerId ? 'gradient-primary' : 'bg-muted'
+                          }`}>
+                            <Wallet className="w-3.5 h-3.5 text-white" />
+                          </div>
+                          <span className="truncate">{l.name}</span>
+                        </button>
+                      ))}
+                      <button
+                        onClick={() => { setLedgerDropdownOpen(false); navigate("/"); }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-sm font-medium text-muted-foreground hover:bg-muted transition-colors border-t mt-1 pt-2"
+                        style={{ borderColor: 'var(--glass-border)' }}
+                      >
+                        <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border border-dashed border-muted-foreground/30">
+                          <Plus className="w-3.5 h-3.5" />
+                        </div>
+                        <span>নতুন খাতা</span>
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="shrink-0">
+              <ThemeToggle />
             </div>
           </div>
 
-          <ThemeToggle />
+          {/* Balance row */}
+          <div className="flex items-end justify-between mt-3 px-1">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-white/60">মোট ব্যালেন্স</p>
+              <p
+                className="text-2xl font-extrabold text-white tabular-nums leading-tight mt-0.5"
+                style={{ textShadow: '0 2px 8px rgba(0,0,0,0.25)' }}
+              >
+                ৳{totalBalance.toLocaleString("bn-BD")}
+              </p>
+            </div>
+            <div className="flex gap-1.5 mb-0.5">
+              <div
+                className="flex items-center gap-1 px-2 py-1 rounded-lg backdrop-blur-sm"
+                style={{ background: 'rgba(16,185,129,0.22)', border: '1px solid rgba(110,231,183,0.3)' }}
+              >
+                <TrendingUp className="w-3 h-3" strokeWidth={2.75} style={{ color: '#A7F3D0' }} />
+                <span className="text-[10px] font-bold tabular-nums" style={{ color: '#D1FAE5' }}>
+                  {(totalIncome / 1000).toFixed(totalIncome >= 1000 ? 0 : 1)}k
+                </span>
+              </div>
+              <div
+                className="flex items-center gap-1 px-2 py-1 rounded-lg backdrop-blur-sm"
+                style={{ background: 'rgba(244,63,94,0.22)', border: '1px solid rgba(253,164,175,0.3)' }}
+              >
+                <TrendingDown className="w-3 h-3" strokeWidth={2.75} style={{ color: '#FECDD3' }} />
+                <span className="text-[10px] font-bold tabular-nums" style={{ color: '#FFE4E6' }}>
+                  {(totalExpense / 1000).toFixed(totalExpense >= 1000 ? 0 : 1)}k
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* ─── TOP NAVIGATION TABS ─── */}
-      <div className="sticky top-[52px] z-10 px-4 py-2" style={{ background: 'var(--page-gradient)' }}>
+      <div className="sticky top-[110px] z-10 px-4 py-2" style={{ background: 'var(--page-gradient)' }}>
         <div className="max-w-lg mx-auto">
           <div
             className="flex gap-1 overflow-x-auto no-scrollbar p-1 rounded-2xl border border-white/10"
