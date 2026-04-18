@@ -8,8 +8,16 @@ import { Switch } from "@/components/ui/switch";
 import {
   Calculator, History, ChevronDown, ChevronUp, Save,
   Banknote, Landmark, Smartphone, CircleDot, Briefcase,
-  HandCoins, CreditCard, Receipt, Settings2
+  HandCoins, CreditCard, Receipt, Settings2, TrendingDown, ListChecks
 } from "lucide-react";
+
+const SectionLabel = ({ icon: Icon, label, accent }: { icon: any; label: string; accent?: string }) => (
+  <div className="flex items-center gap-1.5 mb-2 px-0.5">
+    <Icon className="w-3 h-3 text-muted-foreground/70" strokeWidth={2.5} style={accent ? { color: accent } : undefined} />
+    <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground/80">{label}</span>
+    <div className="flex-1 h-px bg-gradient-to-r from-border to-transparent" />
+  </div>
+);
 import { toast } from "sonner";
 import CalculatorInput from "./CalculatorInput";
 
@@ -101,68 +109,88 @@ const ZakatCalculator = ({ ledgerId }: Props) => {
   const hasAnyValue = num(cash) > 0 || num(bankBalance) > 0 || num(mobileBanking) > 0 || num(goldGrams) > 0 || num(silverGrams) > 0 || num(businessAssets) > 0 || num(receivables) > 0;
 
   return (
-    <div className="space-y-4">
-      {/* Live Result Card - always visible at top */}
-      <div className={`premium-card p-4 transition-all duration-300 ${result.isDue ? 'border-emerald-500/30' : ''}`}
-        style={result.isDue ? { background: 'var(--income-bg)' } : undefined}
-      >
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: 'var(--gradient-primary)' }}>
-              <Calculator className="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground font-medium">যাকাত হিসাব</p>
-              <p className="text-[10px] text-muted-foreground">লাইভ আপডেট</p>
-            </div>
-          </div>
-          {result.isDue && hasAnyValue && (
-            <Button
-              onClick={() => saveMutation.mutate()}
-              size="sm"
-              className="h-8 rounded-full gap-1.5 text-xs btn-primary"
-              disabled={saveMutation.isPending}
-            >
-              <Save className="w-3 h-3" />
-              {saveMutation.isPending ? "সেভ..." : "সেভ"}
-            </Button>
-          )}
-        </div>
+    <div className="space-y-5">
+      {/* Premium Hero Card with accent halo */}
+      <div className="relative overflow-hidden rounded-2xl premium-card p-5">
+        {/* Accent halos */}
+        <div
+          className="absolute -top-20 -right-16 w-56 h-56 rounded-full opacity-50 blur-3xl pointer-events-none"
+          style={{ background: result.isDue ? 'var(--income-bg)' : 'var(--gradient-primary)' }}
+        />
+        <div
+          className="absolute -bottom-16 -left-12 w-44 h-44 rounded-full opacity-30 blur-3xl pointer-events-none"
+          style={{ background: 'var(--gradient-primary)' }}
+        />
 
-        <div className="grid grid-cols-3 gap-3">
-          <div className="text-center">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">সম্পদ</p>
-            <p className="text-sm font-bold text-foreground">{fmt(result.totalAssets)}</p>
+        <div className="relative">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm" style={{ background: 'var(--gradient-primary)' }}>
+                <Calculator className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-bold leading-tight">যাকাত হিসাব</p>
+                <p className="text-[10px] text-muted-foreground">লাইভ আপডেট</p>
+              </div>
+            </div>
+            {result.isDue && hasAnyValue && (
+              <Button
+                onClick={() => saveMutation.mutate()}
+                size="sm"
+                className="h-9 rounded-xl gap-1.5 text-xs gradient-primary shadow-sm font-semibold px-3"
+                disabled={saveMutation.isPending}
+              >
+                <Save className="w-3.5 h-3.5" />
+                {saveMutation.isPending ? "সেভ..." : "সেভ"}
+              </Button>
+            )}
           </div>
-          <div className="text-center">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">নিসাব</p>
-            <p className="text-sm font-semibold text-muted-foreground">{fmt(result.nisab)}</p>
-          </div>
-          <div className="text-center">
-            <p className="text-[10px] uppercase tracking-wider mb-0.5" style={{ color: result.isDue ? 'var(--income-text-soft)' : 'var(--expense-text-soft)' }}>
-              {result.isDue ? "প্রদেয়" : "প্রযোজ্য নয়"}
+
+          {/* Big zakat amount display */}
+          <div className="text-center py-2">
+            <p className="text-[10px] uppercase tracking-[0.15em] font-bold mb-1"
+              style={{ color: result.isDue ? 'var(--income-text-soft)' : 'var(--expense-text-soft)' }}>
+              {result.isDue ? "প্রদেয় যাকাত" : "যাকাত প্রযোজ্য নয়"}
             </p>
-            <p className="text-sm font-extrabold" style={{ color: result.isDue ? 'var(--income-text)' : 'var(--expense-text)' }}>
+            <p className="text-4xl font-extrabold tabular-nums tracking-tight"
+              style={{ color: result.isDue ? 'var(--income-text)' : 'hsl(var(--muted-foreground))' }}>
               {result.isDue ? fmt(result.zakatAmount) : "—"}
             </p>
+            <p className="text-[10px] text-muted-foreground mt-1">নিট সম্পদের ২.৫%</p>
+          </div>
+
+          {/* Quick stats row */}
+          <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t" style={{ borderColor: 'var(--glass-border)' }}>
+            <div className="text-center">
+              <p className="text-[9px] text-muted-foreground uppercase tracking-wider mb-0.5">সম্পদ</p>
+              <p className="text-xs font-bold tabular-nums">{fmt(result.totalAssets)}</p>
+            </div>
+            <div className="text-center border-x" style={{ borderColor: 'var(--glass-border)' }}>
+              <p className="text-[9px] text-muted-foreground uppercase tracking-wider mb-0.5">নিট</p>
+              <p className="text-xs font-bold tabular-nums">{fmt(result.netWealth)}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-[9px] text-muted-foreground uppercase tracking-wider mb-0.5">নিসাব</p>
+              <p className="text-xs font-bold tabular-nums">{fmt(result.nisab)}</p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Nisab Settings */}
-      <div className="premium-card overflow-hidden">
-        <div className="p-3 flex items-center justify-between border-b" style={{ borderColor: 'var(--glass-border)' }}>
-          <div className="flex items-center gap-2">
-            <Settings2 className="w-4 h-4 text-muted-foreground" />
-            <span className="text-xs font-bold text-foreground uppercase tracking-wider">নিসাব সেটিংস</span>
+      <div>
+        <div className="flex items-center justify-between mb-2 px-0.5">
+          <div className="flex items-center gap-1.5">
+            <Settings2 className="w-3 h-3 text-muted-foreground/70" strokeWidth={2.5} />
+            <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground/80">নিসাব সেটিংস</span>
           </div>
-          <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-            <span>স্বয়ংক্রিয়</span>
+          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+            <span className={!useCustomNisab ? "font-bold text-foreground" : ""}>স্বয়ংক্রিয়</span>
             <Switch checked={useCustomNisab} onCheckedChange={setUseCustomNisab} className="h-4 w-8" />
-            <span>কাস্টম</span>
+            <span className={useCustomNisab ? "font-bold text-foreground" : ""}>কাস্টম</span>
           </div>
         </div>
-        <div className="p-3">
+        <div className="premium-card p-3">
           {useCustomNisab ? (
             <ZField icon={CircleDot} label="নিসাব পরিমাণ (৳)" value={customNisab} onChange={setCustomNisab} />
           ) : (
@@ -175,14 +203,9 @@ const ZakatCalculator = ({ ledgerId }: Props) => {
       </div>
 
       {/* Assets */}
-      <div className="premium-card overflow-hidden">
-        <div className="p-3 border-b flex items-center gap-2" style={{ borderColor: 'var(--glass-border)' }}>
-          <div className="w-5 h-5 rounded-md flex items-center justify-center" style={{ background: 'var(--income-bg)' }}>
-            <Briefcase className="w-3 h-3" style={{ color: 'var(--income-text-soft)' }} />
-          </div>
-          <span className="text-xs font-bold text-foreground uppercase tracking-wider">সম্পদ (Assets)</span>
-        </div>
-        <div className="p-3 space-y-3">
+      <div>
+        <SectionLabel icon={Briefcase} label="সম্পদ (Assets)" accent="var(--income-text-soft)" />
+        <div className="premium-card p-3 space-y-3">
           <ZField icon={Banknote} label="নগদ টাকা" value={cash} onChange={setCash} />
           <ZField icon={Landmark} label="ব্যাংক ব্যালেন্স" value={bankBalance} onChange={setBankBalance} />
           <ZField icon={Smartphone} label="মোবাইল ব্যাংকিং" value={mobileBanking} onChange={setMobileBanking} />
@@ -196,14 +219,9 @@ const ZakatCalculator = ({ ledgerId }: Props) => {
       </div>
 
       {/* Liabilities */}
-      <div className="premium-card overflow-hidden">
-        <div className="p-3 border-b flex items-center gap-2" style={{ borderColor: 'var(--glass-border)' }}>
-          <div className="w-5 h-5 rounded-md flex items-center justify-center" style={{ background: 'var(--expense-bg)' }}>
-            <Receipt className="w-3 h-3" style={{ color: 'var(--expense-text-soft)' }} />
-          </div>
-          <span className="text-xs font-bold text-foreground uppercase tracking-wider">দায় (Liabilities)</span>
-        </div>
-        <div className="p-3 space-y-3">
+      <div>
+        <SectionLabel icon={TrendingDown} label="দায় (Liabilities)" accent="var(--expense-text-soft)" />
+        <div className="premium-card p-3 space-y-3">
           <ZField icon={CreditCard} label="ঋণ / লোন" value={loans} onChange={setLoans} />
           <ZField icon={Receipt} label="দেনা (Payables)" value={payables} onChange={setPayables} />
         </div>
@@ -211,22 +229,24 @@ const ZakatCalculator = ({ ledgerId }: Props) => {
 
       {/* Detailed breakdown */}
       {hasAnyValue && (
-        <div className="premium-card p-3 space-y-2">
-          <p className="text-xs font-bold text-foreground uppercase tracking-wider mb-2">বিস্তারিত</p>
-          <Row label="মোট সম্পদ" value={fmt(result.totalAssets)} />
-          <Row label="মোট দায়" value={fmt(result.totalLiabilities)} />
-          <div className="border-t pt-2" style={{ borderColor: 'var(--glass-border)' }}>
-            <Row label="নিট সম্পদ" value={fmt(result.netWealth)} bold />
-          </div>
-          <Row label="নিসাব" value={fmt(result.nisab)} />
-          <div className="border-t pt-2" style={{ borderColor: 'var(--glass-border)' }}>
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-bold" style={{ color: result.isDue ? 'var(--income-text)' : 'var(--expense-text)' }}>
-                {result.isDue ? "যাকাত প্রদেয় (২.৫%)" : "যাকাত প্রযোজ্য নয়"}
-              </span>
-              <span className="text-lg font-extrabold" style={{ color: result.isDue ? 'var(--income-text)' : 'var(--expense-text)' }}>
-                {result.isDue ? fmt(result.zakatAmount) : "—"}
-              </span>
+        <div>
+          <SectionLabel icon={ListChecks} label="বিস্তারিত হিসাব" />
+          <div className="premium-card p-3.5 space-y-2">
+            <Row label="মোট সম্পদ" value={fmt(result.totalAssets)} />
+            <Row label="মোট দায়" value={fmt(result.totalLiabilities)} />
+            <div className="border-t pt-2" style={{ borderColor: 'var(--glass-border)' }}>
+              <Row label="নিট সম্পদ" value={fmt(result.netWealth)} bold />
+            </div>
+            <Row label="নিসাব" value={fmt(result.nisab)} />
+            <div className="border-t pt-2.5 mt-1" style={{ borderColor: 'var(--glass-border)' }}>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-bold" style={{ color: result.isDue ? 'var(--income-text)' : 'var(--expense-text)' }}>
+                  {result.isDue ? "যাকাত প্রদেয় (২.৫%)" : "যাকাত প্রযোজ্য নয়"}
+                </span>
+                <span className="text-lg font-extrabold tabular-nums" style={{ color: result.isDue ? 'var(--income-text)' : 'var(--expense-text)' }}>
+                  {result.isDue ? fmt(result.zakatAmount) : "—"}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -235,19 +255,19 @@ const ZakatCalculator = ({ ledgerId }: Props) => {
       {/* History */}
       {history && history.length > 0 && (
         <div>
-          <Button variant="ghost" className="w-full gap-2 text-xs rounded-xl" onClick={() => setShowHistory(!showHistory)}>
+          <Button variant="ghost" className="w-full gap-2 text-xs rounded-xl h-10" onClick={() => setShowHistory(!showHistory)}>
             <History className="w-4 h-4" /> পূর্ববর্তী হিসাব ({history.length})
             {showHistory ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </Button>
           {showHistory && (
             <div className="space-y-2 mt-2">
               {history.map((h) => (
-                <div key={h.id} className="premium-card p-3 flex justify-between items-center">
+                <div key={h.id} className="premium-card p-3.5 flex justify-between items-center">
                   <div>
                     <p className="text-sm font-semibold text-foreground">{h.year} সাল</p>
                     <p className="text-[11px] text-muted-foreground">নিট সম্পদ: {fmt(h.net_wealth)}</p>
                   </div>
-                  <p className="font-bold text-sm" style={{ color: h.is_zakat_due ? 'var(--income-text)' : 'var(--expense-text)' }}>
+                  <p className="font-bold text-sm tabular-nums" style={{ color: h.is_zakat_due ? 'var(--income-text)' : 'var(--expense-text)' }}>
                     {h.is_zakat_due ? fmt(h.zakat_amount) : "প্রযোজ্য নয়"}
                   </p>
                 </div>
