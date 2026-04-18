@@ -35,13 +35,21 @@ const TransactionFilters = ({
 
   const catNames = [...new Set(categories.map((c) => c.name))];
 
+  const pillTrigger =
+    "h-9 text-xs rounded-full px-3.5 gap-1.5 w-auto border font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]";
+  const pillStyle = {
+    background: 'var(--action-btn-bg)',
+    borderColor: 'var(--action-btn-border)',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04), 0 1px 2px rgba(0,0,0,0.03)',
+  } as React.CSSProperties;
+
   return (
-    <div className="space-y-2 w-full">
+    <div className="space-y-2.5 w-full">
       <div className="flex items-center gap-2 flex-wrap">
         {/* Month pill */}
         <Select value={month} onValueChange={onMonthChange}>
-          <SelectTrigger className="h-9 text-xs rounded-full px-3 gap-1.5 w-auto border-0 bg-muted hover:bg-accent transition-colors">
-            <CalendarDays className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+          <SelectTrigger className={pillTrigger} style={pillStyle}>
+            <CalendarDays className="w-3.5 h-3.5 text-primary shrink-0" />
             <SelectValue placeholder="মাস" />
           </SelectTrigger>
           <SelectContent>
@@ -54,8 +62,8 @@ const TransactionFilters = ({
 
         {/* Year pill */}
         <Select value={year} onValueChange={onYearChange}>
-          <SelectTrigger className="h-9 text-xs rounded-full px-3 gap-1.5 w-auto border-0 bg-muted hover:bg-accent transition-colors">
-            <Calendar className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+          <SelectTrigger className={pillTrigger} style={pillStyle}>
+            <Calendar className="w-3.5 h-3.5 text-primary shrink-0" />
             <SelectValue placeholder="সাল" />
           </SelectTrigger>
           <SelectContent>
@@ -69,8 +77,8 @@ const TransactionFilters = ({
         {/* Category pill */}
         {onCategoryChange && catNames.length > 0 && (
           <Select value={categoryFilter} onValueChange={onCategoryChange}>
-            <SelectTrigger className="h-9 text-xs rounded-full px-3 gap-1.5 w-auto border-0 bg-muted hover:bg-accent transition-colors">
-              <Tag className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+            <SelectTrigger className={pillTrigger} style={pillStyle}>
+              <Tag className="w-3.5 h-3.5 text-primary shrink-0" />
               <SelectValue placeholder="ক্যাটাগরি" />
             </SelectTrigger>
             <SelectContent>
@@ -87,7 +95,8 @@ const TransactionFilters = ({
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 rounded-full bg-muted hover:bg-destructive/10 hover:text-destructive transition-colors"
+            className="h-9 w-9 rounded-full border bg-destructive/5 hover:bg-destructive/15 text-destructive transition-all duration-200 hover:scale-105 active:scale-95"
+            style={{ borderColor: 'rgba(239,68,68,0.18)' }}
             onClick={onClear}
           >
             <X className="w-3.5 h-3.5" />
@@ -100,29 +109,31 @@ const TransactionFilters = ({
         <div className="flex items-center gap-2">
           <div className="flex-1 relative">
             {!dateFrom && (
-              <span className="pointer-events-none absolute inset-0 flex items-center px-3 text-[11px] text-muted-foreground truncate">
-                শুরুর তারিখ নির্বাচন করুন
+              <span className="pointer-events-none absolute inset-0 flex items-center px-3.5 text-[11px] text-muted-foreground truncate font-medium">
+                শুরুর তারিখ
               </span>
             )}
             <Input
               type="date"
               value={dateFrom}
               onChange={(e) => onDateFromChange(e.target.value)}
-              className={`h-9 text-xs rounded-full border-0 bg-muted px-3 ${!dateFrom ? "text-transparent" : ""}`}
+              className={`h-9 text-xs rounded-full border px-3.5 font-semibold transition-colors ${!dateFrom ? "text-transparent" : ""}`}
+              style={pillStyle}
             />
           </div>
-          <span className="text-xs text-muted-foreground">→</span>
+          <span className="text-xs text-primary font-bold">→</span>
           <div className="flex-1 relative">
             {!dateTo && (
-              <span className="pointer-events-none absolute inset-0 flex items-center px-3 text-[11px] text-muted-foreground truncate">
-                শেষ তারিখ নির্বাচন করুন
+              <span className="pointer-events-none absolute inset-0 flex items-center px-3.5 text-[11px] text-muted-foreground truncate font-medium">
+                শেষ তারিখ
               </span>
             )}
             <Input
               type="date"
               value={dateTo}
               onChange={(e) => onDateToChange(e.target.value)}
-              className={`h-9 text-xs rounded-full border-0 bg-muted px-3 ${!dateTo ? "text-transparent" : ""}`}
+              className={`h-9 text-xs rounded-full border px-3.5 font-semibold transition-colors ${!dateTo ? "text-transparent" : ""}`}
+              style={pillStyle}
             />
           </div>
         </div>
