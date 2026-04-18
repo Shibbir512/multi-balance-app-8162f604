@@ -829,67 +829,103 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
   // === PRICING / POST-SHOPPING ===
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <Button size="sm" variant="ghost" onClick={() => setStep("shopping")} className="gap-1 rounded-xl">
-          <ArrowLeft className="w-3 h-3" /> পিছনে
-        </Button>
-        <h3 className="text-sm font-bold">দাম লিখুন</h3>
-        <div className="w-16" />
-      </div>
-
-      <div className="space-y-2">
-        {selectedItems.map((item, idx) => {
-          const originalIndex = shoppingItems.findIndex((si) => si.name === item.name && si.masterId === item.masterId);
-          const subtotal = item.useDirectTotal ? item.directTotal : item.quantity * item.pricePerUnit;
-          return (
-            <div key={idx} className="premium-card p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-bold">{item.name}</p>
-                  <p className="text-xs text-muted-foreground">{item.quantity} {item.unit}</p>
-                </div>
-                {subtotal > 0 && <p className="text-base font-bold" style={{ color: 'var(--income-text)' }}>৳{subtotal.toLocaleString("bn-BD")}</p>}
-              </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span className={!item.useDirectTotal ? "font-semibold text-foreground" : ""}>একক দাম</span>
-                <Switch checked={item.useDirectTotal} onCheckedChange={() => togglePriceMode(originalIndex)} className="h-5 w-9" />
-                <span className={item.useDirectTotal ? "font-semibold text-foreground" : ""}>মোট দাম</span>
-              </div>
-              {item.useDirectTotal ? (
-                <CalculatorInput
-                  placeholder="মোট দাম (৳)"
-                  value={item.directTotal ? item.directTotal.toString() : ""}
-                  onChange={(v) => setDirectTotalPrice(originalIndex, v)}
-                  className="h-10 rounded-xl"
-                />
-              ) : (
-                <CalculatorInput
-                  placeholder="প্রতি একক দাম (৳)"
-                  value={item.pricePerUnit ? item.pricePerUnit.toString() : ""}
-                  onChange={(v) => setPrice(originalIndex, v)}
-                  className="h-10 rounded-xl"
-                />
-              )}
-            </div>
-          );
-        })}
+      {/* Header with accent halo */}
+      <div className="relative overflow-hidden rounded-2xl premium-card p-3.5">
+        <div
+          className="absolute -top-16 -right-12 w-44 h-44 rounded-full opacity-40 blur-3xl pointer-events-none"
+          style={{ background: 'var(--gradient-primary)' }}
+        />
+        <div className="relative flex items-center justify-between gap-2">
+          <Button size="sm" variant="ghost" onClick={() => setStep("shopping")} className="gap-1 rounded-xl h-9 px-2">
+            <ArrowLeft className="w-3.5 h-3.5" /> পিছনে
+          </Button>
+          <div className="text-center min-w-0">
+            <h3 className="text-sm font-bold leading-tight">দাম লিখুন</h3>
+            <p className="text-[10px] text-muted-foreground">{selectedItems.length}টি আইটেম</p>
+          </div>
+          <div className="w-14" />
+        </div>
       </div>
 
       {/* Grand total hero */}
-      <div className="gradient-primary rounded-2xl p-5 text-center shadow-hero">
-        <p className="text-white/70 text-xs font-medium">মোট বাজার</p>
-        <p className="text-3xl font-extrabold text-white">৳{grandTotal.toLocaleString("bn-BD")}</p>
+      <div className="relative gradient-primary rounded-2xl p-5 text-center shadow-hero overflow-hidden">
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+        <p className="relative text-white/70 text-xs font-semibold uppercase tracking-wider">মোট বাজার</p>
+        <p className="relative text-4xl font-extrabold text-white mt-1">৳{grandTotal.toLocaleString("bn-BD")}</p>
       </div>
 
-      <div className="space-y-2">
-        <Label className="font-semibold">পেমেন্ট অ্যাকাউন্ট</Label>
-        <Select value={selectedAccount} onValueChange={setSelectedAccount}>
-          <SelectTrigger className="rounded-xl"><SelectValue placeholder="অ্যাকাউন্ট বাছুন" /></SelectTrigger>
-          <SelectContent>{accounts.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}</SelectContent>
-        </Select>
+      <div>
+        <SectionLabel icon={Receipt} label="আইটেমের দাম" />
+        <div className="space-y-2">
+          {selectedItems.map((item, idx) => {
+            const originalIndex = shoppingItems.findIndex((si) => si.name === item.name && si.masterId === item.masterId);
+            const subtotal = item.useDirectTotal ? item.directTotal : item.quantity * item.pricePerUnit;
+            return (
+              <div key={idx} className="premium-card p-3.5 space-y-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold truncate">{item.name}</p>
+                    <p className="text-[10px] text-muted-foreground">{item.quantity} {item.unit}</p>
+                  </div>
+                  {subtotal > 0 && (
+                    <div className="px-2.5 py-1 rounded-lg shrink-0" style={{ background: 'var(--income-bg)' }}>
+                      <p className="text-sm font-bold tabular-nums" style={{ color: 'var(--income-text)' }}>৳{subtotal.toLocaleString("bn-BD")}</p>
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 text-[11px]">
+                  <span className={!item.useDirectTotal ? "font-bold text-foreground" : "text-muted-foreground"}>একক</span>
+                  <Switch checked={item.useDirectTotal} onCheckedChange={() => togglePriceMode(originalIndex)} className="h-5 w-9" />
+                  <span className={item.useDirectTotal ? "font-bold text-foreground" : "text-muted-foreground"}>মোট</span>
+                </div>
+                <CalculatorInput
+                  placeholder={item.useDirectTotal ? "মোট দাম (৳)" : "প্রতি একক দাম (৳)"}
+                  value={item.useDirectTotal
+                    ? (item.directTotal ? item.directTotal.toString() : "")
+                    : (item.pricePerUnit ? item.pricePerUnit.toString() : "")}
+                  onChange={(v) => item.useDirectTotal ? setDirectTotalPrice(originalIndex, v) : setPrice(originalIndex, v)}
+                  className="h-10 rounded-xl"
+                />
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      <Button onClick={saveBatch} className="w-full h-12 rounded-2xl gap-2 gradient-primary shadow-md text-base font-semibold" disabled={saving || grandTotal <= 0 || !selectedAccount}>
+      {/* Account selection grid */}
+      <div>
+        <SectionLabel icon={Wallet} label="পেমেন্ট অ্যাকাউন্ট" />
+        <div className="grid grid-cols-3 gap-1.5">
+          {accounts.map((a) => {
+            const isSelected = selectedAccount === a.id;
+            return (
+              <button
+                key={a.id}
+                type="button"
+                onClick={() => setSelectedAccount(a.id)}
+                className={`relative rounded-xl p-2.5 text-center transition-all border ${
+                  isSelected
+                    ? "shadow-sm scale-[0.98]"
+                    : "bg-card border-border hover:bg-accent/40"
+                }`}
+                style={isSelected ? { background: 'var(--stat-pill-active-bg)', borderColor: 'hsl(var(--primary))' } : undefined}
+              >
+                {isSelected && (
+                  <div className="absolute top-1 right-1 w-4 h-4 rounded-full flex items-center justify-center" style={{ background: 'hsl(var(--primary))' }}>
+                    <Check className="w-2.5 h-2.5 text-primary-foreground" strokeWidth={3} />
+                  </div>
+                )}
+                <div className="text-lg leading-none mb-1">{getAccountEmoji(a.name)}</div>
+                <p className="text-[10px] font-semibold truncate leading-tight">{a.name}</p>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <Button onClick={saveBatch}
+        className="w-full h-12 rounded-2xl gap-2 gradient-primary shadow-md text-base font-semibold"
+        disabled={saving || grandTotal <= 0 || !selectedAccount}>
         {saving ? "সেভ হচ্ছে..." : <><Check className="w-4 h-4" /> বাজার সেভ করুন</>}
       </Button>
     </div>
