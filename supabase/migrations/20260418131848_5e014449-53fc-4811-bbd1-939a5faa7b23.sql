@@ -1,0 +1,1 @@
+UPDATE public.accounts SET name = 'নগদ' WHERE name = 'নগদ (Cash)';
