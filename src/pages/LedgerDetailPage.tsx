@@ -543,6 +543,14 @@ const LedgerDetailPage = () => {
                     ? { textShadow: 'none' }
                     : { textShadow: '0 1px 3px rgba(0,0,0,0.25)' }}
                 >
+                  <Icon className="w-3.5 h-3.5 shrink-0" strokeWidth={isActive ? 2.75 : 2.25} />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
 
       <div className="max-w-lg mx-auto px-4 pt-3">
         {reminders && reminders.length > 0 && activeTab === "transactions" && (
