@@ -18,6 +18,7 @@ const LedgerListPage = () => {
   const [newLedgerName, setNewLedgerName] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
   const { data: ledgers, isLoading } = useQuery({
     queryKey: ["ledgers"],
@@ -84,6 +85,7 @@ const LedgerListPage = () => {
       queryClient.invalidateQueries({ queryKey: ["ledgers"] });
       queryClient.invalidateQueries({ queryKey: ["ledger-balances"] });
       setDeleteTarget(null);
+      setDeleteConfirmText("");
       toast.success("খাতা মুছে ফেলা হয়েছে!");
     },
     onError: (e: Error) => toast.error(e.message),
@@ -211,17 +213,29 @@ const LedgerListPage = () => {
         )}
       </div>
 
-      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) { setDeleteTarget(null); setDeleteConfirmText(""); } }}>
         <AlertDialogContent className="rounded-2xl bg-popover">
           <AlertDialogHeader>
             <AlertDialogTitle>"{deleteTarget?.name}" মুছে ফেলবেন?</AlertDialogTitle>
-            <AlertDialogDescription>এই হিসাব খাতা ও এর সব ডাটা মুছে যাবে। এটি পূর্বাবস্থায় ফেরানো যাবে না।</AlertDialogDescription>
+            <AlertDialogDescription>
+              এই হিসাব খাতা ও এর সব ডাটা মুছে যাবে। এটি পূর্বাবস্থায় ফেরানো যাবে না।
+              <br /><br />
+              নিশ্চিত করতে নিচে <span className="font-bold text-destructive">DELETE</span> টাইপ করুন।
+            </AlertDialogDescription>
           </AlertDialogHeader>
+          <Input
+            value={deleteConfirmText}
+            onChange={(e) => setDeleteConfirmText(e.target.value)}
+            placeholder="DELETE লিখুন"
+            className="rounded-xl"
+            autoFocus
+          />
           <AlertDialogFooter>
             <AlertDialogCancel className="rounded-xl">বাতিল</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteTarget && deleteLedger.mutate(deleteTarget.id)}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl"
+              disabled={deleteConfirmText !== "DELETE" || deleteLedger.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl disabled:opacity-50"
             >
               {deleteLedger.isPending ? "মুছছে..." : "মুছে ফেলুন"}
             </AlertDialogAction>
