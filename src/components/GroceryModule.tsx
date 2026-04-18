@@ -711,13 +711,40 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
 
         {/* Import from another ledger Dialog */}
         <Dialog open={importOpen} onOpenChange={(open) => { if (!open) { setImportOpen(false); setImportSourceLedger(""); setImportSelectedItems(new Set()); } else setImportOpen(true); }}>
-          <DialogContent className="max-w-sm rounded-2xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader><DialogTitle>অন্য লেজার থেকে আমদানি</DialogTitle></DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label className="text-xs">লেজার নির্বাচন করুন</Label>
+          <DialogContent className="max-w-sm rounded-3xl overflow-hidden p-0 border-0 max-h-[85vh] flex flex-col">
+            {/* Decorative gradient halo */}
+            <div
+              className="absolute -top-20 -right-16 w-56 h-56 rounded-full opacity-25 blur-3xl pointer-events-none"
+              style={{ background: 'radial-gradient(circle, hsl(var(--primary)), transparent 70%)' }}
+            />
+            {/* Premium header band */}
+            <div
+              className="relative flex items-center gap-3 px-5 pt-5 pb-4 border-b shrink-0"
+              style={{
+                background: 'linear-gradient(135deg, hsl(var(--primary) / 0.10), hsl(var(--primary) / 0.02))',
+                borderColor: 'var(--glass-border)',
+              }}
+            >
+              <div
+                className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
+                style={{
+                  background: 'var(--gradient-primary)',
+                  boxShadow: '0 6px 16px -4px hsl(var(--primary) / 0.45), inset 0 1px 0 rgba(255,255,255,0.2)',
+                }}
+              >
+                <Download className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0 text-left">
+                <DialogTitle className="text-base font-extrabold leading-tight">অন্য লেজার থেকে আমদানি</DialogTitle>
+                <p className="text-[11px] text-muted-foreground font-medium mt-0.5">পুরোনো বাজার লিস্ট কপি করুন</p>
+              </div>
+            </div>
+
+            <div className="relative space-y-4 px-5 py-5 overflow-y-auto flex-1">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-muted-foreground">লেজার নির্বাচন করুন</Label>
                 <Select value={importSourceLedger} onValueChange={(v) => { setImportSourceLedger(v); setImportSelectedItems(new Set()); }}>
-                  <SelectTrigger className="rounded-xl"><SelectValue placeholder="লেজার বেছে নিন" /></SelectTrigger>
+                  <SelectTrigger className="rounded-xl h-11"><SelectValue placeholder="লেজার বেছে নিন" /></SelectTrigger>
                   <SelectContent>
                     {otherLedgers.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
                   </SelectContent>
@@ -727,8 +754,16 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
               {importSourceLedger && importSourceItems && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs">আইটেম নির্বাচন করুন ({importSelectedItems.size}/{importSourceItems.length})</Label>
-                    <Button variant="ghost" size="sm" className="text-xs h-6 px-2"
+                    <Label className="text-xs font-semibold text-muted-foreground">
+                      আইটেম
+                      <span
+                        className="ml-1.5 inline-flex items-center justify-center min-w-[22px] h-[20px] px-1.5 rounded-full text-[10px] font-bold text-white"
+                        style={{ background: 'var(--gradient-primary)' }}
+                      >
+                        {importSelectedItems.size}/{importSourceItems.length}
+                      </span>
+                    </Label>
+                    <Button variant="ghost" size="sm" className="text-xs h-7 px-2.5 rounded-lg font-semibold text-primary hover:bg-primary/10"
                       onClick={() => {
                         if (importSelectedItems.size === importSourceItems.length) setImportSelectedItems(new Set());
                         else setImportSelectedItems(new Set(importSourceItems.map(i => i.id)));
@@ -737,11 +772,12 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
                     </Button>
                   </div>
                   {importSourceItems.length === 0 ? (
-                    <p className="text-xs text-muted-foreground text-center py-4">এই লেজারে কোনো আইটেম নেই</p>
+                    <p className="text-xs text-muted-foreground text-center py-6">এই লেজারে কোনো আইটেম নেই</p>
                   ) : (
-                    <div className="space-y-1.5 max-h-[40vh] overflow-y-auto">
+                    <div className="space-y-1.5 max-h-[40vh] overflow-y-auto pr-1">
                       {importSourceItems.map(item => {
                         const alreadyExists = masterItems?.some(m => m.name.toLowerCase() === item.name.toLowerCase());
+                        const isSelected = importSelectedItems.has(item.id);
                         return (
                           <button key={item.id} disabled={alreadyExists}
                             onClick={() => setImportSelectedItems(prev => {
@@ -749,17 +785,17 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
                               if (next.has(item.id)) next.delete(item.id); else next.add(item.id);
                               return next;
                             })}
-                            className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-left transition-all ${
-                              alreadyExists ? "opacity-40 cursor-not-allowed" :
-                              importSelectedItems.has(item.id) ? "bg-primary/10 border border-primary/30" : "bg-muted/50 hover:bg-muted"
+                            className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-left transition-all border ${
+                              alreadyExists ? "opacity-40 cursor-not-allowed border-transparent bg-muted/30" :
+                              isSelected ? "bg-primary/10 border-primary/40 shadow-sm" : "bg-muted/40 hover:bg-muted border-transparent"
                             }`}>
-                            <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 ${
-                              importSelectedItems.has(item.id) ? "bg-primary border-primary" : "border-muted-foreground/30"
+                            <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
+                              isSelected ? "bg-primary border-primary" : "border-muted-foreground/30"
                             }`}>
-                              {importSelectedItems.has(item.id) && <Check className="w-3 h-3 text-primary-foreground" />}
+                              {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium truncate">{item.name}</p>
+                              <p className="text-sm font-semibold truncate">{item.name}</p>
                               <p className="text-[10px] text-muted-foreground">{item.default_quantity} {item.unit}{alreadyExists ? " • ইতিমধ্যে আছে" : ""}</p>
                             </div>
                           </button>
@@ -769,9 +805,15 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
                   )}
                 </div>
               )}
+            </div>
 
+            <div
+              className="relative px-5 py-4 border-t shrink-0"
+              style={{ borderColor: 'var(--glass-border)', background: 'var(--card)' }}
+            >
               <Button onClick={handleImport} disabled={importSelectedItems.size === 0 || importLoading}
-                className="w-full h-11 rounded-2xl gradient-primary shadow-md font-semibold">
+                className="w-full h-12 rounded-2xl gradient-primary shadow-md font-bold gap-2">
+                <Download className="w-4 h-4" />
                 {importLoading ? "আমদানি হচ্ছে..." : `${importSelectedItems.size}টি আইটেম আমদানি করুন`}
               </Button>
             </div>
