@@ -489,8 +489,8 @@ const LedgerDetailPage = () => {
                 className="flex items-center gap-1 px-2 py-1 rounded-lg backdrop-blur-sm"
                 style={{ background: 'rgba(16,185,129,0.22)', border: '1px solid rgba(110,231,183,0.3)' }}
               >
-                <TrendingUp className="w-3 h-3 text-emerald-200" strokeWidth={2.75} />
-                <span className="text-[10px] font-bold text-emerald-100 tabular-nums">
+                <TrendingUp className="w-3 h-3" strokeWidth={2.75} style={{ color: '#A7F3D0' }} />
+                <span className="text-[10px] font-bold tabular-nums" style={{ color: '#D1FAE5' }}>
                   {(totalIncome / 1000).toFixed(totalIncome >= 1000 ? 0 : 1)}k
                 </span>
               </div>
@@ -498,8 +498,8 @@ const LedgerDetailPage = () => {
                 className="flex items-center gap-1 px-2 py-1 rounded-lg backdrop-blur-sm"
                 style={{ background: 'rgba(244,63,94,0.22)', border: '1px solid rgba(253,164,175,0.3)' }}
               >
-                <TrendingDown className="w-3 h-3 text-rose-200" strokeWidth={2.75} />
-                <span className="text-[10px] font-bold text-rose-100 tabular-nums">
+                <TrendingDown className="w-3 h-3" strokeWidth={2.75} style={{ color: '#FECDD3' }} />
+                <span className="text-[10px] font-bold tabular-nums" style={{ color: '#FFE4E6' }}>
                   {(totalExpense / 1000).toFixed(totalExpense >= 1000 ? 0 : 1)}k
                 </span>
               </div>
