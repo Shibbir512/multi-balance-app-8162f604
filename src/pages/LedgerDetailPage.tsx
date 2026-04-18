@@ -509,7 +509,7 @@ const LedgerDetailPage = () => {
       </div>
 
       {/* ─── TOP NAVIGATION TABS ─── */}
-      <div className="sticky top-[52px] z-10 px-4 py-2" style={{ background: 'var(--page-gradient)' }}>
+      <div className="sticky top-[110px] z-10 px-4 py-2" style={{ background: 'var(--page-gradient)' }}>
         <div className="max-w-lg mx-auto">
           <div
             className="flex gap-1 overflow-x-auto no-scrollbar p-1 rounded-2xl border border-white/10"
