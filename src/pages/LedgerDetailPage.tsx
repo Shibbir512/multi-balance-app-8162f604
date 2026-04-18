@@ -62,6 +62,9 @@ const LedgerDetailPage = () => {
   const [showNoteSuggestions, setShowNoteSuggestions] = useState(false);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   const [activeTab, setActiveTab] = useState("transactions");
+  const tabStripRef = useRef<HTMLDivElement | null>(null);
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const [indicatorStyle, setIndicatorStyle] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
 
   const [filterMonth, setFilterMonth] = useState("all");
   const [filterYear, setFilterYear] = useState("all");
