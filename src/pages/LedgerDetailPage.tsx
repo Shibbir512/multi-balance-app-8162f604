@@ -374,7 +374,7 @@ const LedgerDetailPage = () => {
   return (
     <div className="min-h-screen page-gradient">
       {/* ─── PREMIUM HEADER ─── */}
-      <div className="sticky top-0 z-20 gradient-header px-4 pt-2.5 pb-3 relative overflow-hidden">
+      <div className="sticky top-0 z-20 gradient-header px-4 pt-3 pb-3 relative overflow-hidden">
         {/* Accent halos */}
         <div
           className="absolute -top-16 -right-10 w-48 h-48 rounded-full opacity-30 blur-3xl pointer-events-none"
