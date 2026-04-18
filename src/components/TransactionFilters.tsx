@@ -98,23 +98,31 @@ const TransactionFilters = ({
       {/* Date range row */}
       {onDateFromChange && onDateToChange && (
         <div className="flex items-center gap-2">
-          <div className="flex-1">
+          <div className="flex-1 relative">
+            {!dateFrom && (
+              <span className="pointer-events-none absolute inset-0 flex items-center px-3 text-[11px] text-muted-foreground truncate">
+                শুরুর তারিখ নির্বাচন করুন
+              </span>
+            )}
             <Input
               type="date"
               value={dateFrom}
               onChange={(e) => onDateFromChange(e.target.value)}
-              className="h-9 text-xs rounded-full border-0 bg-muted px-3"
-              placeholder="শুরু"
+              className={`h-9 text-xs rounded-full border-0 bg-muted px-3 ${!dateFrom ? "text-transparent" : ""}`}
             />
           </div>
           <span className="text-xs text-muted-foreground">→</span>
-          <div className="flex-1">
+          <div className="flex-1 relative">
+            {!dateTo && (
+              <span className="pointer-events-none absolute inset-0 flex items-center px-3 text-[11px] text-muted-foreground truncate">
+                শেষ তারিখ নির্বাচন করুন
+              </span>
+            )}
             <Input
               type="date"
               value={dateTo}
               onChange={(e) => onDateToChange(e.target.value)}
-              className="h-9 text-xs rounded-full border-0 bg-muted px-3"
-              placeholder="শেষ"
+              className={`h-9 text-xs rounded-full border-0 bg-muted px-3 ${!dateTo ? "text-transparent" : ""}`}
             />
           </div>
         </div>
