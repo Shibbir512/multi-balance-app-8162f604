@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetTitle, BottomSheetDescription } from "@/components/ui/bottom-sheet";
-import { ArrowLeft, Plus, TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, Pencil, ShoppingCart, Calculator, CreditCard, Tag, Trash2, X, ChevronDown, BarChart3, Calendar, Search } from "lucide-react";
+import { ArrowLeft, Plus, TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, Pencil, ShoppingCart, Calculator, CreditCard, Tag, Trash2, X, ChevronDown, BarChart3, Calendar, Search, Clock, FileText, Check } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import { toast } from "sonner";
 import GroceryModule from "@/components/GroceryModule";
@@ -748,214 +748,433 @@ const LedgerDetailPage = () => {
 
       {/* ─── ADD TRANSACTION BOTTOM SHEET ─── */}
       <BottomSheet open={txDialogOpen} onOpenChange={setTxDialogOpen}>
-        <BottomSheetContent className="p-0 rounded-t-[32px] bg-white dark:bg-zinc-950 border-t-0 shadow-2xl">
-          {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-zinc-800">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">নতুন</h2>
-            <button onClick={() => setTxDialogOpen(false)} type="button" className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-zinc-900 text-gray-500 hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
-          <form onSubmit={handleAddTx} className="px-5 py-5 space-y-5 max-h-[85vh] overflow-y-auto no-scrollbar">
-            
-            {/* Date & Time (Side by Side) */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-blue-500">
-                  <Calendar className="w-4 h-4" />
-                </div>
-                <input
-                  type="date"
-                  value={txDate}
-                  onChange={(e) => setTxDate(e.target.value)}
-                  required
-                  className="w-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-semibold text-sm rounded-2xl py-3 pl-10 pr-3 outline-none"
-                />
-              </div>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-blue-500">
-                  <span className="text-sm">🕒</span>
-                </div>
-                <input
-                  type="time"
-                  value={txTime}
-                  onChange={(e) => setTxTime(e.target.value)}
-                  className="w-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-semibold text-sm rounded-2xl py-3 pl-10 pr-3 outline-none"
-                />
-              </div>
-            </div>
-
-            {/* Income/Expense Toggle */}
-            <div className="flex p-1 bg-gray-100 dark:bg-zinc-900 rounded-2xl">
-              <button
-                type="button"
-                onClick={() => { setTxType("income"); setTxCategory(""); }}
-                className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all duration-300 ${
-                  txType === "income" ? "bg-green-500 text-white shadow-md shadow-green-500/20" : "text-gray-500 hover:text-gray-700 dark:text-gray-400"
-                }`}
-              >
-                জমা
-              </button>
-              <button
-                type="button"
-                onClick={() => { setTxType("expense"); setTxCategory(""); }}
-                className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all duration-300 ${
-                  txType === "expense" ? "bg-red-500 text-white shadow-md shadow-red-500/20" : "text-gray-500 hover:text-gray-700 dark:text-gray-400"
-                }`}
-              >
-                ব্যয়
-              </button>
-            </div>
-
-            {/* Account Choice (Horizontal) */}
-            <div>
-              <div className="flex gap-2 overflow-x-auto no-scrollbar py-1 items-center">
-                <div className="w-10 h-10 shrink-0 flex items-center justify-center rounded-2xl bg-gray-100 dark:bg-zinc-900 text-gray-500 shadow-sm border border-transparent">
-                  <Search className="w-4 h-4" />
-                </div>
-                {accounts?.map((a) => (
-                  <button
-                    key={a.id}
-                    type="button"
-                    onClick={() => setTxAccount(a.id)}
-                    className={`shrink-0 px-4 py-2.5 rounded-2xl text-sm font-semibold transition-all duration-200 border ${
-                      txAccount === a.id
-                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 shadow-sm shadow-blue-500/10"
-                        : "border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-900 shadow-sm"
-                    }`}
-                  >
-                    {a.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Category Choice (Horizontal) */}
-            <div>
-              {showNewCategory ? (
-                <div className="flex gap-2 mb-2">
-                  <Input
-                    value={newCategoryName}
-                    onChange={(e) => setNewCategoryName(e.target.value)}
-                    placeholder="ক্যাটাগরি নাম"
-                    className="flex-1 h-11 rounded-2xl text-sm"
-                    autoFocus
+        <BottomSheetContent className="p-0 rounded-t-[28px] overflow-hidden">
+          {(() => {
+            const isIncome = txType === "income";
+            const accentSoft = isIncome ? 'var(--income-text-soft)' : 'var(--expense-text-soft)';
+            const accentBg = isIncome ? 'var(--income-bg)' : 'var(--expense-bg)';
+            return (
+              <>
+                {/* Premium Header */}
+                <div className="relative px-5 pt-3 pb-4 overflow-hidden">
+                  <div
+                    className="absolute -top-20 -right-16 w-56 h-56 rounded-full opacity-40 blur-3xl pointer-events-none"
+                    style={{ background: accentBg }}
                   />
-                  <Button
-                    type="button"
-                    className="h-11 w-11 rounded-2xl bg-blue-500 hover:bg-blue-600 shrink-0"
-                    disabled={!newCategoryName.trim() || addCategory.isPending}
-                    onClick={() => addCategory.mutate()}
-                  >
-                    <Plus className="w-4 h-4 text-white" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="h-11 w-11 rounded-2xl bg-gray-100 dark:bg-zinc-900 hover:bg-gray-200 dark:hover:bg-zinc-800 shrink-0"
-                    onClick={() => { setShowNewCategory(false); setNewCategoryName(""); }}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex gap-2 overflow-x-auto no-scrollbar py-1 items-center">
-                  <div className="w-10 h-10 shrink-0 flex items-center justify-center rounded-2xl bg-gray-100 dark:bg-zinc-900 text-gray-500 shadow-sm border border-transparent">
-                    <Search className="w-4 h-4" />
+                  <div
+                    className="absolute -top-10 -left-10 w-32 h-32 rounded-full opacity-20 blur-2xl pointer-events-none"
+                    style={{ background: 'hsl(var(--primary))' }}
+                  />
+
+                  <div className="relative flex justify-center mb-3">
+                    <div className="w-10 h-1 rounded-full bg-muted-foreground/25" />
                   </div>
-                  {filteredCategories.map((c) => (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => setTxCategory(c.id)}
-                      className={`shrink-0 px-4 py-2.5 rounded-2xl text-sm font-semibold transition-all duration-200 border ${
-                        txCategory === c.id
-                          ? (txType === "income" ? "border-green-500 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 shadow-sm shadow-green-500/10" : "border-red-500 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 shadow-sm shadow-red-500/10")
-                          : "border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-900 shadow-sm"
-                      }`}
+
+                  <div className="relative flex items-center gap-3">
+                    <div
+                      className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ring-1 ring-white/10"
+                      style={{
+                        background: accentBg,
+                        boxShadow: `0 8px 24px -8px ${accentSoft}, inset 0 1px 0 rgba(255,255,255,0.08)`,
+                      }}
                     >
-                      {c.name}
+                      {isIncome ? (
+                        <TrendingUp className="w-5 h-5" style={{ color: accentSoft }} strokeWidth={2.5} />
+                      ) : (
+                        <TrendingDown className="w-5 h-5" style={{ color: accentSoft }} strokeWidth={2.5} />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-base font-bold text-foreground tracking-tight">
+                        {isIncome ? "নতুন জমা" : "নতুন ব্যয়"}
+                      </h2>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        {isIncome ? "জমার তথ্য যোগ করুন" : "খরচের তথ্য যোগ করুন"}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setTxDialogOpen(false)}
+                      className="w-8 h-8 rounded-full flex items-center justify-center bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label="Close"
+                    >
+                      <X className="w-4 h-4" />
                     </button>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => setShowNewCategory(true)}
-                    className="shrink-0 flex items-center justify-center w-10 h-10 rounded-2xl border border-dashed border-gray-300 dark:border-zinc-700 text-gray-500 hover:bg-gray-50 dark:hover:bg-zinc-900"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Inputs (Amount and Description) */}
-            <div className="space-y-3 pt-1">
-              <div className="relative flex items-center bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-2xl px-4 focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10 transition-all shadow-sm">
-                <span className="text-xl mr-3">🪙</span>
-                <CalculatorInput
-                  value={txAmount}
-                  onChange={setTxAmount}
-                  placeholder="টাকার পরিমাণ"
-                  required
-                  className="w-full bg-transparent border-0 text-gray-900 dark:text-gray-100 font-bold text-lg h-14 px-0 outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                />
-              </div>
-
-              <div className="relative">
-                <div className="absolute top-4 left-4 flex items-start pointer-events-none">
-                  <span className="text-xl">📝</span>
-                </div>
-                <textarea
-                  value={txNote}
-                  onChange={(e) => setTxNote(e.target.value)}
-                  placeholder="বিবরণ (অপশনাল)"
-                  rows={2}
-                  className="w-full bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-gray-100 font-medium text-sm rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all resize-none shadow-sm"
-                  onFocus={() => setShowNoteSuggestions(true)}
-                  onBlur={() => setTimeout(() => setShowNoteSuggestions(false), 200)}
-                />
-                
-                {showNoteSuggestions && filteredNoteSuggestions.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {filteredNoteSuggestions.map((suggestion) => (
-                      <button
-                        key={suggestion}
-                        type="button"
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => { setTxNote(suggestion); setShowNoteSuggestions(false); }}
-                        className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 dark:bg-zinc-900 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors"
-                      >
-                        {suggestion}
-                      </button>
-                    ))}
                   </div>
-                )}
-              </div>
-            </div>
+                </div>
 
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              className={`w-full h-14 rounded-2xl text-base font-bold shadow-lg transition-all duration-300 ${
-                !txAmount || parseFloat(txAmount) <= 0
-                  ? "bg-gray-200 hover:bg-gray-200 text-gray-400 dark:bg-zinc-800 dark:text-zinc-500 shadow-none pointer-events-none"
-                  : txType === "income" 
-                    ? "bg-green-500 hover:bg-green-600 text-white shadow-green-500/30 active:scale-[0.98]"
-                    : "bg-red-500 hover:bg-red-600 text-white shadow-red-500/30 active:scale-[0.98]"
-              }`}
-              disabled={addTransaction.isPending || !txAmount || parseFloat(txAmount) <= 0}
-            >
-              {addTransaction.isPending
-                ? "সংরক্ষণ হচ্ছে..."
-                : txType === "income"
-                  ? "জমা যোগ করুন"
-                  : "ব্যয় যোগ করুন"
-              }
-            </Button>
-          </form>
+                <form onSubmit={handleAddTx} className="px-4 pb-5 space-y-3.5 max-h-[70vh] overflow-y-auto no-scrollbar">
+
+                  {/* Income/Expense Toggle - segmented */}
+                  <div
+                    className="flex p-1 rounded-2xl border"
+                    style={{
+                      background: 'hsl(var(--muted) / 0.5)',
+                      borderColor: 'var(--glass-border)',
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => { setTxType("income"); setTxCategory(""); }}
+                      className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1.5 ${
+                        txType === "income" ? "shadow-sm text-foreground" : "text-muted-foreground"
+                      }`}
+                      style={txType === "income" ? {
+                        background: `linear-gradient(135deg, var(--income-bg), hsl(var(--card)))`,
+                        boxShadow: `0 2px 8px -2px var(--income-text-soft)40, inset 0 1px 0 rgba(255,255,255,0.05)`,
+                      } : undefined}
+                    >
+                      <TrendingUp className="w-3.5 h-3.5" style={{ color: txType === "income" ? 'var(--income-text-soft)' : undefined }} strokeWidth={2.5} />
+                      জমা
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setTxType("expense"); setTxCategory(""); }}
+                      className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1.5 ${
+                        txType === "expense" ? "shadow-sm text-foreground" : "text-muted-foreground"
+                      }`}
+                      style={txType === "expense" ? {
+                        background: `linear-gradient(135deg, var(--expense-bg), hsl(var(--card)))`,
+                        boxShadow: `0 2px 8px -2px var(--expense-text-soft)40, inset 0 1px 0 rgba(255,255,255,0.05)`,
+                      } : undefined}
+                    >
+                      <TrendingDown className="w-3.5 h-3.5" style={{ color: txType === "expense" ? 'var(--expense-text-soft)' : undefined }} strokeWidth={2.5} />
+                      ব্যয়
+                    </button>
+                  </div>
+
+                  {/* Premium Amount Card */}
+                  <div
+                    className="relative rounded-2xl p-4 overflow-hidden"
+                    style={{
+                      background: `linear-gradient(135deg, ${accentBg}, hsl(var(--card)) 70%)`,
+                      border: '1px solid var(--glass-border)',
+                      boxShadow: 'var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.04)',
+                    }}
+                  >
+                    <div
+                      className="absolute top-0 right-0 w-24 h-24 rounded-full opacity-10 blur-2xl pointer-events-none"
+                      style={{ background: accentSoft }}
+                    />
+                    <div className="relative flex items-baseline justify-between mb-1.5">
+                      <label className="text-[10px] font-bold text-muted-foreground/80 uppercase tracking-[0.14em]">
+                        পরিমাণ
+                      </label>
+                      <span className="text-[10px] font-semibold text-muted-foreground/60">৳ BDT</span>
+                    </div>
+                    <div className="relative flex items-baseline gap-1.5">
+                      <span className="text-2xl font-bold leading-none" style={{ color: accentSoft }}>৳</span>
+                      <CalculatorInput
+                        value={txAmount}
+                        onChange={setTxAmount}
+                        placeholder="০"
+                        required
+                        className="border-0 bg-transparent text-3xl font-bold h-12 px-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/30 tracking-tight"
+                      />
+                    </div>
+                    {txAmount && parseFloat(txAmount) > 0 && (
+                      <div className="relative mt-2 pt-2 border-t border-border/40 flex items-center justify-between">
+                        <span className="text-[10px] text-muted-foreground/70 uppercase tracking-wider font-semibold">
+                          মোট পরিমাণ
+                        </span>
+                        <span className="text-xs font-bold" style={{ color: accentSoft }}>
+                          ৳{parseFloat(txAmount).toLocaleString("bn-BD")}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Category */}
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-2 px-0.5">
+                      <Tag className="w-3 h-3 text-muted-foreground/70" strokeWidth={2.5} />
+                      <span className="text-[10px] font-bold text-muted-foreground/80 uppercase tracking-[0.12em]">ক্যাটাগরি</span>
+                      <div className="flex-1 h-px bg-gradient-to-r from-border/60 to-transparent ml-1" />
+                    </div>
+                    {showNewCategory ? (
+                      <div className="flex gap-1.5">
+                        <Input
+                          value={newCategoryName}
+                          onChange={(e) => setNewCategoryName(e.target.value)}
+                          placeholder="ক্যাটাগরি নাম"
+                          className="form-input flex-1 h-9 text-xs rounded-xl"
+                          autoFocus
+                        />
+                        <Button
+                          type="button"
+                          size="icon"
+                          className="h-9 w-9 shrink-0 rounded-xl btn-primary"
+                          disabled={!newCategoryName.trim() || addCategory.isPending}
+                          onClick={() => addCategory.mutate()}
+                        >
+                          <Check className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          className="h-9 w-9 shrink-0 rounded-xl"
+                          onClick={() => { setShowNewCategory(false); setNewCategoryName(""); }}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap gap-1.5">
+                        {filteredCategories.map((c) => {
+                          const selected = txCategory === c.id;
+                          return (
+                            <button
+                              key={c.id}
+                              type="button"
+                              onClick={() => setTxCategory(c.id)}
+                              className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all duration-200 border ${
+                                selected
+                                  ? "text-foreground shadow-sm scale-[1.02]"
+                                  : "border-border/60 bg-card text-muted-foreground hover:border-primary/40 hover:bg-primary/5"
+                              }`}
+                              style={selected ? {
+                                borderColor: accentSoft,
+                                background: `linear-gradient(135deg, ${accentBg}, hsl(var(--card)))`,
+                                boxShadow: `0 2px 8px -2px ${accentSoft}40`,
+                              } : undefined}
+                            >
+                              {selected && (
+                                <span className="w-1.5 h-1.5 rounded-full" style={{ background: accentSoft }} />
+                              )}
+                              {c.name}
+                            </button>
+                          );
+                        })}
+                        <button
+                          type="button"
+                          onClick={() => setShowNewCategory(true)}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-semibold border border-dashed border-primary/40 text-primary hover:bg-primary/5 hover:border-primary/60 transition-all duration-200"
+                        >
+                          <Plus className="w-3 h-3" strokeWidth={2.5} /> নতুন
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Account */}
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-2 px-0.5">
+                      <Wallet className="w-3 h-3 text-muted-foreground/70" strokeWidth={2.5} />
+                      <span className="text-[10px] font-bold text-muted-foreground/80 uppercase tracking-[0.12em]">অ্যাকাউন্ট</span>
+                      <div className="flex-1 h-px bg-gradient-to-r from-border/60 to-transparent ml-1" />
+                    </div>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {accounts?.map((a) => {
+                        const selected = txAccount === a.id;
+                        const icon = a.type === "bank" ? "🏦" : a.type === "mobile_banking" ? "📱" : "💵";
+                        return (
+                          <button
+                            key={a.id}
+                            type="button"
+                            onClick={() => setTxAccount(a.id)}
+                            className={`relative flex flex-col items-center justify-center gap-1 px-2 py-2.5 rounded-xl text-[10px] font-semibold transition-all duration-200 border min-h-[58px] ${
+                              selected
+                                ? "text-foreground shadow-sm"
+                                : "border-border/60 bg-card text-muted-foreground hover:border-primary/40 hover:bg-primary/5"
+                            }`}
+                            style={selected ? {
+                              borderColor: accentSoft,
+                              background: `linear-gradient(160deg, ${accentBg}, hsl(var(--card)))`,
+                              boxShadow: `0 2px 10px -3px ${accentSoft}50, inset 0 1px 0 rgba(255,255,255,0.05)`,
+                            } : undefined}
+                          >
+                            <span className="text-base leading-none">{icon}</span>
+                            <span className="leading-tight text-center line-clamp-1">{a.name}</span>
+                            {selected && (
+                              <span
+                                className="absolute top-1 right-1 w-3 h-3 rounded-full flex items-center justify-center"
+                                style={{ background: accentSoft }}
+                              >
+                                <Check className="w-2 h-2 text-white" strokeWidth={3} />
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Date & Time */}
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-2 px-0.5">
+                      <Clock className="w-3 h-3 text-muted-foreground/70" strokeWidth={2.5} />
+                      <span className="text-[10px] font-bold text-muted-foreground/80 uppercase tracking-[0.12em]">তারিখ ও সময়</span>
+                      <div className="flex-1 h-px bg-gradient-to-r from-border/60 to-transparent ml-1" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {/* Date */}
+                      <div
+                        className="relative flex items-center gap-2 rounded-xl border px-3 py-2.5 transition-all duration-200 hover:border-primary/40"
+                        style={{
+                          background: 'hsl(var(--card))',
+                          borderColor: 'var(--glass-border)',
+                        }}
+                      >
+                        <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-primary/10">
+                          <Calendar className="w-3.5 h-3.5 text-primary" strokeWidth={2.5} />
+                        </div>
+                        <input
+                          type="date"
+                          value={txDate}
+                          onChange={(e) => setTxDate(e.target.value)}
+                          required
+                          className="bg-transparent border-0 outline-none text-xs font-semibold text-foreground flex-1 w-full min-w-0 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                        />
+                      </div>
+
+                      {/* Time */}
+                      <div
+                        className="relative flex items-center gap-1.5 rounded-xl border px-2.5 py-2.5"
+                        style={{
+                          background: 'hsl(var(--card))',
+                          borderColor: 'var(--glass-border)',
+                        }}
+                      >
+                        <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-primary/10">
+                          <Clock className="w-3.5 h-3.5 text-primary" strokeWidth={2.5} />
+                        </div>
+                        {(() => {
+                          const [h24Str = "", mStr = ""] = (txTime || "").split(":");
+                          const h24 = parseInt(h24Str, 10);
+                          const hasTime = !isNaN(h24);
+                          const period: "AM" | "PM" = hasTime ? (h24 >= 12 ? "PM" : "AM") : "AM";
+                          const h12 = hasTime ? ((h24 % 12) || 12) : NaN;
+                          const setFromParts = (h12New: number, mNew: string, periodNew: "AM" | "PM") => {
+                            let h = h12New % 12;
+                            if (periodNew === "PM") h += 12;
+                            const hh = String(h).padStart(2, "0");
+                            const mm = (mNew || "00").padStart(2, "0");
+                            setTxTime(`${hh}:${mm}`);
+                          };
+                          return (
+                            <>
+                              <div className="flex items-center">
+                                <input
+                                  type="number"
+                                  min={1}
+                                  max={12}
+                                  placeholder="১২"
+                                  value={isNaN(h12) ? "" : h12}
+                                  onChange={(e) => {
+                                    const v = parseInt(e.target.value, 10);
+                                    if (isNaN(v)) { setTxTime(""); return; }
+                                    const clamped = Math.min(12, Math.max(1, v));
+                                    setFromParts(clamped, mStr || "00", period);
+                                  }}
+                                  className="bg-transparent border-0 outline-none text-xs font-bold text-foreground w-6 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
+                                <span className="text-xs font-bold text-muted-foreground/60">:</span>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  max={59}
+                                  placeholder="০০"
+                                  value={mStr}
+                                  onChange={(e) => {
+                                    const v = parseInt(e.target.value, 10);
+                                    if (isNaN(v)) return;
+                                    const clamped = Math.min(59, Math.max(0, v));
+                                    setFromParts(isNaN(h12) ? 12 : h12, String(clamped).padStart(2, "0"), period);
+                                  }}
+                                  className="bg-transparent border-0 outline-none text-xs font-bold text-foreground w-6 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
+                              </div>
+                              <div className="ml-auto flex rounded-lg overflow-hidden border shrink-0" style={{ borderColor: 'var(--glass-border)' }}>
+                                <button
+                                  type="button"
+                                  onClick={() => setFromParts(isNaN(h12) ? 12 : h12, mStr || "00", "AM")}
+                                  className={`px-1.5 py-1 text-[9px] font-bold transition-all ${
+                                    period === "AM" ? "bg-primary text-primary-foreground shadow-sm" : "bg-transparent text-muted-foreground hover:text-foreground"
+                                  }`}
+                                >
+                                  AM
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setFromParts(isNaN(h12) ? 12 : h12, mStr || "00", "PM")}
+                                  className={`px-1.5 py-1 text-[9px] font-bold transition-all ${
+                                    period === "PM" ? "bg-primary text-primary-foreground shadow-sm" : "bg-transparent text-muted-foreground hover:text-foreground"
+                                  }`}
+                                >
+                                  PM
+                                </button>
+                              </div>
+                            </>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Note */}
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-2 px-0.5">
+                      <FileText className="w-3 h-3 text-muted-foreground/70" strokeWidth={2.5} />
+                      <span className="text-[10px] font-bold text-muted-foreground/80 uppercase tracking-[0.12em]">নোট</span>
+                      <div className="flex-1 h-px bg-gradient-to-r from-border/60 to-transparent ml-1" />
+                    </div>
+                    <textarea
+                      value={txNote}
+                      onChange={(e) => setTxNote(e.target.value)}
+                      placeholder="কিসের জন্য? (ঐচ্ছিক)"
+                      rows={2}
+                      className="w-full rounded-xl border px-3 py-2.5 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition-all duration-200 placeholder:text-muted-foreground/40"
+                      style={{
+                        background: 'hsl(var(--card))',
+                        borderColor: 'var(--glass-border)',
+                      }}
+                      onFocus={() => setShowNoteSuggestions(true)}
+                      onBlur={() => setTimeout(() => setShowNoteSuggestions(false), 200)}
+                    />
+                    {showNoteSuggestions && filteredNoteSuggestions.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {filteredNoteSuggestions.map((suggestion) => (
+                          <button
+                            key={suggestion}
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => { setTxNote(suggestion); setShowNoteSuggestions(false); }}
+                            className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground transition-colors"
+                          >
+                            {suggestion}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Submit Button */}
+                  <Button
+                    type="submit"
+                    className={`w-full h-12 rounded-2xl text-sm font-bold transition-all duration-300 active:scale-[0.97] ${
+                      !txAmount || parseFloat(txAmount) <= 0
+                        ? "bg-muted text-muted-foreground shadow-none pointer-events-none"
+                        : "btn-primary shadow-lg shadow-primary/20"
+                    }`}
+                    disabled={addTransaction.isPending || !txAmount || parseFloat(txAmount) <= 0}
+                  >
+                    {addTransaction.isPending ? (
+                      "সংরক্ষণ হচ্ছে..."
+                    ) : (
+                      <span className="flex items-center justify-center gap-1.5">
+                        <Check className="w-4 h-4" strokeWidth={3} />
+                        {isIncome ? "জমা যোগ করুন" : "ব্যয় যোগ করুন"}
+                      </span>
+                    )}
+                  </Button>
+                </form>
+              </>
+            );
+          })()}
         </BottomSheetContent>
       </BottomSheet>
+
 
       {/* Edit Transaction Dialog */}
       <TransactionEditDialog
