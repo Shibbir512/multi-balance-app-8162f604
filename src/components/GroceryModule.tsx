@@ -695,15 +695,51 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
 
         {/* Delete Confirmation */}
         <AlertDialog open={!!deleteItemId} onOpenChange={(open) => !open && setDeleteItemId(null)}>
-          <AlertDialogContent className="rounded-2xl">
-            <AlertDialogHeader>
-              <AlertDialogTitle>আইটেম মুছে ফেলবেন?</AlertDialogTitle>
-              <AlertDialogDescription>এই আইটেম মাস্টার লিস্ট থেকে মুছে যাবে।</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel className="rounded-xl">বাতিল</AlertDialogCancel>
-              <AlertDialogAction onClick={() => deleteItemId && deleteMasterItem.mutate(deleteItemId)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl">
-                মুছে ফেলুন
+          <AlertDialogContent className="max-w-sm rounded-3xl overflow-hidden p-0 border-0">
+            {/* Decorative red halo */}
+            <div
+              className="absolute -top-20 -right-16 w-56 h-56 rounded-full opacity-25 blur-3xl pointer-events-none"
+              style={{ background: 'radial-gradient(circle, #EF4444, transparent 70%)' }}
+            />
+            {/* Premium header band */}
+            <div
+              className="relative flex items-center gap-3 px-5 pt-5 pb-4 border-b"
+              style={{
+                background: 'linear-gradient(135deg, rgba(239,68,68,0.10), rgba(239,68,68,0.02))',
+                borderColor: 'var(--glass-border)',
+              }}
+            >
+              <div
+                className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
+                style={{
+                  background: 'linear-gradient(135deg, #EF4444, #DC2626)',
+                  boxShadow: '0 6px 16px -4px rgba(239,68,68,0.45), inset 0 1px 0 rgba(255,255,255,0.2)',
+                }}
+              >
+                <Trash2 className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0 text-left">
+                <AlertDialogTitle className="text-base font-extrabold leading-tight">আইটেম মুছে ফেলবেন?</AlertDialogTitle>
+                <AlertDialogDescription className="text-[11px] text-muted-foreground font-medium mt-0.5">
+                  এই আইটেম মাস্টার লিস্ট থেকে মুছে যাবে
+                </AlertDialogDescription>
+              </div>
+            </div>
+
+            <AlertDialogFooter className="relative px-5 py-4 gap-2 sm:gap-2 flex-row">
+              <AlertDialogCancel className="flex-1 m-0 h-12 rounded-2xl font-bold border">
+                বাতিল
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => deleteItemId && deleteMasterItem.mutate(deleteItemId)}
+                className="flex-1 m-0 h-12 rounded-2xl font-bold gap-2 text-white border-0"
+                style={{
+                  background: 'linear-gradient(135deg, #EF4444, #DC2626)',
+                  boxShadow: '0 6px 16px -4px rgba(239,68,68,0.45), inset 0 1px 0 rgba(255,255,255,0.2)',
+                }}
+              >
+                <Trash2 className="w-4 h-4" />
+                মুছুন
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
