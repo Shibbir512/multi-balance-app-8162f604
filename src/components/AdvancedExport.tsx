@@ -44,52 +44,122 @@ const AdvancedExport = ({ ledgerName, transactions, categories }: Props) => {
 
   const catNames = [...new Set(transactions.map((t) => (t.categories as { name: string })?.name).filter(Boolean))];
 
-  const downloadPdf = () => {
+  const downloadPdf = async () => {
     const filtered = getFiltered();
     if (!filtered.length) { toast.error("কোনো লেনদেন পাওয়া যায়নি"); return; }
 
-    const doc = new jsPDF();
-    const pw = doc.internal.pageSize.getWidth();
-
-    doc.setFontSize(14);
-    doc.text(ledgerName, pw / 2, 18, { align: "center" });
-
-    doc.setFontSize(9);
-    const label = exportType === "all" ? "All" : exportType === "income" ? "Income" : "Expense";
-    const catLabel = categoryFilter === "all" ? "All Categories" : categoryFilter;
-    doc.text(`${label} | ${catLabel}`, pw / 2, 25, { align: "center" });
-
-    if (dateFrom || dateTo) {
-      doc.text(`${dateFrom || "Start"} → ${dateTo || "End"}`, pw / 2, 30, { align: "center" });
-    }
-
     const totalIncome = filtered.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
     const totalExpense = filtered.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+    const balance = totalIncome - totalExpense;
 
-    const y = 38;
-    doc.setFontSize(10);
-    doc.text(`Income: ${totalIncome.toLocaleString()} BDT | Expense: ${totalExpense.toLocaleString()} BDT | Balance: ${(totalIncome - totalExpense).toLocaleString()} BDT`, 14, y);
+    const label = exportType === "all" ? "সব লেনদেন" : exportType === "income" ? "শুধু জমা" : "শুধু খরচ";
+    const catLabel = categoryFilter === "all" ? "সব ক্যাটাগরি" : categoryFilter;
+    const periodText = (dateFrom || dateTo) ? `${dateFrom || "শুরু"} → ${dateTo || "শেষ"}` : "সম্পূর্ণ সময়কাল";
 
-    const rows = filtered.map((t) => [
-      t.date,
-      t.type === "income" ? "Income" : "Expense",
-      (t.categories as { name: string })?.name || "-",
-      (t.accounts as { name: string })?.name || "-",
-      `${t.amount.toLocaleString()} BDT`,
-      t.note || "",
-    ]);
+    const fmt = (n: number) => n.toLocaleString("bn-BD");
 
-    autoTable(doc, {
-      startY: y + 8,
-      head: [["Date", "Type", "Category", "Account", "Amount", "Note"]],
-      body: rows,
-      styles: { fontSize: 7 },
-      headStyles: { fillColor: [99, 102, 241] },
-    });
+    const rowsHtml = filtered.map((t, i) => `
+      <tr style="background:${i % 2 === 0 ? '#ffffff' : '#f8fafc'};">
+        <td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:11px;">${t.date}</td>
+        <td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:11px;color:${t.type === 'income' ? '#059669' : '#dc2626'};font-weight:600;">${t.type === 'income' ? 'জমা' : 'খরচ'}</td>
+        <td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:11px;">${(t.categories as { name: string })?.name || '-'}</td>
+        <td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:11px;">${(t.accounts as { name: string })?.name || '-'}</td>
+        <td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:11px;text-align:right;font-weight:600;">৳${fmt(t.amount)}</td>
+        <td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:10px;color:#64748b;">${(t.note || '').replace(/</g, '&lt;')}</td>
+      </tr>
+    `).join("");
 
-    doc.save(`${ledgerName}-report.pdf`);
-    setOpen(false);
-    toast.success("PDF ডাউনলোড হয়েছে!");
+    const html = `
+      <div style="width:794px;padding:32px;background:#ffffff;font-family:'Hind Siliguri','Noto Sans Bengali','Kalpurush','SolaimanLipi',system-ui,sans-serif;color:#0f172a;">
+        <div style="text-align:center;border-bottom:3px solid #6366f1;padding-bottom:14px;margin-bottom:18px;">
+          <h1 style="margin:0;font-size:24px;font-weight:800;color:#1e293b;">${ledgerName}</h1>
+          <p style="margin:6px 0 0;font-size:13px;color:#64748b;font-weight:500;">আর্থিক রিপোর্ট</p>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-bottom:14px;font-size:11px;color:#475569;">
+          <div style="flex:1;background:#f1f5f9;padding:8px 12px;border-radius:8px;"><b>ধরন:</b> ${label}</div>
+          <div style="flex:1;background:#f1f5f9;padding:8px 12px;border-radius:8px;"><b>ক্যাটাগরি:</b> ${catLabel}</div>
+          <div style="flex:1;background:#f1f5f9;padding:8px 12px;border-radius:8px;"><b>সময়কাল:</b> ${periodText}</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px;">
+          <div style="background:linear-gradient(135deg,#dcfce7,#bbf7d0);padding:14px;border-radius:12px;border:1px solid #86efac;">
+            <div style="font-size:11px;color:#166534;font-weight:600;">মোট জমা</div>
+            <div style="font-size:18px;color:#15803d;font-weight:800;margin-top:4px;">৳${fmt(totalIncome)}</div>
+          </div>
+          <div style="background:linear-gradient(135deg,#fee2e2,#fecaca);padding:14px;border-radius:12px;border:1px solid #fca5a5;">
+            <div style="font-size:11px;color:#991b1b;font-weight:600;">মোট খরচ</div>
+            <div style="font-size:18px;color:#b91c1c;font-weight:800;margin-top:4px;">৳${fmt(totalExpense)}</div>
+          </div>
+          <div style="background:linear-gradient(135deg,#dbeafe,#bfdbfe);padding:14px;border-radius:12px;border:1px solid #93c5fd;">
+            <div style="font-size:11px;color:#1e40af;font-weight:600;">ব্যালেন্স</div>
+            <div style="font-size:18px;color:#1d4ed8;font-weight:800;margin-top:4px;">৳${fmt(balance)}</div>
+          </div>
+        </div>
+
+        <table style="width:100%;border-collapse:collapse;border-radius:8px;overflow:hidden;border:1px solid #e2e8f0;">
+          <thead>
+            <tr style="background:linear-gradient(135deg,#6366f1,#4f46e5);color:#ffffff;">
+              <th style="padding:10px;font-size:12px;font-weight:700;text-align:left;">তারিখ</th>
+              <th style="padding:10px;font-size:12px;font-weight:700;text-align:left;">ধরন</th>
+              <th style="padding:10px;font-size:12px;font-weight:700;text-align:left;">ক্যাটাগরি</th>
+              <th style="padding:10px;font-size:12px;font-weight:700;text-align:left;">অ্যাকাউন্ট</th>
+              <th style="padding:10px;font-size:12px;font-weight:700;text-align:right;">পরিমাণ</th>
+              <th style="padding:10px;font-size:12px;font-weight:700;text-align:left;">নোট</th>
+            </tr>
+          </thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+
+        <div style="margin-top:20px;text-align:center;font-size:10px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:10px;">
+          ${new Date().toLocaleString("bn-BD")} এ তৈরি · মোট ${fmt(filtered.length)}টি লেনদেন
+        </div>
+      </div>
+    `;
+
+    const container = document.createElement("div");
+    container.style.position = "fixed";
+    container.style.left = "-10000px";
+    container.style.top = "0";
+    container.innerHTML = html;
+    document.body.appendChild(container);
+
+    try {
+      const canvas = await html2canvas(container.firstElementChild as HTMLElement, {
+        scale: 2,
+        backgroundColor: "#ffffff",
+        useCORS: true,
+      });
+      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+
+      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4" });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const imgW = pageW;
+      const imgH = (canvas.height * imgW) / canvas.width;
+
+      let heightLeft = imgH;
+      let position = 0;
+
+      pdf.addImage(imgData, "JPEG", 0, position, imgW, imgH);
+      heightLeft -= pageH;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgH;
+        pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, position, imgW, imgH);
+        heightLeft -= pageH;
+      }
+
+      pdf.save(`${ledgerName}-report.pdf`);
+      setOpen(false);
+      toast.success("PDF ডাউনলোড হয়েছে!");
+    } catch (e) {
+      console.error(e);
+      toast.error("PDF তৈরি করতে সমস্যা হয়েছে");
+    } finally {
+      document.body.removeChild(container);
+    }
   };
 
   const downloadExcel = () => {
