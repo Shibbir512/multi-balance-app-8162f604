@@ -289,17 +289,17 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
                 </button>
               ) : (
                 <div className="grid grid-cols-2 gap-1.5 animate-fade-in">
-                  <div className="flex items-center gap-1.5 rounded-lg border px-2.5 py-2" style={{
+                  <div className="relative flex items-center rounded-lg border px-2.5 py-2" style={{
                     background: 'hsl(var(--muted))',
                     borderColor: 'var(--glass-border)',
                   }}>
-                    <span className="text-xs">📅</span>
+                    <Calendar className="w-3.5 h-3.5 text-muted-foreground shrink-0 pointer-events-none" />
                     <input
                       type="date"
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
                       required
-                      className="bg-transparent border-0 outline-none text-xs font-medium text-foreground flex-1 w-full"
+                      className="bg-transparent border-0 outline-none text-xs font-medium text-foreground flex-1 w-full pl-1.5 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                     />
                   </div>
                   <div className="rounded-lg border px-2 py-1.5" style={{
