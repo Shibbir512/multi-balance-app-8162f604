@@ -497,42 +497,9 @@ const LedgerDetailPage = () => {
             <div className="shrink-0">
               <ThemeToggle />
             </div>
-          </div>
-
-          {/* Balance row */}
-          <div className="flex items-end justify-between mt-3 px-1">
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-white/60">মোট ব্যালেন্স</p>
-              <p
-                className="text-2xl font-extrabold text-white tabular-nums leading-tight mt-0.5"
-                style={{ textShadow: '0 2px 8px rgba(0,0,0,0.25)' }}
-              >
-                ৳{totalBalance.toLocaleString("bn-BD")}
-              </p>
-            </div>
-            <div className="flex gap-1.5 mb-0.5">
-              <div
-                className="flex items-center gap-1 px-2 py-1 rounded-lg backdrop-blur-sm"
-                style={{ background: 'rgba(16,185,129,0.22)', border: '1px solid rgba(110,231,183,0.3)' }}
-              >
-                <TrendingUp className="w-3 h-3" strokeWidth={2.75} style={{ color: '#A7F3D0' }} />
-                <span className="text-[10px] font-bold tabular-nums" style={{ color: '#D1FAE5' }}>
-                  {(totalIncome / 1000).toFixed(totalIncome >= 1000 ? 0 : 1)}k
-                </span>
-              </div>
-              <div
-                className="flex items-center gap-1 px-2 py-1 rounded-lg backdrop-blur-sm"
-                style={{ background: 'rgba(244,63,94,0.22)', border: '1px solid rgba(253,164,175,0.3)' }}
-              >
-                <TrendingDown className="w-3 h-3" strokeWidth={2.75} style={{ color: '#FECDD3' }} />
-                <span className="text-[10px] font-bold tabular-nums" style={{ color: '#FFE4E6' }}>
-                  {(totalExpense / 1000).toFixed(totalExpense >= 1000 ? 0 : 1)}k
-                </span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
+
 
       {/* ─── TOP NAVIGATION TABS ─── */}
       <div className="sticky top-[110px] z-10 px-4 py-2" style={{ background: 'var(--page-gradient)' }}>
