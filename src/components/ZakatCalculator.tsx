@@ -8,8 +8,16 @@ import { Switch } from "@/components/ui/switch";
 import {
   Calculator, History, ChevronDown, ChevronUp, Save,
   Banknote, Landmark, Smartphone, CircleDot, Briefcase,
-  HandCoins, CreditCard, Receipt, Settings2
+  HandCoins, CreditCard, Receipt, Settings2, TrendingDown, ListChecks
 } from "lucide-react";
+
+const SectionLabel = ({ icon: Icon, label, accent }: { icon: any; label: string; accent?: string }) => (
+  <div className="flex items-center gap-1.5 mb-2 px-0.5">
+    <Icon className="w-3 h-3 text-muted-foreground/70" strokeWidth={2.5} style={accent ? { color: accent } : undefined} />
+    <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground/80">{label}</span>
+    <div className="flex-1 h-px bg-gradient-to-r from-border to-transparent" />
+  </div>
+);
 import { toast } from "sonner";
 import CalculatorInput from "./CalculatorInput";
 
