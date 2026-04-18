@@ -749,7 +749,7 @@ const LedgerDetailPage = () => {
                           <p className="text-[10px] text-muted-foreground">{formatBengaliDate(tx.date)}</p>
                         </div>
                       </div>
-                      <p className="text-xs font-bold" style={{ color: tx.type === "income" ? 'var(--income-text)' : 'var(--expense-text)' }}>
+                      <p className="text-xs font-bold" style={{ color: tx.type === "income" ? 'var(--income-text-soft)' : 'var(--expense-text-soft)' }}>
                         {tx.type === "income" ? "+" : "-"}৳{tx.amount.toLocaleString("bn-BD")}
                       </p>
                     </div>
