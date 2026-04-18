@@ -208,20 +208,20 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
                   </Button>
                 </div>
               ) : (
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1">
                   {filteredCategories.map((c) => (
                     <button
                       key={c.id}
                       type="button"
                       onClick={() => setCategoryId(c.id)}
-                      className={`relative flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 border overflow-hidden ${
+                      className={`relative flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium transition-all duration-200 border overflow-hidden ${
                         categoryId === c.id
                           ? "border-primary bg-primary/8 text-foreground shadow-sm"
                           : "border-border/60 bg-card text-muted-foreground hover:border-primary/30 hover:bg-primary/4"
                       }`}
                     >
                       <div
-                        className={`absolute left-0 top-0 bottom-0 w-[3px] rounded-r transition-opacity duration-200 ${categoryId === c.id ? "opacity-100" : "opacity-0"}`}
+                        className={`absolute left-0 top-0 bottom-0 w-[2px] rounded-r transition-opacity duration-200 ${categoryId === c.id ? "opacity-100" : "opacity-0"}`}
                         style={{ background: isIncome ? 'var(--income-text-soft)' : 'var(--expense-text-soft)' }}
                       />
                       {c.name}
@@ -230,9 +230,9 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
                   <button
                     type="button"
                     onClick={() => setShowNewCategory(true)}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-dashed border-primary/30 text-primary hover:bg-primary/5 transition-all duration-200"
+                    className="flex items-center gap-0.5 px-2 py-1 rounded-md text-[10px] font-medium border border-dashed border-primary/30 text-primary hover:bg-primary/5 transition-all duration-200"
                   >
-                    <Plus className="w-3 h-3" /> নতুন
+                    <Plus className="w-2.5 h-2.5" /> নতুন
                   </button>
                 </div>
               )}
