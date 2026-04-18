@@ -155,9 +155,9 @@
     --tab-inactive-bg: transparent;
     --tab-inactive: rgba(255, 255, 255, 0.6);
     --tab-glow: 0 2px 16px rgba(99,102,241,0.3);
-    --tab-strip-bg: linear-gradient(135deg, #818CF8, #A78BFA);
-    --tab-strip-shadow: 0 4px 16px -4px rgba(129,140,248,0.35), inset 0 1px 0 rgba(255,255,255,0.2);
-    --tab-strip-border: rgba(255, 255, 255, 0.18);
+    --tab-strip-bg: linear-gradient(135deg, #1E1B4B, #312E81, #1E1B4B);
+    --tab-strip-shadow: 0 4px 16px -4px rgba(30,27,75,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+    --tab-strip-border: rgba(255, 255, 255, 0.1);
     --card-alt-bg: rgba(255, 255, 255, 0.03);
     --page-gradient: linear-gradient(180deg, #0F172A 0%, #1E1B4B 50%, #0F172A 100%);
     --header-glow: 0 4px 20px rgba(99,102,241,0.2);
