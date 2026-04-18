@@ -497,6 +497,7 @@ const LedgerDetailPage = () => {
             <div className="shrink-0">
               <ThemeToggle />
             </div>
+          </div>
         </div>
       </div>
 
