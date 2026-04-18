@@ -562,7 +562,7 @@ const LedgerDetailPage = () => {
 
         {/* ═══ TRANSACTIONS TAB ═══ */}
         {activeTab === "transactions" && (
-          <div className="space-y-3 pb-24">
+          <div key="tab-transactions" className="space-y-3 pb-24 animate-fade-in-up">
             {/* Donut Hero */}
             <ExpensePieChart
               transactions={periodFilteredTransactions}
@@ -688,21 +688,21 @@ const LedgerDetailPage = () => {
 
         {/* ═══ GROCERY TAB ═══ */}
         {activeTab === "grocery" && (
-          <div className="pb-8">
+          <div key="tab-grocery" className="pb-8 animate-fade-in-up">
             <GroceryModule ledgerId={ledgerId!} accounts={accounts ?? []} categories={categories ?? []} />
           </div>
         )}
 
         {/* ═══ ZAKAT TAB ═══ */}
         {activeTab === "zakat" && (
-          <div className="pb-8">
+          <div key="tab-zakat" className="pb-8 animate-fade-in-up">
             <ZakatCalculator ledgerId={ledgerId!} />
           </div>
         )}
 
         {/* ═══ REPORTS TAB ═══ */}
         {activeTab === "reports" && (
-          <div className="space-y-3 pb-8">
+          <div key="tab-reports" className="space-y-3 pb-8 animate-fade-in-up">
             <MonthlyChart transactions={transactions ?? []} />
             <CategoryBreakdownTable transactions={(transactions as any) ?? []} />
 
@@ -806,7 +806,7 @@ const LedgerDetailPage = () => {
 
         {/* ═══ CATEGORIES TAB ═══ */}
         {activeTab === "categories" && (
-          <div className="space-y-4 pb-8">
+          <div key="tab-categories" className="space-y-4 pb-8 animate-fade-in-up">
             {["income", "expense"].map((type) => (
               <div key={type}>
                 <h3 className="text-sm font-bold mb-2.5 flex items-center gap-2" style={{ color: type === "income" ? 'var(--income-text-soft)' : 'var(--expense-text-soft)' }}>
