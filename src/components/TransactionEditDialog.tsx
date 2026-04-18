@@ -262,33 +262,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
             {/* Date & Time */}
             <div>
               <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">তারিখ ও সময়</label>
-              {!showDatePicker ? (
-                <button
-                  type="button"
-                  onClick={() => setShowDatePicker(true)}
-                  className="w-full flex items-center justify-between border rounded-xl px-2.5 py-2 transition-all duration-200 hover:bg-primary/5 hover:border-primary/30"
-                  style={{
-                    background: 'hsl(var(--card))',
-                    borderColor: 'var(--glass-border)',
-                  }}
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-primary/10 text-primary shrink-0">
-                      <Calendar className="w-3.5 h-3.5" />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-xs font-semibold text-foreground">
-                        {date === new Date().toISOString().split("T")[0] ? "আজ" : date}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">
-                        {time || ""}
-                      </p>
-                    </div>
-                  </div>
-                  <span className="text-[10px] font-semibold text-primary underline underline-offset-2">পরিবর্তন করুন</span>
-                </button>
-              ) : (
-                <div className="grid grid-cols-2 gap-1.5 animate-fade-in">
+              <div className="grid grid-cols-2 gap-1.5">
                   <div className="relative flex items-center rounded-lg border px-2.5 py-2" style={{
                     background: 'hsl(var(--muted))',
                     borderColor: 'var(--glass-border)',
@@ -374,7 +348,6 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
                     </div>
                   </div>
                 </div>
-              )}
             </div>
 
             {/* Note */}
