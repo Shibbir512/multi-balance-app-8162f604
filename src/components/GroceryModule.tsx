@@ -420,20 +420,35 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
   if (step === "master") {
     return (
       <div className="space-y-5">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold">মাস্টার আইটেম</h3>
-          <div className="flex gap-1.5">
-            {otherLedgers.length > 0 && (
-              <Button size="sm" variant="outline" onClick={() => setImportOpen(true)} className="gap-1 rounded-xl text-xs px-2">
-                <Download className="w-3 h-3" /> আমদানি
+        {/* Premium Header with accent halo */}
+        <div className="relative overflow-hidden rounded-2xl premium-card p-4">
+          <div
+            className="absolute -top-16 -right-12 w-44 h-44 rounded-full opacity-40 blur-3xl pointer-events-none"
+            style={{ background: 'var(--gradient-primary)' }}
+          />
+          <div className="relative flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm" style={{ background: 'var(--gradient-primary)' }}>
+                <ShoppingCart className="w-5 h-5 text-white" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-sm font-bold leading-tight">বাজার তালিকা</h3>
+                <p className="text-[10px] text-muted-foreground">{masterItems?.length ?? 0}টি আইটেম</p>
+              </div>
+            </div>
+            <div className="flex gap-1.5 shrink-0">
+              {otherLedgers.length > 0 && (
+                <Button size="icon" variant="outline" onClick={() => setImportOpen(true)} className="h-9 w-9 rounded-xl">
+                  <Download className="w-3.5 h-3.5" />
+                </Button>
+              )}
+              <Button size="icon" variant="outline" onClick={() => setAddItemOpen(true)} className="h-9 w-9 rounded-xl">
+                <Plus className="w-3.5 h-3.5" />
               </Button>
-            )}
-            <Button size="sm" variant="outline" onClick={() => setAddItemOpen(true)} className="gap-1 rounded-xl text-xs px-2">
-              <Plus className="w-3 h-3" /> যোগ
-            </Button>
-            <Button size="sm" onClick={startShopping} disabled={!masterItems?.length} className="gap-1 rounded-xl gradient-primary shadow-sm font-semibold text-xs px-2">
-              <ShoppingCart className="w-3 h-3" /> বাজার
-            </Button>
+              <Button size="sm" onClick={startShopping} disabled={!masterItems?.length} className="gap-1 h-9 rounded-xl gradient-primary shadow-sm font-semibold text-xs px-3">
+                <ShoppingCart className="w-3.5 h-3.5" /> শুরু
+              </Button>
+            </div>
           </div>
         </div>
 
