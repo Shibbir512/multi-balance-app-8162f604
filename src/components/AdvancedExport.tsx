@@ -162,11 +162,35 @@ const AdvancedExport = ({ ledgerName, transactions, categories }: Props) => {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-muted-foreground">শুরু তারিখ</Label>
-                <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="form-input" />
+                <div className="relative">
+                  {!dateFrom && (
+                    <span className="pointer-events-none absolute inset-0 flex items-center px-3 text-[11px] text-muted-foreground truncate">
+                      শুরুর তারিখ নির্বাচন করুন
+                    </span>
+                  )}
+                  <Input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className={`form-input ${!dateFrom ? "text-transparent" : ""}`}
+                  />
+                </div>
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-muted-foreground">শেষ তারিখ</Label>
-                <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="form-input" />
+                <div className="relative">
+                  {!dateTo && (
+                    <span className="pointer-events-none absolute inset-0 flex items-center px-3 text-[11px] text-muted-foreground truncate">
+                      শেষ তারিখ নির্বাচন করুন
+                    </span>
+                  )}
+                  <Input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className={`form-input ${!dateTo ? "text-transparent" : ""}`}
+                  />
+                </div>
               </div>
             </div>
 
