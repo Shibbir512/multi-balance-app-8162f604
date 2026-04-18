@@ -58,6 +58,105 @@ const AdvancedExport = ({ ledgerName, transactions, categories }: Props) => {
 
     const fmt = (n: number) => n.toLocaleString("bn-BD");
 
+    // ক্যাটাগরি ভিত্তিক খরচ (Pie Chart data)
+    const catMap = new Map<string, number>();
+    filtered.filter((t) => t.type === "expense").forEach((t) => {
+      const name = (t.categories as { name: string })?.name || "অন্যান্য";
+      catMap.set(name, (catMap.get(name) || 0) + t.amount);
+    });
+    const catData = Array.from(catMap.entries())
+      .map(([name, amount]) => ({ name, amount }))
+      .sort((a, b) => b.amount - a.amount);
+    const catTotal = catData.reduce((s, d) => s + d.amount, 0);
+
+    // মাসিক জমা/খরচ (Bar Chart data)
+    const monthMap = new Map<string, { income: number; expense: number }>();
+    filtered.forEach((t) => {
+      const ym = t.date.slice(0, 7); // YYYY-MM
+      const cur = monthMap.get(ym) || { income: 0, expense: 0 };
+      if (t.type === "income") cur.income += t.amount; else cur.expense += t.amount;
+      monthMap.set(ym, cur);
+    });
+    const monthData = Array.from(monthMap.entries())
+      .map(([ym, v]) => ({ ym, ...v }))
+      .sort((a, b) => a.ym.localeCompare(b.ym));
+
+    // SVG Pie Chart
+    const pieColors = ["#6366f1", "#ec4899", "#f59e0b", "#10b981", "#3b82f6", "#8b5cf6", "#ef4444", "#14b8a6", "#f97316", "#a855f7"];
+    const cx = 110, cy = 110, r = 95;
+    let cumulativeAngle = -Math.PI / 2;
+    const pieSlices = catData.length > 0 ? catData.map((d, i) => {
+      const angle = (d.amount / catTotal) * Math.PI * 2;
+      const x1 = cx + r * Math.cos(cumulativeAngle);
+      const y1 = cy + r * Math.sin(cumulativeAngle);
+      cumulativeAngle += angle;
+      const x2 = cx + r * Math.cos(cumulativeAngle);
+      const y2 = cy + r * Math.sin(cumulativeAngle);
+      const largeArc = angle > Math.PI ? 1 : 0;
+      const path = catData.length === 1
+        ? `M ${cx - r} ${cy} A ${r} ${r} 0 1 1 ${cx + r} ${cy} A ${r} ${r} 0 1 1 ${cx - r} ${cy} Z`
+        : `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`;
+      return `<path d="${path}" fill="${pieColors[i % pieColors.length]}" stroke="#ffffff" stroke-width="2"/>`;
+    }).join("") : "";
+
+    const pieLegend = catData.map((d, i) => `
+      <div style="display:flex;align-items:center;gap:6px;font-size:10px;margin-bottom:4px;">
+        <span style="width:10px;height:10px;border-radius:3px;background:${pieColors[i % pieColors.length]};display:inline-block;flex-shrink:0;"></span>
+        <span style="flex:1;color:#334155;">${d.name}</span>
+        <span style="color:#64748b;font-weight:600;">৳${fmt(d.amount)} (${Math.round((d.amount / catTotal) * 100)}%)</span>
+      </div>
+    `).join("");
+
+    // SVG Bar Chart (মাসিক)
+    const barW = 700, barH = 220, barPad = 40;
+    const maxVal = Math.max(1, ...monthData.flatMap((m) => [m.income, m.expense]));
+    const groupW = monthData.length > 0 ? (barW - barPad * 2) / monthData.length : 0;
+    const bw = Math.min(28, groupW * 0.35);
+    const monthBars = monthData.map((m, i) => {
+      const gx = barPad + groupW * i + groupW / 2;
+      const incH = (m.income / maxVal) * (barH - 60);
+      const expH = (m.expense / maxVal) * (barH - 60);
+      const baseY = barH - 30;
+      const monthLabel = m.ym.slice(5) + "/" + m.ym.slice(2, 4);
+      return `
+        <rect x="${gx - bw - 1}" y="${baseY - incH}" width="${bw}" height="${incH}" fill="#10b981" rx="3"/>
+        <rect x="${gx + 1}" y="${baseY - expH}" width="${bw}" height="${expH}" fill="#ef4444" rx="3"/>
+        <text x="${gx}" y="${baseY + 14}" text-anchor="middle" font-size="9" fill="#64748b">${monthLabel}</text>
+      `;
+    }).join("");
+
+    const showCharts = catData.length > 0 || monthData.length > 1;
+
+    const chartsHtml = showCharts ? `
+      <div style="background:linear-gradient(135deg,#fafbff,#f1f5f9);border:1px solid #e2e8f0;border-radius:12px;padding:18px;margin-bottom:18px;">
+        <h2 style="margin:0 0 14px;font-size:14px;font-weight:800;color:#1e293b;text-align:center;">📊 ভিজ্যুয়াল বিশ্লেষণ</h2>
+
+        ${catData.length > 0 ? `
+          <div style="margin-bottom:18px;">
+            <h3 style="margin:0 0 10px;font-size:12px;font-weight:700;color:#475569;">ক্যাটাগরি ভিত্তিক খরচ</h3>
+            <div style="display:flex;gap:16px;align-items:center;">
+              <svg width="220" height="220" style="flex-shrink:0;">${pieSlices}</svg>
+              <div style="flex:1;">${pieLegend}</div>
+            </div>
+          </div>
+        ` : ''}
+
+        ${monthData.length > 1 ? `
+          <div>
+            <h3 style="margin:0 0 8px;font-size:12px;font-weight:700;color:#475569;">মাসিক জমা vs খরচ</h3>
+            <div style="display:flex;gap:14px;font-size:10px;margin-bottom:6px;color:#475569;">
+              <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:#10b981;border-radius:2px;"></span>জমা</span>
+              <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:#ef4444;border-radius:2px;"></span>খরচ</span>
+            </div>
+            <svg width="${barW}" height="${barH}" style="background:#ffffff;border-radius:8px;border:1px solid #e2e8f0;">
+              <line x1="${barPad}" y1="${barH - 30}" x2="${barW - barPad}" y2="${barH - 30}" stroke="#cbd5e1" stroke-width="1"/>
+              ${monthBars}
+            </svg>
+          </div>
+        ` : ''}
+      </div>
+    ` : '';
+
     const rowsHtml = filtered.map((t, i) => `
       <tr style="background:${i % 2 === 0 ? '#ffffff' : '#f8fafc'};">
         <td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:11px;">${t.date}</td>
@@ -96,6 +195,8 @@ const AdvancedExport = ({ ledgerName, transactions, categories }: Props) => {
             <div style="font-size:18px;color:#1d4ed8;font-weight:800;margin-top:4px;">৳${fmt(balance)}</div>
           </div>
         </div>
+
+        ${chartsHtml}
 
         <table style="width:100%;border-collapse:collapse;border-radius:8px;overflow:hidden;border:1px solid #e2e8f0;">
           <thead>
