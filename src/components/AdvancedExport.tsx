@@ -131,8 +131,21 @@ const AdvancedExport = ({ ledgerName, transactions, categories }: Props) => {
       <BottomSheet open={open} onOpenChange={setOpen}>
         <BottomSheetContent>
           <BottomSheetHeader>
-            <BottomSheetTitle>রিপোর্ট ডাউনলোড</BottomSheetTitle>
-            <BottomSheetDescription>ফিল্টার করে PDF বা Excel ডাউনলোড করুন</BottomSheetDescription>
+            <div className="flex items-center gap-3">
+              <div
+                className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
+                style={{
+                  background: 'var(--gradient-primary)',
+                  boxShadow: '0 6px 16px -4px hsl(var(--primary) / 0.45), inset 0 1px 0 rgba(255,255,255,0.2)',
+                }}
+              >
+                <Download className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0 text-left">
+                <BottomSheetTitle>রিপোর্ট ডাউনলোড</BottomSheetTitle>
+                <BottomSheetDescription>ফিল্টার করে PDF বা Excel ডাউনলোড করুন</BottomSheetDescription>
+              </div>
+            </div>
           </BottomSheetHeader>
           <div className="form-section-gap">
             <div className="grid grid-cols-2 gap-3">
@@ -194,13 +207,58 @@ const AdvancedExport = ({ ledgerName, transactions, categories }: Props) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <Button onClick={downloadPdf} className="h-12 rounded-2xl text-sm btn-primary gap-2">
-                <FileText className="w-4 h-4" /> PDF
-              </Button>
-              <Button onClick={downloadExcel} className="h-12 rounded-2xl text-sm gap-2 bg-emerald-600 hover:bg-emerald-700 text-white">
-                <FileSpreadsheet className="w-4 h-4" /> Excel
-              </Button>
+            <div className="grid grid-cols-2 gap-3 pt-1">
+              {/* PDF Button */}
+              <button
+                onClick={downloadPdf}
+                className="group relative h-20 rounded-2xl overflow-hidden border transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center justify-center gap-1.5"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(239,68,68,0.10), rgba(239,68,68,0.02))',
+                  borderColor: 'rgba(239,68,68,0.20)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06), 0 2px 8px -2px rgba(239,68,68,0.15)',
+                }}
+              >
+                <div
+                  className="absolute -top-8 -right-6 w-20 h-20 rounded-full opacity-30 blur-2xl pointer-events-none transition-opacity duration-300 group-hover:opacity-50"
+                  style={{ background: 'radial-gradient(circle, #EF4444, transparent 70%)' }}
+                />
+                <div
+                  className="relative w-9 h-9 rounded-xl flex items-center justify-center"
+                  style={{
+                    background: 'linear-gradient(135deg, #EF4444, #DC2626)',
+                    boxShadow: '0 4px 12px -2px rgba(239,68,68,0.45), inset 0 1px 0 rgba(255,255,255,0.25)',
+                  }}
+                >
+                  <FileText className="w-4 h-4 text-white" />
+                </div>
+                <span className="relative text-xs font-extrabold text-foreground">PDF ডাউনলোড</span>
+              </button>
+
+              {/* Excel Button */}
+              <button
+                onClick={downloadExcel}
+                className="group relative h-20 rounded-2xl overflow-hidden border transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center justify-center gap-1.5"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(16,185,129,0.10), rgba(16,185,129,0.02))',
+                  borderColor: 'rgba(16,185,129,0.22)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06), 0 2px 8px -2px rgba(16,185,129,0.18)',
+                }}
+              >
+                <div
+                  className="absolute -top-8 -right-6 w-20 h-20 rounded-full opacity-30 blur-2xl pointer-events-none transition-opacity duration-300 group-hover:opacity-50"
+                  style={{ background: 'radial-gradient(circle, #10B981, transparent 70%)' }}
+                />
+                <div
+                  className="relative w-9 h-9 rounded-xl flex items-center justify-center"
+                  style={{
+                    background: 'linear-gradient(135deg, #10B981, #059669)',
+                    boxShadow: '0 4px 12px -2px rgba(16,185,129,0.45), inset 0 1px 0 rgba(255,255,255,0.25)',
+                  }}
+                >
+                  <FileSpreadsheet className="w-4 h-4 text-white" />
+                </div>
+                <span className="relative text-xs font-extrabold text-foreground">Excel ডাউনলোড</span>
+              </button>
             </div>
           </div>
         </BottomSheetContent>
