@@ -302,17 +302,76 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
                       className="bg-transparent border-0 outline-none text-xs font-medium text-foreground flex-1 w-full"
                     />
                   </div>
-                  <div className="flex items-center gap-1.5 rounded-lg border px-2.5 py-2" style={{
+                  <div className="rounded-lg border px-2 py-1.5" style={{
                     background: 'hsl(var(--muted))',
                     borderColor: 'var(--glass-border)',
                   }}>
-                    <span className="text-xs">🕒</span>
-                    <input
-                      type="time"
-                      value={time}
-                      onChange={(e) => setTime(e.target.value)}
-                      className="bg-transparent border-0 outline-none text-xs font-medium text-foreground flex-1 w-full"
-                    />
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs">🕒</span>
+                      {(() => {
+                        const [h24Str = "", mStr = ""] = (time || "").split(":");
+                        const h24 = parseInt(h24Str, 10);
+                        const hasTime = !isNaN(h24);
+                        const period: "AM" | "PM" = hasTime ? (h24 >= 12 ? "PM" : "AM") : "AM";
+                        const h12 = hasTime ? ((h24 % 12) || 12) : NaN;
+                        const setFromParts = (h12New: number, mNew: string, periodNew: "AM" | "PM") => {
+                          let h = h12New % 12;
+                          if (periodNew === "PM") h += 12;
+                          const hh = String(h).padStart(2, "0");
+                          const mm = (mNew || "00").padStart(2, "0");
+                          setTime(`${hh}:${mm}`);
+                        };
+                        return (
+                          <>
+                            <input
+                              type="number"
+                              min={1}
+                              max={12}
+                              placeholder="১২"
+                              value={isNaN(h12) ? "" : h12}
+                              onChange={(e) => {
+                                const v = parseInt(e.target.value, 10);
+                                if (isNaN(v)) { setTime(""); return; }
+                                const clamped = Math.min(12, Math.max(1, v));
+                                setFromParts(clamped, mStr || "00", period);
+                              }}
+                              className="bg-transparent border-0 outline-none text-xs font-medium text-foreground w-7 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            />
+                            <span className="text-xs text-muted-foreground">:</span>
+                            <input
+                              type="number"
+                              min={0}
+                              max={59}
+                              placeholder="০০"
+                              value={mStr}
+                              onChange={(e) => {
+                                const v = parseInt(e.target.value, 10);
+                                if (isNaN(v)) return;
+                                const clamped = Math.min(59, Math.max(0, v));
+                                setFromParts(isNaN(h12) ? 12 : h12, String(clamped).padStart(2, "0"), period);
+                              }}
+                              className="bg-transparent border-0 outline-none text-xs font-medium text-foreground w-7 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            />
+                            <div className="ml-auto flex rounded-md overflow-hidden border" style={{ borderColor: 'var(--glass-border)' }}>
+                              <button
+                                type="button"
+                                onClick={() => setFromParts(isNaN(h12) ? 12 : h12, mStr || "00", "AM")}
+                                className={`px-1.5 py-0.5 text-[10px] font-semibold transition-colors ${period === "AM" ? "bg-primary text-primary-foreground" : "bg-transparent text-muted-foreground"}`}
+                              >
+                                AM
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setFromParts(isNaN(h12) ? 12 : h12, mStr || "00", "PM")}
+                                className={`px-1.5 py-0.5 text-[10px] font-semibold transition-colors ${period === "PM" ? "bg-primary text-primary-foreground" : "bg-transparent text-muted-foreground"}`}
+                              >
+                                PM
+                              </button>
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
                   </div>
                 </div>
               )}
