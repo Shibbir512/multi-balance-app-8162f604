@@ -241,13 +241,13 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
             {/* Account */}
             <div>
               <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">অ্যাকাউন্ট</label>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-1">
                 {accounts.map((a) => (
                   <button
                     key={a.id}
                     type="button"
                     onClick={() => setAccountId(a.id)}
-                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 border ${
+                    className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium transition-all duration-200 border ${
                       accountId === a.id
                         ? "border-primary bg-primary/8 text-foreground shadow-sm"
                         : "border-border/60 bg-card text-muted-foreground hover:border-primary/30 hover:bg-primary/4"
