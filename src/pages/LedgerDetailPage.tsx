@@ -498,57 +498,25 @@ const LedgerDetailPage = () => {
               <ThemeToggle />
             </div>
           </div>
-
-          {/* Balance row */}
-          <div className="flex items-end justify-between mt-3 px-1">
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-white/60">মোট ব্যালেন্স</p>
-              <p
-                className="text-2xl font-extrabold text-white tabular-nums leading-tight mt-0.5"
-                style={{ textShadow: '0 2px 8px rgba(0,0,0,0.25)' }}
-              >
-                ৳{totalBalance.toLocaleString("bn-BD")}
-              </p>
-            </div>
-            <div className="flex gap-1.5 mb-0.5">
-              <div
-                className="flex items-center gap-1 px-2 py-1 rounded-lg backdrop-blur-sm"
-                style={{ background: 'rgba(16,185,129,0.22)', border: '1px solid rgba(110,231,183,0.3)' }}
-              >
-                <TrendingUp className="w-3 h-3" strokeWidth={2.75} style={{ color: '#A7F3D0' }} />
-                <span className="text-[10px] font-bold tabular-nums" style={{ color: '#D1FAE5' }}>
-                  {(totalIncome / 1000).toFixed(totalIncome >= 1000 ? 0 : 1)}k
-                </span>
-              </div>
-              <div
-                className="flex items-center gap-1 px-2 py-1 rounded-lg backdrop-blur-sm"
-                style={{ background: 'rgba(244,63,94,0.22)', border: '1px solid rgba(253,164,175,0.3)' }}
-              >
-                <TrendingDown className="w-3 h-3" strokeWidth={2.75} style={{ color: '#FECDD3' }} />
-                <span className="text-[10px] font-bold tabular-nums" style={{ color: '#FFE4E6' }}>
-                  {(totalExpense / 1000).toFixed(totalExpense >= 1000 ? 0 : 1)}k
-                </span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
+
       {/* ─── TOP NAVIGATION TABS ─── */}
-      <div className="sticky top-[110px] z-10 px-4 py-2" style={{ background: 'var(--page-gradient)' }}>
+      <div className="sticky top-[60px] z-10 px-4 py-1.5" style={{ background: 'var(--page-gradient)' }}>
         <div className="max-w-lg mx-auto">
           <div
             ref={tabStripRef}
-            className="relative flex gap-1 overflow-x-auto no-scrollbar p-1 rounded-2xl border border-white/10"
+            className="relative flex gap-1 overflow-x-auto no-scrollbar p-0.5 rounded-xl border border-white/10"
             style={{
               background: 'var(--gradient-primary)',
-              boxShadow: '0 6px 20px -4px hsl(var(--primary) / 0.35), inset 0 1px 0 rgba(255,255,255,0.12)',
+              boxShadow: '0 4px 14px -4px hsl(var(--primary) / 0.35), inset 0 1px 0 rgba(255,255,255,0.12)',
             }}
           >
             {/* Animated sliding indicator (white pill behind active tab) */}
             <div
               aria-hidden
-              className="absolute top-1 bottom-1 rounded-xl bg-white pointer-events-none"
+              className="absolute top-0.5 bottom-0.5 rounded-lg bg-white pointer-events-none"
               style={{
                 left: 0,
                 width: indicatorStyle.width,
@@ -566,7 +534,7 @@ const LedgerDetailPage = () => {
                   key={tab.id}
                   ref={(el) => (tabRefs.current[idx] = el)}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`relative z-[1] flex items-center gap-1.5 whitespace-nowrap shrink-0 px-3 py-2 rounded-xl text-xs transition-colors duration-300 ${
+                  className={`relative z-[1] flex items-center gap-1.5 whitespace-nowrap shrink-0 px-2.5 py-1.5 rounded-lg text-xs transition-colors duration-300 ${
                     isActive
                       ? "text-primary font-extrabold"
                       : "text-white font-semibold hover:bg-white/10"
