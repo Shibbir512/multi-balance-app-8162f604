@@ -73,6 +73,9 @@
     --tab-inactive-bg: transparent;
     --tab-inactive: #94A3B8;
     --tab-glow: 0 2px 12px rgba(99,102,241,0.25);
+    --tab-strip-bg: linear-gradient(135deg, #6366F1, #8B5CF6);
+    --tab-strip-shadow: 0 4px 14px -4px hsl(var(--primary) / 0.35), inset 0 1px 0 rgba(255,255,255,0.12);
+    --tab-strip-border: rgba(255, 255, 255, 0.12);
     --card-alt-bg: #F1F5F9;
     --page-gradient: linear-gradient(180deg, #F8FAFC 0%, #EEF2FF 100%);
     --header-glow: 0 4px 20px rgba(99,102,241,0.25);
