@@ -11,8 +11,25 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
 import {
-  Plus, ShoppingCart, Package, Minus, Check, ArrowRight, ArrowLeft, Pencil, Trash2, Clock, Sparkles, CheckCircle2, Circle, Download
+  Plus, ShoppingCart, Package, Minus, Check, ArrowRight, ArrowLeft, Pencil, Trash2, Clock, Sparkles, CheckCircle2, Circle, Download, ListChecks, History, Wallet, Tag, Receipt, ScrollText
 } from "lucide-react";
+
+const SectionLabel = ({ icon: Icon, label, accent }: { icon: any; label: string; accent?: string }) => (
+  <div className="flex items-center gap-1.5 mb-2 px-0.5">
+    <Icon className="w-3 h-3 text-muted-foreground/70" strokeWidth={2.5} style={accent ? { color: accent } : undefined} />
+    <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground/80">{label}</span>
+    <div className="flex-1 h-px bg-gradient-to-r from-border to-transparent" />
+  </div>
+);
+
+const getAccountEmoji = (name: string) => {
+  const n = name.toLowerCase();
+  if (n.includes("bkash") || n.includes("nagad") || n.includes("rocket") || n.includes("মোবাইল") || n.includes("বিকাশ") || n.includes("নগদ")) return "📱";
+  if (n.includes("cash") || n.includes("নগদ") || n.includes("হাত")) return "💵";
+  if (n.includes("bank") || n.includes("ব্যাংক")) return "🏦";
+  if (n.includes("card") || n.includes("কার্ড")) return "💳";
+  return "💰";
+};
 import { toast } from "sonner";
 import { useGroceryReminders } from "@/hooks/useGroceryReminders";
 import GroceryReminders from "@/components/GroceryReminders";
