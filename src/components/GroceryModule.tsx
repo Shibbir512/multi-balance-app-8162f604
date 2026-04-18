@@ -523,9 +523,7 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
             {/* Remaining items */}
             {remainingItems.length > 0 && (
               <div className="space-y-2">
-                <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                  <Circle className="w-3 h-3" /> বাকি আইটেম ({remainingItems.length})
-                </h4>
+                <SectionLabel icon={ListChecks} label={`বাকি আইটেম (${remainingItems.length})`} />
                 {remainingItems.map((item) => renderMasterItem(item, false))}
               </div>
             )}
@@ -533,9 +531,7 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
             {/* Completed items */}
             {completedItems.length > 0 && (
               <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5" style={{ color: 'var(--grocery-check-color)' }}>
-                  <CheckCircle2 className="w-3 h-3" /> সম্পন্ন ({completedItems.length})
-                </h4>
+                <SectionLabel icon={CheckCircle2} label={`সম্পন্ন (${completedItems.length})`} accent="var(--grocery-check-color)" />
                 {completedItems.map((item) => renderMasterItem(item, true))}
               </div>
             )}
@@ -545,12 +541,11 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
         {/* Recent items quick access */}
         {recentItems && recentItems.length > 0 && (
           <div className="mt-5">
-            <h3 className="text-sm font-bold mb-2.5 flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-muted-foreground" /> সাম্প্রতিক বাজার আইটেম
-            </h3>
-            <div className="flex flex-wrap gap-2">
+            <SectionLabel icon={Clock} label="সাম্প্রতিক বাজার আইটেম" />
+            <div className="flex flex-wrap gap-1.5">
               {recentItems.map((item, i) => (
-                <Button key={i} variant="outline" size="sm" className="text-xs h-8 rounded-xl gap-1"
+                <button key={i}
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-muted hover:bg-accent transition-all hover:scale-105"
                   onClick={() => {
                     if (!masterItems?.some((m) => m.name === item.name)) {
                       supabase.from("grocery_master_items").insert({
@@ -561,8 +556,8 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
                       toast.info("এই আইটেম আগে থেকেই মাস্টার লিস্টে আছে");
                     }
                   }}>
-                  <Plus className="w-3 h-3" /> {item.name}
-                </Button>
+                  <Plus className="w-3 h-3 opacity-60" /> {item.name}
+                </button>
               ))}
             </div>
           </div>
@@ -571,7 +566,7 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
         {/* Recent batches */}
         {batches && batches.length > 0 && (
           <div className="mt-5">
-            <h3 className="text-sm font-bold mb-2.5">সাম্প্রতিক বাজার</h3>
+            <SectionLabel icon={History} label="সাম্প্রতিক বাজার" />
             <div className="space-y-2">
               {batches.map((b) => (
                 <div key={b.id} className="premium-card p-3.5 flex items-center justify-between">
