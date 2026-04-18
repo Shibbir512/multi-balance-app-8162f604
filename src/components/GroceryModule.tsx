@@ -580,27 +580,55 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
 
         {/* Add Item Dialog */}
         <Dialog open={addItemOpen} onOpenChange={setAddItemOpen}>
-          <DialogContent className="max-w-sm rounded-2xl">
-            <DialogHeader><DialogTitle>নতুন আইটেম যোগ করুন</DialogTitle></DialogHeader>
-            <form onSubmit={(e) => { e.preventDefault(); addMasterItem.mutate(); }} className="space-y-4">
-              <div className="space-y-2">
-                <Label>নাম</Label>
-                <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="যেমন: চাল, তেল, ডাল..." required className="rounded-xl" />
+          <DialogContent className="max-w-sm rounded-3xl overflow-hidden p-0 border-0">
+            {/* Decorative gradient halo */}
+            <div
+              className="absolute -top-20 -right-16 w-56 h-56 rounded-full opacity-25 blur-3xl pointer-events-none"
+              style={{ background: 'radial-gradient(circle, hsl(var(--primary)), transparent 70%)' }}
+            />
+            {/* Premium header band */}
+            <div
+              className="relative flex items-center gap-3 px-5 pt-5 pb-4 border-b"
+              style={{
+                background: 'linear-gradient(135deg, hsl(var(--primary) / 0.10), hsl(var(--primary) / 0.02))',
+                borderColor: 'var(--glass-border)',
+              }}
+            >
+              <div
+                className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
+                style={{
+                  background: 'var(--gradient-primary)',
+                  boxShadow: '0 6px 16px -4px hsl(var(--primary) / 0.45), inset 0 1px 0 rgba(255,255,255,0.2)',
+                }}
+              >
+                <ShoppingCart className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0 text-left">
+                <DialogTitle className="text-base font-extrabold leading-tight">নতুন আইটেম যোগ করুন</DialogTitle>
+                <p className="text-[11px] text-muted-foreground font-medium mt-0.5">মাস্টার লিস্টে নতুন পণ্য যোগ করুন</p>
+              </div>
+            </div>
+
+            <form onSubmit={(e) => { e.preventDefault(); addMasterItem.mutate(); }} className="relative space-y-4 px-5 py-5">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-muted-foreground">নাম</Label>
+                <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="যেমন: চাল, তেল, ডাল..." required className="rounded-xl h-11" />
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label>একক</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-muted-foreground">একক</Label>
                   <Select value={newUnit} onValueChange={setNewUnit}>
-                    <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="rounded-xl h-11"><SelectValue /></SelectTrigger>
                     <SelectContent>{UNITS.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label>ডিফল্ট পরিমাণ</Label>
-                  <Input type="number" value={newQty} onChange={(e) => setNewQty(e.target.value)} min="0.1" step="0.1" className="rounded-xl" />
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-muted-foreground">ডিফল্ট পরিমাণ</Label>
+                  <Input type="number" value={newQty} onChange={(e) => setNewQty(e.target.value)} min="0.1" step="0.1" className="rounded-xl h-11" />
                 </div>
               </div>
-              <Button type="submit" className="w-full h-11 rounded-2xl gradient-primary shadow-md font-semibold" disabled={addMasterItem.isPending}>
+              <Button type="submit" className="w-full h-12 rounded-2xl gradient-primary shadow-md font-bold gap-2 mt-1" disabled={addMasterItem.isPending}>
+                <Plus className="w-4 h-4" />
                 {addMasterItem.isPending ? "যোগ হচ্ছে..." : "যোগ করুন"}
               </Button>
             </form>
@@ -609,30 +637,56 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
 
         {/* Edit Item Dialog */}
         <Dialog open={!!editItem} onOpenChange={(open) => !open && setEditItem(null)}>
-          <DialogContent className="max-w-sm rounded-2xl">
-            <DialogHeader><DialogTitle>আইটেম সম্পাদনা</DialogTitle></DialogHeader>
+          <DialogContent className="max-w-sm rounded-3xl overflow-hidden p-0 border-0">
+            <div
+              className="absolute -top-20 -right-16 w-56 h-56 rounded-full opacity-25 blur-3xl pointer-events-none"
+              style={{ background: 'radial-gradient(circle, hsl(var(--primary)), transparent 70%)' }}
+            />
+            <div
+              className="relative flex items-center gap-3 px-5 pt-5 pb-4 border-b"
+              style={{
+                background: 'linear-gradient(135deg, hsl(var(--primary) / 0.10), hsl(var(--primary) / 0.02))',
+                borderColor: 'var(--glass-border)',
+              }}
+            >
+              <div
+                className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
+                style={{
+                  background: 'var(--gradient-primary)',
+                  boxShadow: '0 6px 16px -4px hsl(var(--primary) / 0.45), inset 0 1px 0 rgba(255,255,255,0.2)',
+                }}
+              >
+                <Pencil className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0 text-left">
+                <DialogTitle className="text-base font-extrabold leading-tight">আইটেম সম্পাদনা</DialogTitle>
+                <p className="text-[11px] text-muted-foreground font-medium mt-0.5">পণ্যের তথ্য আপডেট করুন</p>
+              </div>
+            </div>
+
             <form onSubmit={(e) => {
               e.preventDefault();
               if (editItem) updateMasterItem.mutate({ id: editItem.id, name: newName.trim(), unit: newUnit, default_quantity: parseFloat(newQty) || 1 });
-            }} className="space-y-4">
-              <div className="space-y-2">
-                <Label>নাম</Label>
-                <Input value={newName} onChange={(e) => setNewName(e.target.value)} required className="rounded-xl" />
+            }} className="relative space-y-4 px-5 py-5">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-muted-foreground">নাম</Label>
+                <Input value={newName} onChange={(e) => setNewName(e.target.value)} required className="rounded-xl h-11" />
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label>একক</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-muted-foreground">একক</Label>
                   <Select value={newUnit} onValueChange={setNewUnit}>
-                    <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="rounded-xl h-11"><SelectValue /></SelectTrigger>
                     <SelectContent>{UNITS.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label>ডিফল্ট পরিমাণ</Label>
-                  <Input type="number" value={newQty} onChange={(e) => setNewQty(e.target.value)} min="0.1" step="0.1" className="rounded-xl" />
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-muted-foreground">ডিফল্ট পরিমাণ</Label>
+                  <Input type="number" value={newQty} onChange={(e) => setNewQty(e.target.value)} min="0.1" step="0.1" className="rounded-xl h-11" />
                 </div>
               </div>
-              <Button type="submit" className="w-full h-11 rounded-2xl gradient-primary shadow-md font-semibold" disabled={updateMasterItem.isPending}>
+              <Button type="submit" className="w-full h-12 rounded-2xl gradient-primary shadow-md font-bold gap-2 mt-1" disabled={updateMasterItem.isPending}>
+                <Check className="w-4 h-4" />
                 {updateMasterItem.isPending ? "আপডেট হচ্ছে..." : "আপডেট করুন"}
               </Button>
             </form>
