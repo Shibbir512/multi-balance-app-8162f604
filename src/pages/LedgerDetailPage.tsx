@@ -507,10 +507,11 @@ const LedgerDetailPage = () => {
         <div className="max-w-lg mx-auto">
           <div
             ref={tabStripRef}
-            className="relative flex gap-1 overflow-x-auto no-scrollbar p-0.5 rounded-xl border border-white/10"
+            className="relative flex gap-1 overflow-x-auto no-scrollbar p-0.5 rounded-xl border"
             style={{
-              background: 'var(--gradient-primary)',
-              boxShadow: '0 4px 14px -4px hsl(var(--primary) / 0.35), inset 0 1px 0 rgba(255,255,255,0.12)',
+              background: 'var(--tab-strip-bg)',
+              borderColor: 'var(--tab-strip-border)',
+              boxShadow: 'var(--tab-strip-shadow)',
             }}
           >
             {/* Animated sliding indicator (white pill behind active tab) */}
