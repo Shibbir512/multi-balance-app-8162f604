@@ -862,9 +862,7 @@ const LedgerDetailPage = () => {
                               size="icon"
                               variant="ghost"
                               className="h-8 w-8 rounded-lg text-destructive hover:text-destructive"
-                              onClick={() => {
-                                if (confirm("এই ক্যাটাগরি মুছে ফেলতে চান?")) deleteCategory.mutate(c.id);
-                              }}
+                              onClick={() => setDeleteCategoryId(c.id)}
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </Button>
