@@ -1049,7 +1049,7 @@ const LedgerDetailPage = () => {
                         </Button>
                       </div>
                     ) : (
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className="flex flex-wrap gap-1">
                         {filteredCategories.map((c) => {
                           const selected = txCategory === c.id;
                           return (
@@ -1057,19 +1057,19 @@ const LedgerDetailPage = () => {
                               key={c.id}
                               type="button"
                               onClick={() => setTxCategory(c.id)}
-                              className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all duration-200 border ${
+                              className={`relative flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold transition-all duration-200 border ${
                                 selected
-                                  ? "text-foreground shadow-sm scale-[1.02]"
+                                  ? "text-foreground shadow-sm"
                                   : "border-border/60 bg-card text-muted-foreground hover:border-primary/40 hover:bg-primary/5"
                               }`}
                               style={selected ? {
                                 borderColor: accentSoft,
                                 background: `linear-gradient(135deg, ${accentBg}, hsl(var(--card)))`,
-                                boxShadow: `0 2px 8px -2px ${accentSoft}40`,
+                                boxShadow: `0 2px 6px -2px ${accentSoft}40`,
                               } : undefined}
                             >
                               {selected && (
-                                <span className="w-1.5 h-1.5 rounded-full" style={{ background: accentSoft }} />
+                                <span className="w-1 h-1 rounded-full" style={{ background: accentSoft }} />
                               )}
                               {c.name}
                             </button>
@@ -1078,9 +1078,9 @@ const LedgerDetailPage = () => {
                         <button
                           type="button"
                           onClick={() => setShowNewCategory(true)}
-                          className="flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-semibold border border-dashed border-primary/40 text-primary hover:bg-primary/5 hover:border-primary/60 transition-all duration-200"
+                          className="flex items-center gap-0.5 px-2.5 py-1 rounded-full text-[10px] font-semibold border border-dashed border-primary/40 text-primary hover:bg-primary/5 hover:border-primary/60 transition-all duration-200"
                         >
-                          <Plus className="w-3 h-3" strokeWidth={2.5} /> নতুন
+                          <Plus className="w-2.5 h-2.5" strokeWidth={2.5} /> নতুন
                         </button>
                       </div>
                     )}
@@ -1093,7 +1093,7 @@ const LedgerDetailPage = () => {
                       <span className="text-[10px] font-bold text-muted-foreground/80 uppercase tracking-[0.12em]">অ্যাকাউন্ট</span>
                       <div className="flex-1 h-px bg-gradient-to-r from-border/60 to-transparent ml-1" />
                     </div>
-                    <div className="grid grid-cols-3 gap-1.5">
+                    <div className="flex flex-wrap gap-1">
                       {accounts?.map((a) => {
                         const selected = txAccount === a.id;
                         const icon = a.type === "bank" ? "🏦" : a.type === "mobile_banking" ? "📱" : "💵";
@@ -1102,26 +1102,21 @@ const LedgerDetailPage = () => {
                             key={a.id}
                             type="button"
                             onClick={() => setTxAccount(a.id)}
-                            className={`relative flex flex-col items-center justify-center gap-1 px-2 py-2.5 rounded-xl text-[10px] font-semibold transition-all duration-200 border min-h-[58px] ${
+                            className={`relative flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold transition-all duration-200 border ${
                               selected
                                 ? "text-foreground shadow-sm"
                                 : "border-border/60 bg-card text-muted-foreground hover:border-primary/40 hover:bg-primary/5"
                             }`}
                             style={selected ? {
                               borderColor: accentSoft,
-                              background: `linear-gradient(160deg, ${accentBg}, hsl(var(--card)))`,
-                              boxShadow: `0 2px 10px -3px ${accentSoft}50, inset 0 1px 0 rgba(255,255,255,0.05)`,
+                              background: `linear-gradient(135deg, ${accentBg}, hsl(var(--card)))`,
+                              boxShadow: `0 2px 6px -2px ${accentSoft}40`,
                             } : undefined}
                           >
-                            <span className="text-base leading-none">{icon}</span>
-                            <span className="leading-tight text-center line-clamp-1">{a.name}</span>
+                            <span className="text-[11px] leading-none">{icon}</span>
+                            <span className="leading-none">{a.name}</span>
                             {selected && (
-                              <span
-                                className="absolute top-1 right-1 w-3 h-3 rounded-full flex items-center justify-center"
-                                style={{ background: accentSoft }}
-                              >
-                                <Check className="w-2 h-2 text-white" strokeWidth={3} />
-                              </span>
+                              <span className="w-1 h-1 rounded-full" style={{ background: accentSoft }} />
                             )}
                           </button>
                         );
