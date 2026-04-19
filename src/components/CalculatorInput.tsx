@@ -33,7 +33,7 @@ const CalculatorInput = ({ value, onChange, placeholder = "0", className, requir
 
   const handleChange = (input: string) => {
     setRaw(input);
-    const hasOperator = /[+\-*/]/.test(input);
+    const hasOperator = /[+\-*/%]/.test(input);
     if (hasOperator) {
       setPreview(evaluateExpression(input));
     } else {
