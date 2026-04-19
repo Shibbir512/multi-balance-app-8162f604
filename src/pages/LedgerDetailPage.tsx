@@ -85,6 +85,8 @@ const LedgerDetailPage = () => {
   const [editTx, setEditTx] = useState<Record<string, unknown> | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
+  const [deleteTxId, setDeleteTxId] = useState<string | null>(null);
+  const [deleteCategoryId, setDeleteCategoryId] = useState<string | null>(null);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [editCategoryId, setEditCategoryId] = useState<string | null>(null);
