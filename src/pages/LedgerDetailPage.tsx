@@ -23,6 +23,16 @@ import CalculatorInput from "@/components/CalculatorInput";
 import MonthlyChart from "@/components/MonthlyChart";
 import ExpensePieChart from "@/components/ExpensePieChart";
 import SwipeableCard from "@/components/SwipeableCard";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const BENGALI_MONTHS = ["জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"];
 
@@ -75,6 +85,8 @@ const LedgerDetailPage = () => {
   const [editTx, setEditTx] = useState<Record<string, unknown> | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
+  const [deleteTxId, setDeleteTxId] = useState<string | null>(null);
+  const [deleteCategoryId, setDeleteCategoryId] = useState<string | null>(null);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [editCategoryId, setEditCategoryId] = useState<string | null>(null);
@@ -647,14 +659,7 @@ const LedgerDetailPage = () => {
                   <SwipeableCard
                     key={cardId}
                     onEdit={() => { setEditTx(tx); setEditOpen(true); }}
-                    onDelete={async () => {
-                      if (confirm("এই লেনদেন মুছে ফেলতে চান?")) {
-                        const { error } = await supabase.from("transactions").delete().eq("id", tx.id);
-                        if (error) { toast.error("মুছতে ব্যর্থ"); return; }
-                        queryClient.invalidateQueries({ queryKey: ["transactions", ledgerId] });
-                        toast.success("লেনদেন মুছে ফেলা হয়েছে");
-                      }
-                    }}
+                    onDelete={() => setDeleteTxId(tx.id)}
                     className="stagger-item"
                     style={{ animationDelay: `${Math.min(index * 0.03, 0.3)}s` }}
                   >
@@ -857,9 +862,7 @@ const LedgerDetailPage = () => {
                               size="icon"
                               variant="ghost"
                               className="h-8 w-8 rounded-lg text-destructive hover:text-destructive"
-                              onClick={() => {
-                                if (confirm("এই ক্যাটাগরি মুছে ফেলতে চান?")) deleteCategory.mutate(c.id);
-                              }}
+                              onClick={() => setDeleteCategoryId(c.id)}
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </Button>
@@ -1369,6 +1372,60 @@ const LedgerDetailPage = () => {
           <Plus className="w-6 h-6" />
         </button>
       </div>
+
+      {/* ─── DELETE TRANSACTION CONFIRM ─── */}
+      <AlertDialog open={!!deleteTxId} onOpenChange={(o) => !o && setDeleteTxId(null)}>
+        <AlertDialogContent className="rounded-2xl max-w-[85%]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>লেনদেন মুছবেন?</AlertDialogTitle>
+            <AlertDialogDescription>
+              এই লেনদেনটি স্থায়ীভাবে মুছে যাবে। এটি ফেরানো যাবে না।
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>বাতিল</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={async () => {
+                if (!deleteTxId) return;
+                const id = deleteTxId;
+                setDeleteTxId(null);
+                const { error } = await supabase.from("transactions").delete().eq("id", id);
+                if (error) { toast.error("মুছতে ব্যর্থ"); return; }
+                queryClient.invalidateQueries({ queryKey: ["transactions", ledgerId] });
+                toast.success("লেনদেন মুছে ফেলা হয়েছে");
+              }}
+            >
+              মুছে ফেলুন
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ─── DELETE CATEGORY CONFIRM ─── */}
+      <AlertDialog open={!!deleteCategoryId} onOpenChange={(o) => !o && setDeleteCategoryId(null)}>
+        <AlertDialogContent className="rounded-2xl max-w-[85%]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>ক্যাটাগরি মুছবেন?</AlertDialogTitle>
+            <AlertDialogDescription>
+              এই ক্যাটাগরিটি স্থায়ীভাবে মুছে যাবে।
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>বাতিল</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (!deleteCategoryId) return;
+                deleteCategory.mutate(deleteCategoryId);
+                setDeleteCategoryId(null);
+              }}
+            >
+              মুছে ফেলুন
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

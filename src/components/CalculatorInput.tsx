@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 
 interface CalculatorInputProps {
@@ -9,13 +9,13 @@ interface CalculatorInputProps {
   required?: boolean;
 }
 
-// Convert Bengali digits (০-৯) to English (0-9) for storage & evaluation.
-const bnToEnDigits = (s: string): string =>
-  s.replace(/[০-৯]/g, (d) => String("০১২৩৪৫৬৭৮৯".indexOf(d)));
+const BN_DIGITS = "০১২৩৪৫৬৭৮৯";
 
-// Convert English digits to Bengali for display.
+const bnToEnDigits = (s: string): string =>
+  s.replace(/[০-৯]/g, (d) => String(BN_DIGITS.indexOf(d)));
+
 const enToBnDigits = (s: string): string =>
-  s.replace(/[0-9]/g, (d) => "০১২৩৪৫৬৭৮৯"[parseInt(d, 10)]);
+  s.replace(/[0-9]/g, (d) => BN_DIGITS[parseInt(d, 10)]);
 
 const evaluateExpression = (expr: string): number | null => {
   try {
@@ -31,34 +31,55 @@ const evaluateExpression = (expr: string): number | null => {
 };
 
 const CalculatorInput = ({ value, onChange, placeholder = "০", className, required }: CalculatorInputProps) => {
-  // Display value in Bengali, but parent stores English numerals.
-  const [raw, setRaw] = useState(enToBnDigits(value));
+  const [raw, setRaw] = useState(() => enToBnDigits(value));
   const [preview, setPreview] = useState<number | null>(null);
+  const isEditingRef = useRef(false);
+  const previewTimerRef = useRef<number | null>(null);
 
+  // Sync from parent only when not actively editing (prevents cursor/IME hang).
   useEffect(() => {
-    setRaw(enToBnDigits(value));
+    if (isEditingRef.current) return;
+    const next = enToBnDigits(value);
+    setRaw((prev) => (prev === next ? prev : next));
   }, [value]);
 
+  useEffect(() => {
+    return () => {
+      if (previewTimerRef.current) window.clearTimeout(previewTimerRef.current);
+    };
+  }, []);
+
   const handleChange = (input: string) => {
-    // Convert any English digits the user types to Bengali for display.
+    isEditingRef.current = true;
     const display = enToBnDigits(input);
     setRaw(display);
+
     const hasOperator = /[+\-*/%]/.test(display);
     if (hasOperator) {
-      setPreview(evaluateExpression(display));
+      // Debounce eval so typing isn't blocked.
+      if (previewTimerRef.current) window.clearTimeout(previewTimerRef.current);
+      previewTimerRef.current = window.setTimeout(() => {
+        setPreview(evaluateExpression(display));
+      }, 120);
     } else {
+      if (previewTimerRef.current) window.clearTimeout(previewTimerRef.current);
       setPreview(null);
-      // Store the canonical English numeric string upstream.
-      onChange(bnToEnDigits(display));
+      const en = bnToEnDigits(display);
+      if (en !== value) onChange(en);
     }
   };
 
   const commitPreview = () => {
+    isEditingRef.current = false;
     if (preview !== null) {
       const enResult = preview.toString();
       setRaw(enToBnDigits(enResult));
       onChange(enResult);
       setPreview(null);
+    } else {
+      // Ensure parent has the latest value on blur (covers operator-typed but uncommitted state).
+      const en = bnToEnDigits(raw);
+      if (en !== value && /^[0-9.]*$/.test(en)) onChange(en);
     }
   };
 
