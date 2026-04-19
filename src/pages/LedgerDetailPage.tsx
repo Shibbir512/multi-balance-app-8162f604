@@ -915,7 +915,7 @@ const LedgerDetailPage = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <h2 className="text-base font-bold text-foreground tracking-tight">
-                        {isIncome ? "নতুন জমা" : "নতুন ব্যয়"}
+                        {isIncome ? "নতুন জমা" : "নতুন খরচ"}
                       </h2>
                       <p className="text-[11px] text-muted-foreground mt-0.5">
                         {isIncome ? "জমার তথ্য যোগ করুন" : "খরচের তথ্য যোগ করুন"}
@@ -934,45 +934,54 @@ const LedgerDetailPage = () => {
 
                 <form onSubmit={handleAddTx} className="px-4 pb-5 space-y-3.5 max-h-[70vh] overflow-y-auto no-scrollbar">
 
-                  {/* Income/Expense Toggle - segmented */}
+                  {/* Income/Expense Toggle - segmented (highlighted container) */}
                   <div
-                    className="relative flex p-1 rounded-2xl border shadow-inner"
+                    className="relative -mx-1 px-2 py-2 rounded-3xl"
                     style={{
-                      background: 'hsl(var(--muted) / 0.85)',
-                      borderColor: 'hsl(var(--border))',
-                      boxShadow: 'inset 0 2px 4px -1px hsl(var(--foreground) / 0.06)',
+                      background: `linear-gradient(180deg, hsl(var(--muted) / 0.55), hsl(var(--muted) / 0.25))`,
+                      border: '1px solid hsl(var(--border))',
+                      boxShadow: 'inset 0 1px 2px hsl(var(--foreground) / 0.05), 0 1px 0 hsl(var(--background) / 0.6)',
                     }}
                   >
-                    <button
-                      type="button"
-                      onClick={() => { setTxType("income"); setTxCategory(""); }}
-                      className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1.5 ${
-                        txType === "income" ? "text-foreground scale-[1.01]" : "text-muted-foreground/70 hover:text-muted-foreground"
-                      }`}
-                      style={txType === "income" ? {
-                        background: `linear-gradient(135deg, hsl(var(--card)), var(--income-bg))`,
-                        boxShadow: `0 4px 12px -3px var(--income-text-soft)55, 0 2px 4px -2px hsl(var(--foreground) / 0.08), inset 0 1px 0 rgba(255,255,255,0.08)`,
-                        border: `1px solid var(--income-text-soft)35`,
-                      } : undefined}
+                    <div
+                      className="relative flex p-1 rounded-2xl border"
+                      style={{
+                        background: 'hsl(var(--card))',
+                        borderColor: 'hsl(var(--border))',
+                        boxShadow: 'inset 0 2px 4px -1px hsl(var(--foreground) / 0.06)',
+                      }}
                     >
-                      <TrendingUp className="w-3.5 h-3.5" style={{ color: txType === "income" ? 'var(--income-text-soft)' : undefined }} strokeWidth={2.5} />
-                      জমা
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setTxType("expense"); setTxCategory(""); }}
-                      className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1.5 ${
-                        txType === "expense" ? "text-foreground scale-[1.01]" : "text-muted-foreground/70 hover:text-muted-foreground"
-                      }`}
-                      style={txType === "expense" ? {
-                        background: `linear-gradient(135deg, hsl(var(--card)), var(--expense-bg))`,
-                        boxShadow: `0 4px 12px -3px var(--expense-text-soft)55, 0 2px 4px -2px hsl(var(--foreground) / 0.08), inset 0 1px 0 rgba(255,255,255,0.08)`,
-                        border: `1px solid var(--expense-text-soft)35`,
-                      } : undefined}
-                    >
-                      <TrendingDown className="w-3.5 h-3.5" style={{ color: txType === "expense" ? 'var(--expense-text-soft)' : undefined }} strokeWidth={2.5} />
-                      ব্যয়
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => { setTxType("income"); setTxCategory(""); }}
+                        className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1.5 ${
+                          txType === "income" ? "text-foreground scale-[1.01]" : "text-muted-foreground/70 hover:text-muted-foreground"
+                        }`}
+                        style={txType === "income" ? {
+                          background: `linear-gradient(135deg, hsl(var(--card)), var(--income-bg))`,
+                          boxShadow: `0 4px 12px -3px var(--income-text-soft)55, 0 2px 4px -2px hsl(var(--foreground) / 0.08), inset 0 1px 0 rgba(255,255,255,0.08)`,
+                          border: `1px solid var(--income-text-soft)35`,
+                        } : undefined}
+                      >
+                        <TrendingUp className="w-3.5 h-3.5" style={{ color: txType === "income" ? 'var(--income-text-soft)' : undefined }} strokeWidth={2.5} />
+                        জমা
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setTxType("expense"); setTxCategory(""); }}
+                        className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1.5 ${
+                          txType === "expense" ? "text-foreground scale-[1.01]" : "text-muted-foreground/70 hover:text-muted-foreground"
+                        }`}
+                        style={txType === "expense" ? {
+                          background: `linear-gradient(135deg, hsl(var(--card)), var(--expense-bg))`,
+                          boxShadow: `0 4px 12px -3px var(--expense-text-soft)55, 0 2px 4px -2px hsl(var(--foreground) / 0.08), inset 0 1px 0 rgba(255,255,255,0.08)`,
+                          border: `1px solid var(--expense-text-soft)35`,
+                        } : undefined}
+                      >
+                        <TrendingDown className="w-3.5 h-3.5" style={{ color: txType === "expense" ? 'var(--expense-text-soft)' : undefined }} strokeWidth={2.5} />
+                        খরচ
+                      </button>
+                    </div>
                   </div>
 
                   {/* Premium Amount Card */}
@@ -1291,7 +1300,7 @@ const LedgerDetailPage = () => {
                     ) : (
                       <span className="flex items-center justify-center gap-1.5">
                         <Check className="w-4 h-4" strokeWidth={3} />
-                        {isIncome ? "জমা যোগ করুন" : "ব্যয় যোগ করুন"}
+                        {isIncome ? "জমা যোগ করুন" : "খরচ যোগ করুন"}
                       </span>
                     )}
                   </Button>
