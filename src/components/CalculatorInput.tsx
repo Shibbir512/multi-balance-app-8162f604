@@ -63,7 +63,12 @@ const CalculatorInput = ({ value, onChange, placeholder = "0", className, requir
     <div className="relative">
       <Input
         type="text"
-        inputMode="decimal"
+        inputMode="text"
+        autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="off"
+        spellCheck={false}
+        pattern="[0-9+\-*/().%]*"
         value={raw}
         onChange={(e) => handleChange(e.target.value)}
         onBlur={handleBlur}
