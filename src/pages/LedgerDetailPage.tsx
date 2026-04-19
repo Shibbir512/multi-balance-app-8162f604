@@ -659,14 +659,7 @@ const LedgerDetailPage = () => {
                   <SwipeableCard
                     key={cardId}
                     onEdit={() => { setEditTx(tx); setEditOpen(true); }}
-                    onDelete={async () => {
-                      if (confirm("এই লেনদেন মুছে ফেলতে চান?")) {
-                        const { error } = await supabase.from("transactions").delete().eq("id", tx.id);
-                        if (error) { toast.error("মুছতে ব্যর্থ"); return; }
-                        queryClient.invalidateQueries({ queryKey: ["transactions", ledgerId] });
-                        toast.success("লেনদেন মুছে ফেলা হয়েছে");
-                      }
-                    }}
+                    onDelete={() => setDeleteTxId(tx.id)}
                     className="stagger-item"
                     style={{ animationDelay: `${Math.min(index * 0.03, 0.3)}s` }}
                   >
