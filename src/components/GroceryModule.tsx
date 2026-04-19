@@ -74,6 +74,7 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
   const [importSelectedItems, setImportSelectedItems] = useState<Set<string>>(new Set());
   const [importLoading, setImportLoading] = useState(false);
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: masterItems, isLoading } = useQuery({
     queryKey: ["grocery-master", ledgerId],
