@@ -936,21 +936,23 @@ const LedgerDetailPage = () => {
 
                   {/* Income/Expense Toggle - segmented */}
                   <div
-                    className="flex p-1 rounded-2xl border"
+                    className="relative flex p-1 rounded-2xl border shadow-inner"
                     style={{
-                      background: 'hsl(var(--muted) / 0.5)',
-                      borderColor: 'var(--glass-border)',
+                      background: 'hsl(var(--muted) / 0.85)',
+                      borderColor: 'hsl(var(--border))',
+                      boxShadow: 'inset 0 2px 4px -1px hsl(var(--foreground) / 0.06)',
                     }}
                   >
                     <button
                       type="button"
                       onClick={() => { setTxType("income"); setTxCategory(""); }}
-                      className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1.5 ${
-                        txType === "income" ? "shadow-sm text-foreground" : "text-muted-foreground"
+                      className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1.5 ${
+                        txType === "income" ? "text-foreground scale-[1.01]" : "text-muted-foreground/70 hover:text-muted-foreground"
                       }`}
                       style={txType === "income" ? {
-                        background: `linear-gradient(135deg, var(--income-bg), hsl(var(--card)))`,
-                        boxShadow: `0 2px 8px -2px var(--income-text-soft)40, inset 0 1px 0 rgba(255,255,255,0.05)`,
+                        background: `linear-gradient(135deg, hsl(var(--card)), var(--income-bg))`,
+                        boxShadow: `0 4px 12px -3px var(--income-text-soft)55, 0 2px 4px -2px hsl(var(--foreground) / 0.08), inset 0 1px 0 rgba(255,255,255,0.08)`,
+                        border: `1px solid var(--income-text-soft)35`,
                       } : undefined}
                     >
                       <TrendingUp className="w-3.5 h-3.5" style={{ color: txType === "income" ? 'var(--income-text-soft)' : undefined }} strokeWidth={2.5} />
@@ -959,12 +961,13 @@ const LedgerDetailPage = () => {
                     <button
                       type="button"
                       onClick={() => { setTxType("expense"); setTxCategory(""); }}
-                      className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1.5 ${
-                        txType === "expense" ? "shadow-sm text-foreground" : "text-muted-foreground"
+                      className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1.5 ${
+                        txType === "expense" ? "text-foreground scale-[1.01]" : "text-muted-foreground/70 hover:text-muted-foreground"
                       }`}
                       style={txType === "expense" ? {
-                        background: `linear-gradient(135deg, var(--expense-bg), hsl(var(--card)))`,
-                        boxShadow: `0 2px 8px -2px var(--expense-text-soft)40, inset 0 1px 0 rgba(255,255,255,0.05)`,
+                        background: `linear-gradient(135deg, hsl(var(--card)), var(--expense-bg))`,
+                        boxShadow: `0 4px 12px -3px var(--expense-text-soft)55, 0 2px 4px -2px hsl(var(--foreground) / 0.08), inset 0 1px 0 rgba(255,255,255,0.08)`,
+                        border: `1px solid var(--expense-text-soft)35`,
                       } : undefined}
                     >
                       <TrendingDown className="w-3.5 h-3.5" style={{ color: txType === "expense" ? 'var(--expense-text-soft)' : undefined }} strokeWidth={2.5} />
@@ -1134,34 +1137,34 @@ const LedgerDetailPage = () => {
                     <div className="grid grid-cols-2 gap-1.5">
                       {/* Date */}
                       <div
-                        className="relative flex items-center gap-2 rounded-xl border px-3 py-2.5 transition-all duration-200 hover:border-primary/40"
+                        className="relative flex items-center gap-1.5 rounded-lg border px-2 h-9 transition-all duration-200 hover:border-primary/40"
                         style={{
                           background: 'hsl(var(--card))',
                           borderColor: 'var(--glass-border)',
                         }}
                       >
-                        <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-primary/10">
-                          <Calendar className="w-3.5 h-3.5 text-primary" strokeWidth={2.5} />
+                        <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0 bg-primary/10">
+                          <Calendar className="w-3 h-3 text-primary" strokeWidth={2.5} />
                         </div>
                         <input
                           type="date"
                           value={txDate}
                           onChange={(e) => setTxDate(e.target.value)}
                           required
-                          className="bg-transparent border-0 outline-none text-xs font-semibold text-foreground flex-1 w-full min-w-0 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                          className="bg-transparent border-0 outline-none text-[11px] font-semibold text-foreground flex-1 w-full min-w-0 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                         />
                       </div>
 
                       {/* Time */}
                       <div
-                        className="relative flex items-center gap-1.5 rounded-xl border px-2.5 py-2.5"
+                        className="relative flex items-center gap-1 rounded-lg border px-2 h-9"
                         style={{
                           background: 'hsl(var(--card))',
                           borderColor: 'var(--glass-border)',
                         }}
                       >
-                        <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-primary/10">
-                          <Clock className="w-3.5 h-3.5 text-primary" strokeWidth={2.5} />
+                        <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0 bg-primary/10">
+                          <Clock className="w-3 h-3 text-primary" strokeWidth={2.5} />
                         </div>
                         {(() => {
                           const [h24Str = "", mStr = ""] = (txTime || "").split(":");
@@ -1191,9 +1194,9 @@ const LedgerDetailPage = () => {
                                     const clamped = Math.min(12, Math.max(1, v));
                                     setFromParts(clamped, mStr || "00", period);
                                   }}
-                                  className="bg-transparent border-0 outline-none text-xs font-bold text-foreground w-6 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                  className="bg-transparent border-0 outline-none text-[11px] font-bold text-foreground w-5 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
-                                <span className="text-xs font-bold text-muted-foreground/60">:</span>
+                                <span className="text-[11px] font-bold text-muted-foreground/60">:</span>
                                 <input
                                   type="number"
                                   min={0}
@@ -1206,14 +1209,14 @@ const LedgerDetailPage = () => {
                                     const clamped = Math.min(59, Math.max(0, v));
                                     setFromParts(isNaN(h12) ? 12 : h12, String(clamped).padStart(2, "0"), period);
                                   }}
-                                  className="bg-transparent border-0 outline-none text-xs font-bold text-foreground w-6 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                  className="bg-transparent border-0 outline-none text-[11px] font-bold text-foreground w-5 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
                               </div>
-                              <div className="ml-auto flex rounded-lg overflow-hidden border shrink-0" style={{ borderColor: 'var(--glass-border)' }}>
+                              <div className="ml-auto flex rounded-md overflow-hidden border shrink-0" style={{ borderColor: 'var(--glass-border)' }}>
                                 <button
                                   type="button"
                                   onClick={() => setFromParts(isNaN(h12) ? 12 : h12, mStr || "00", "AM")}
-                                  className={`px-1.5 py-1 text-[9px] font-bold transition-all ${
+                                  className={`px-1.5 py-0.5 text-[9px] font-bold transition-all ${
                                     period === "AM" ? "bg-primary text-primary-foreground shadow-sm" : "bg-transparent text-muted-foreground hover:text-foreground"
                                   }`}
                                 >
@@ -1222,7 +1225,7 @@ const LedgerDetailPage = () => {
                                 <button
                                   type="button"
                                   onClick={() => setFromParts(isNaN(h12) ? 12 : h12, mStr || "00", "PM")}
-                                  className={`px-1.5 py-1 text-[9px] font-bold transition-all ${
+                                  className={`px-1.5 py-0.5 text-[9px] font-bold transition-all ${
                                     period === "PM" ? "bg-primary text-primary-foreground shadow-sm" : "bg-transparent text-muted-foreground hover:text-foreground"
                                   }`}
                                 >
@@ -1247,8 +1250,8 @@ const LedgerDetailPage = () => {
                       value={txNote}
                       onChange={(e) => setTxNote(e.target.value)}
                       placeholder="কিসের জন্য? (ঐচ্ছিক)"
-                      rows={2}
-                      className="w-full rounded-xl border px-3 py-2.5 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition-all duration-200 placeholder:text-muted-foreground/40"
+                      rows={1}
+                      className="w-full rounded-lg border px-2.5 py-1.5 text-[11px] resize-none focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition-all duration-200 placeholder:text-muted-foreground/40 min-h-[36px]"
                       style={{
                         background: 'hsl(var(--card))',
                         borderColor: 'var(--glass-border)',
