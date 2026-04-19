@@ -722,11 +722,17 @@ const LedgerDetailPage = () => {
                           {tx.type === "income" ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-foreground">{(tx.categories as { name: string })?.name || "—"}</p>
+                          <p className="text-sm font-semibold text-foreground">
+                            {tx.note?.trim() ? tx.note : ((tx.categories as { name: string })?.name || "—")}
+                          </p>
                           <p className="text-[11px] text-muted-foreground">
                             {(tx.accounts as { name: string })?.name || "—"} • {formatBengaliDate(tx.date, (tx as { time?: string }).time)}
                           </p>
-                          {tx.note && <p className="text-[11px] text-muted-foreground mt-0.5">{tx.note}</p>}
+                          {tx.note?.trim() && (
+                            <p className="text-[11px] text-muted-foreground mt-0.5">
+                              {(tx.categories as { name: string })?.name || "—"}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <p className="text-sm font-bold" style={{ color: tx.type === "income" ? 'var(--income-text-soft)' : 'var(--expense-text-soft)' }}>
