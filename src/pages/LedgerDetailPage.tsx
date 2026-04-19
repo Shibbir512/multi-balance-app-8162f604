@@ -1022,6 +1022,9 @@ const LedgerDetailPage = () => {
                         className="border-0 bg-transparent text-2xl font-bold h-9 px-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/30 tracking-tight"
                       />
                     </div>
+                    <p className="text-[10px] text-muted-foreground/80 mt-1">
+                      ১০০০+১০% = ১১০০ এভাবেও লেখা যাবে
+                    </p>
                     {txAmount && parseFloat(txAmount) > 0 && (
                       <div className="relative mt-2 pt-2 border-t border-border/40 flex items-center justify-between">
                         <span className="text-[10px] text-muted-foreground/70 uppercase tracking-wider font-semibold">
