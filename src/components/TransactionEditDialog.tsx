@@ -166,7 +166,9 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <h2 className="text-base font-bold text-foreground tracking-tight">লেনদেন সম্পাদনা</h2>
+                <h2 className="text-base font-bold tracking-tight" style={{ color: accentSoft }}>
+                  {isIncome ? "জমা সম্পাদনা" : "খরচ সম্পাদনা"}
+                </h2>
                 <p className="text-[11px] text-muted-foreground mt-0.5">
                   {isIncome ? "জমার তথ্য পরিবর্তন করুন" : "খরচের তথ্য পরিবর্তন করুন"}
                 </p>
