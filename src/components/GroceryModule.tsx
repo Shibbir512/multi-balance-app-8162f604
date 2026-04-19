@@ -565,6 +565,14 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
                 {completedItems.map((item) => renderMasterItem(item, true))}
               </div>
             )}
+
+            {/* No search results */}
+            {searchQuery && remainingItems.length === 0 && completedItems.length === 0 && (
+              <div className="premium-card p-6 text-center border-dashed">
+                <Search className="w-5 h-5 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground font-medium">"{searchQuery}" এর জন্য কোনো আইটেম পাওয়া যায়নি</p>
+              </div>
+            )}
           </>
         )}
 
