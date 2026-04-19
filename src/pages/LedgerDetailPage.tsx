@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import * as SelectPrimitive from "@radix-ui/react-select";
 import { BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetTitle, BottomSheetDescription } from "@/components/ui/bottom-sheet";
 import { ArrowLeft, Plus, TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, Pencil, ShoppingCart, Calculator, CreditCard, Tag, Trash2, X, ChevronDown, BarChart3, Calendar, Search, Clock, FileText, Check } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -53,6 +54,26 @@ const formatBengaliDate = (dateStr: string, timeStr?: string | null) => {
   return result;
 };
 
+const getMonthYearLabel = (yyyyMm: string) => {
+  const [y, m] = yyyyMm.split("-");
+  const monthIndex = parseInt(m, 10) - 1;
+  const yearBn = parseInt(y).toLocaleString("bn-BD").replace(/,/g, "");
+  return `${BENGALI_MONTHS[monthIndex]} ${yearBn}`;
+};
+
+const getLast24Months = () => {
+  const dates = [];
+  const d = new Date();
+  for (let i = 0; i < 24; i++) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    dates.push(`${y}-${m}`);
+    d.setMonth(d.getMonth() - 1);
+  }
+  return dates;
+};
+const RECENT_MONTHS = getLast24Months();
+
 type StatPeriod = "today" | "month" | "year" | "all";
 
 const LedgerDetailPage = () => {
@@ -93,6 +114,7 @@ const LedgerDetailPage = () => {
   const [editCategoryName, setEditCategoryName] = useState("");
   const [ledgerDropdownOpen, setLedgerDropdownOpen] = useState(false);
   const [statPeriod, setStatPeriod] = useState<StatPeriod>("all");
+  const [dashboardMonth, setDashboardMonth] = useState(() => new Date().toISOString().slice(0, 7));
   const [chartCategory, setChartCategory] = useState<string | null>(null);
 
   const { data: ledger } = useQuery({
@@ -227,14 +249,13 @@ const LedgerDetailPage = () => {
     if (!transactions) return [];
     const now = new Date();
     const todayStr = now.toISOString().split("T")[0];
-    const monthStr = todayStr.slice(0, 7);
     const yearStr = todayStr.slice(0, 4);
 
     let filtered = transactions;
     if (statPeriod === "today") {
       filtered = transactions.filter(t => t.date === todayStr);
     } else if (statPeriod === "month") {
-      filtered = transactions.filter(t => t.date.startsWith(monthStr));
+      filtered = transactions.filter(t => t.date.startsWith(dashboardMonth));
     } else if (statPeriod === "year") {
       filtered = transactions.filter(t => t.date.startsWith(yearStr));
     }
@@ -245,7 +266,7 @@ const LedgerDetailPage = () => {
     }
 
     return filtered;
-  }, [transactions, statPeriod, chartCategory]);
+  }, [transactions, statPeriod, chartCategory, dashboardMonth]);
 
   const totalIncome = periodFilteredTransactions.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
   const totalExpense = periodFilteredTransactions.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
@@ -256,7 +277,6 @@ const LedgerDetailPage = () => {
     if (!transactions) return { today: { income: 0, expense: 0 }, month: { income: 0, expense: 0 }, year: { income: 0, expense: 0 }, all: { income: 0, expense: 0 } };
     const now = new Date();
     const todayStr = now.toISOString().split("T")[0];
-    const monthStr = todayStr.slice(0, 7);
     const yearStr = todayStr.slice(0, 4);
     const calc = (txs: typeof transactions) => ({
       income: txs.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0),
@@ -264,11 +284,11 @@ const LedgerDetailPage = () => {
     });
     return {
       today: calc(transactions.filter(t => t.date === todayStr)),
-      month: calc(transactions.filter(t => t.date.startsWith(monthStr))),
+      month: calc(transactions.filter(t => t.date.startsWith(dashboardMonth))),
       year: calc(transactions.filter(t => t.date.startsWith(yearStr))),
       all: calc(transactions),
     };
-  }, [transactions]);
+  }, [transactions, dashboardMonth]);
 
   const filteredCategories = categories?.filter((c) => c.type === txType) ?? [];
   const { data: reminders } = useGroceryReminders(ledgerId);
@@ -588,13 +608,44 @@ const LedgerDetailPage = () => {
               {statPeriods.map((sp) => {
                 const stats = periodStats[sp.id];
                 const isActive = statPeriod === sp.id;
+                
+                if (sp.id === "month") {
+                  return (
+                    <Select key={sp.id} value={dashboardMonth} onValueChange={(v) => { setDashboardMonth(v); setStatPeriod("month"); setChartCategory(null); }}>
+                      <SelectPrimitive.Trigger asChild>
+                        <button
+                          onClick={() => { setStatPeriod("month"); setChartCategory(null); }}
+                          className={`stat-pill min-w-[80px] text-center outline-none ${isActive ? 'stat-pill-active' : ''}`}
+                        >
+                          <p className="text-[10px] font-bold uppercase tracking-wider mb-1">
+                            {isActive ? getMonthYearLabel(dashboardMonth).split(' ')[0] : sp.label}
+                          </p>
+                          <div className="flex items-center justify-center gap-2">
+                            <span className="text-[10px]" style={{ color: 'var(--income-text-soft)' }}>
+                              +{(stats.income / 1000).toFixed(stats.income >= 1000 ? 0 : 1)}k
+                            </span>
+                            <span className="text-[10px]" style={{ color: 'var(--expense-text-soft)' }}>
+                              -{(stats.expense / 1000).toFixed(stats.expense >= 1000 ? 0 : 1)}k
+                            </span>
+                          </div>
+                        </button>
+                      </SelectPrimitive.Trigger>
+                      <SelectContent className="max-h-[300px]">
+                        {RECENT_MONTHS.map(ym => (
+                          <SelectItem key={ym} value={ym} className="text-xs font-semibold">{getMonthYearLabel(ym)}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  );
+                }
+
                 return (
                   <button
                     key={sp.id}
                     onClick={() => { setStatPeriod(sp.id); setChartCategory(null); }}
                     className={`stat-pill min-w-[80px] text-center ${isActive ? 'stat-pill-active' : ''}`}
                   >
-                    <p className="text-[10px] font-bold uppercase tracking-wider mb-1">{sp.label}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider mb-1 h-[14px] flex items-center justify-center">{sp.label}</p>
                     <div className="flex items-center justify-center gap-2">
                       <span className="text-[10px]" style={{ color: 'var(--income-text-soft)' }}>
                         +{(stats.income / 1000).toFixed(stats.income >= 1000 ? 0 : 1)}k

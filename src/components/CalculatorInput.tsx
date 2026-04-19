@@ -94,7 +94,7 @@ const CalculatorInput = ({ value, onChange, placeholder = "০", className, requ
     <div className="relative">
       <Input
         type="text"
-        inputMode="text"
+        inputMode="decimal"
         autoComplete="off"
         autoCorrect="off"
         autoCapitalize="off"
