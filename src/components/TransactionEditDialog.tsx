@@ -191,7 +191,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
           >
             {/* Premium Amount Card */}
             <div
-              className="relative rounded-2xl p-4 overflow-hidden"
+              className="relative rounded-2xl px-3 py-2.5 overflow-hidden"
               style={{
                 background: `linear-gradient(135deg, ${accentBg}, hsl(var(--card)) 70%)`,
                 border: '1px solid var(--glass-border)',
@@ -203,7 +203,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
                 className="absolute top-0 right-0 w-24 h-24 rounded-full opacity-10 blur-2xl pointer-events-none"
                 style={{ background: accentSoft }}
               />
-              <div className="relative flex items-baseline justify-between mb-1.5">
+              <div className="relative flex items-baseline justify-between mb-0.5">
                 <label className="text-[10px] font-bold text-muted-foreground/80 uppercase tracking-[0.14em]">
                   পরিমাণ
                 </label>
@@ -211,14 +211,14 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
               </div>
               <div className="relative flex items-baseline gap-1.5">
                 <span
-                  className="text-2xl font-bold leading-none"
+                  className="text-xl font-bold leading-none"
                   style={{ color: accentSoft }}
                 >৳</span>
                 <CalculatorInput
                   value={amount}
                   onChange={setAmount}
                   required
-                  className="border-0 bg-transparent text-3xl font-bold h-12 px-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/30 tracking-tight"
+                  className="border-0 bg-transparent text-2xl font-bold h-9 px-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/30 tracking-tight"
                 />
               </div>
               {amount && parseFloat(amount) > 0 && (
