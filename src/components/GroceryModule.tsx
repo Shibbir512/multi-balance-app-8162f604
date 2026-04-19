@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
 import {
-  Plus, ShoppingCart, Package, Minus, Check, ArrowRight, ArrowLeft, Pencil, Trash2, Clock, Sparkles, CheckCircle2, Circle, Download, ListChecks, History, Wallet, Receipt
+  Plus, ShoppingCart, Package, Minus, Check, ArrowRight, ArrowLeft, Pencil, Trash2, Clock, Sparkles, CheckCircle2, Circle, Download, ListChecks, History, Wallet, Receipt, Search, X
 } from "lucide-react";
 
 const SectionLabel = ({ icon: Icon, label, accent }: { icon: any; label: string; accent?: string }) => (
@@ -74,6 +74,7 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
   const [importSelectedItems, setImportSelectedItems] = useState<Set<string>>(new Set());
   const [importLoading, setImportLoading] = useState(false);
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: masterItems, isLoading } = useQuery({
     queryKey: ["grocery-master", ledgerId],
@@ -183,9 +184,15 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
       .slice(0, 6);
   }, [masterItems]);
 
-  // Split master items into remaining and completed
-  const remainingItems = useMemo(() => masterItems?.filter((i) => !checkedItems.has(i.id)) ?? [], [masterItems, checkedItems]);
-  const completedItems = useMemo(() => masterItems?.filter((i) => checkedItems.has(i.id)) ?? [], [masterItems, checkedItems]);
+  // Split master items into remaining and completed (with search filter)
+  const filteredMasterItems = useMemo(() => {
+    if (!masterItems) return [];
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return masterItems;
+    return masterItems.filter((i) => i.name.toLowerCase().includes(q));
+  }, [masterItems, searchQuery]);
+  const remainingItems = useMemo(() => filteredMasterItems.filter((i) => !checkedItems.has(i.id)), [filteredMasterItems, checkedItems]);
+  const completedItems = useMemo(() => filteredMasterItems.filter((i) => checkedItems.has(i.id)), [filteredMasterItems, checkedItems]);
 
   const toggleChecked = (id: string) => {
     setCheckedItems((prev) => {
@@ -489,6 +496,29 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
           </div>
         )}
 
+        {/* Search box for master list */}
+        {masterItems && masterItems.length > 3 && (
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="আইটেম খুঁজুন..."
+              className="pl-9 pr-9 h-10 rounded-xl bg-muted/40 border-border/60 focus-visible:ring-1"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md hover:bg-muted transition-colors"
+                aria-label="Clear search"
+              >
+                <X className="w-3.5 h-3.5 text-muted-foreground" />
+              </button>
+            )}
+          </div>
+        )}
+
         {isLoading ? (
           <div className="space-y-2">{[1, 2, 3].map((i) => <div key={i} className="h-14 bg-muted animate-pulse rounded-2xl" />)}</div>
         ) : !masterItems?.length ? (
@@ -533,6 +563,14 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
               <div className="space-y-2">
                 <SectionLabel icon={CheckCircle2} label={`সম্পন্ন (${completedItems.length})`} accent="var(--grocery-check-color)" />
                 {completedItems.map((item) => renderMasterItem(item, true))}
+              </div>
+            )}
+
+            {/* No search results */}
+            {searchQuery && remainingItems.length === 0 && completedItems.length === 0 && (
+              <div className="premium-card p-6 text-center border-dashed">
+                <Search className="w-5 h-5 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground font-medium">"{searchQuery}" এর জন্য কোনো আইটেম পাওয়া যায়নি</p>
               </div>
             )}
           </>
