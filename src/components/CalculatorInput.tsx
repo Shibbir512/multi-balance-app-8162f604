@@ -11,8 +11,10 @@ interface CalculatorInputProps {
 
 const evaluateExpression = (expr: string): number | null => {
   try {
-    const sanitized = expr.replace(/[^0-9+\-*/().]/g, "");
+    let sanitized = expr.replace(/[^0-9+\-*/().%]/g, "");
     if (!sanitized) return null;
+    // Convert "X%" to "(X/100)" so 1000+10% = 1100, 50% = 0.5 etc.
+    sanitized = sanitized.replace(/(\d+(?:\.\d+)?)%/g, "($1/100)");
     const result = new Function(`return (${sanitized})`)();
     if (typeof result === "number" && isFinite(result) && result >= 0) return result;
     return null;
@@ -31,7 +33,7 @@ const CalculatorInput = ({ value, onChange, placeholder = "0", className, requir
 
   const handleChange = (input: string) => {
     setRaw(input);
-    const hasOperator = /[+\-*/]/.test(input);
+    const hasOperator = /[+\-*/%]/.test(input);
     if (hasOperator) {
       setPreview(evaluateExpression(input));
     } else {
@@ -63,7 +65,12 @@ const CalculatorInput = ({ value, onChange, placeholder = "0", className, requir
     <div className="relative">
       <Input
         type="text"
-        inputMode="decimal"
+        inputMode="text"
+        autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="off"
+        spellCheck={false}
+        pattern="[0-9+\-*/().%]*"
         value={raw}
         onChange={(e) => handleChange(e.target.value)}
         onBlur={handleBlur}
