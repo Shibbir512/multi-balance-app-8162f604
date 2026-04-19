@@ -184,9 +184,15 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
       .slice(0, 6);
   }, [masterItems]);
 
-  // Split master items into remaining and completed
-  const remainingItems = useMemo(() => masterItems?.filter((i) => !checkedItems.has(i.id)) ?? [], [masterItems, checkedItems]);
-  const completedItems = useMemo(() => masterItems?.filter((i) => checkedItems.has(i.id)) ?? [], [masterItems, checkedItems]);
+  // Split master items into remaining and completed (with search filter)
+  const filteredMasterItems = useMemo(() => {
+    if (!masterItems) return [];
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return masterItems;
+    return masterItems.filter((i) => i.name.toLowerCase().includes(q));
+  }, [masterItems, searchQuery]);
+  const remainingItems = useMemo(() => filteredMasterItems.filter((i) => !checkedItems.has(i.id)), [filteredMasterItems, checkedItems]);
+  const completedItems = useMemo(() => filteredMasterItems.filter((i) => checkedItems.has(i.id)), [filteredMasterItems, checkedItems]);
 
   const toggleChecked = (id: string) => {
     setCheckedItems((prev) => {
