@@ -955,30 +955,36 @@ const LedgerDetailPage = () => {
                         type="button"
                         onClick={() => { setTxType("income"); setTxCategory(""); }}
                         className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1.5 ${
-                          txType === "income" ? "text-foreground scale-[1.01]" : "text-muted-foreground/70 hover:text-muted-foreground"
+                          txType === "income" ? "scale-[1.01]" : "opacity-70 hover:opacity-100"
                         }`}
-                        style={txType === "income" ? {
-                          background: `linear-gradient(135deg, hsl(var(--card)), var(--income-bg))`,
-                          boxShadow: `0 4px 12px -3px var(--income-text-soft)55, 0 2px 4px -2px hsl(var(--foreground) / 0.08), inset 0 1px 0 rgba(255,255,255,0.08)`,
-                          border: `1px solid var(--income-text-soft)35`,
-                        } : undefined}
+                        style={{
+                          color: 'var(--income-text-soft)',
+                          ...(txType === "income" ? {
+                            background: `linear-gradient(135deg, hsl(var(--card)), var(--income-bg))`,
+                            boxShadow: `0 4px 12px -3px var(--income-text-soft)55, 0 2px 4px -2px hsl(var(--foreground) / 0.08), inset 0 1px 0 rgba(255,255,255,0.08)`,
+                            border: `1px solid var(--income-text-soft)35`,
+                          } : {}),
+                        }}
                       >
-                        <TrendingUp className="w-3.5 h-3.5" style={{ color: txType === "income" ? 'var(--income-text-soft)' : undefined }} strokeWidth={2.5} />
+                        <TrendingUp className="w-3.5 h-3.5" style={{ color: 'var(--income-text-soft)' }} strokeWidth={2.5} />
                         জমা
                       </button>
                       <button
                         type="button"
                         onClick={() => { setTxType("expense"); setTxCategory(""); }}
                         className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1.5 ${
-                          txType === "expense" ? "text-foreground scale-[1.01]" : "text-muted-foreground/70 hover:text-muted-foreground"
+                          txType === "expense" ? "scale-[1.01]" : "opacity-70 hover:opacity-100"
                         }`}
-                        style={txType === "expense" ? {
-                          background: `linear-gradient(135deg, hsl(var(--card)), var(--expense-bg))`,
-                          boxShadow: `0 4px 12px -3px var(--expense-text-soft)55, 0 2px 4px -2px hsl(var(--foreground) / 0.08), inset 0 1px 0 rgba(255,255,255,0.08)`,
-                          border: `1px solid var(--expense-text-soft)35`,
-                        } : undefined}
+                        style={{
+                          color: 'var(--expense-text-soft)',
+                          ...(txType === "expense" ? {
+                            background: `linear-gradient(135deg, hsl(var(--card)), var(--expense-bg))`,
+                            boxShadow: `0 4px 12px -3px var(--expense-text-soft)55, 0 2px 4px -2px hsl(var(--foreground) / 0.08), inset 0 1px 0 rgba(255,255,255,0.08)`,
+                            border: `1px solid var(--expense-text-soft)35`,
+                          } : {}),
+                        }}
                       >
-                        <TrendingDown className="w-3.5 h-3.5" style={{ color: txType === "expense" ? 'var(--expense-text-soft)' : undefined }} strokeWidth={2.5} />
+                        <TrendingDown className="w-3.5 h-3.5" style={{ color: 'var(--expense-text-soft)' }} strokeWidth={2.5} />
                         খরচ
                       </button>
                     </div>
@@ -986,7 +992,7 @@ const LedgerDetailPage = () => {
 
                   {/* Premium Amount Card */}
                   <div
-                    className="relative rounded-2xl p-4 overflow-hidden"
+                    className="relative rounded-2xl px-3 py-2.5 overflow-hidden"
                     style={{
                       background: `linear-gradient(135deg, ${accentBg}, hsl(var(--card)) 70%)`,
                       border: '1px solid var(--glass-border)',
@@ -997,20 +1003,20 @@ const LedgerDetailPage = () => {
                       className="absolute top-0 right-0 w-24 h-24 rounded-full opacity-10 blur-2xl pointer-events-none"
                       style={{ background: accentSoft }}
                     />
-                    <div className="relative flex items-baseline justify-between mb-1.5">
+                    <div className="relative flex items-baseline justify-between mb-0.5">
                       <label className="text-[10px] font-bold text-muted-foreground/80 uppercase tracking-[0.14em]">
                         পরিমাণ
                       </label>
                       <span className="text-[10px] font-semibold text-muted-foreground/60">৳ BDT</span>
                     </div>
                     <div className="relative flex items-baseline gap-1.5">
-                      <span className="text-2xl font-bold leading-none" style={{ color: accentSoft }}>৳</span>
+                      <span className="text-xl font-bold leading-none" style={{ color: accentSoft }}>৳</span>
                       <CalculatorInput
                         value={txAmount}
                         onChange={setTxAmount}
                         placeholder="০"
                         required
-                        className="border-0 bg-transparent text-3xl font-bold h-12 px-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/30 tracking-tight"
+                        className="border-0 bg-transparent text-2xl font-bold h-9 px-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/30 tracking-tight"
                       />
                     </div>
                     {txAmount && parseFloat(txAmount) > 0 && (
