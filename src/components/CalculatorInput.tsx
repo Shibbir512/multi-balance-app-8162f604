@@ -11,8 +11,10 @@ interface CalculatorInputProps {
 
 const evaluateExpression = (expr: string): number | null => {
   try {
-    const sanitized = expr.replace(/[^0-9+\-*/().]/g, "");
+    let sanitized = expr.replace(/[^0-9+\-*/().%]/g, "");
     if (!sanitized) return null;
+    // Convert "X%" to "(X/100)" so 1000+10% = 1100, 50% = 0.5 etc.
+    sanitized = sanitized.replace(/(\d+(?:\.\d+)?)%/g, "($1/100)");
     const result = new Function(`return (${sanitized})`)();
     if (typeof result === "number" && isFinite(result) && result >= 0) return result;
     return null;
