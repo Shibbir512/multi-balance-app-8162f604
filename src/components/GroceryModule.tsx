@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
 import {
-  Plus, ShoppingCart, Package, Minus, Check, ArrowRight, ArrowLeft, Pencil, Trash2, Clock, Sparkles, CheckCircle2, Circle, Download, ListChecks, History, Wallet, Receipt
+  Plus, ShoppingCart, Package, Minus, Check, ArrowRight, ArrowLeft, Pencil, Trash2, Clock, Sparkles, CheckCircle2, Circle, Download, ListChecks, History, Wallet, Receipt, Search, X
 } from "lucide-react";
 
 const SectionLabel = ({ icon: Icon, label, accent }: { icon: any; label: string; accent?: string }) => (
