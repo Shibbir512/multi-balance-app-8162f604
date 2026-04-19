@@ -955,30 +955,36 @@ const LedgerDetailPage = () => {
                         type="button"
                         onClick={() => { setTxType("income"); setTxCategory(""); }}
                         className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1.5 ${
-                          txType === "income" ? "text-foreground scale-[1.01]" : "text-muted-foreground/70 hover:text-muted-foreground"
+                          txType === "income" ? "scale-[1.01]" : "opacity-70 hover:opacity-100"
                         }`}
-                        style={txType === "income" ? {
-                          background: `linear-gradient(135deg, hsl(var(--card)), var(--income-bg))`,
-                          boxShadow: `0 4px 12px -3px var(--income-text-soft)55, 0 2px 4px -2px hsl(var(--foreground) / 0.08), inset 0 1px 0 rgba(255,255,255,0.08)`,
-                          border: `1px solid var(--income-text-soft)35`,
-                        } : undefined}
+                        style={{
+                          color: 'var(--income-text-soft)',
+                          ...(txType === "income" ? {
+                            background: `linear-gradient(135deg, hsl(var(--card)), var(--income-bg))`,
+                            boxShadow: `0 4px 12px -3px var(--income-text-soft)55, 0 2px 4px -2px hsl(var(--foreground) / 0.08), inset 0 1px 0 rgba(255,255,255,0.08)`,
+                            border: `1px solid var(--income-text-soft)35`,
+                          } : {}),
+                        }}
                       >
-                        <TrendingUp className="w-3.5 h-3.5" style={{ color: txType === "income" ? 'var(--income-text-soft)' : undefined }} strokeWidth={2.5} />
+                        <TrendingUp className="w-3.5 h-3.5" style={{ color: 'var(--income-text-soft)' }} strokeWidth={2.5} />
                         জমা
                       </button>
                       <button
                         type="button"
                         onClick={() => { setTxType("expense"); setTxCategory(""); }}
                         className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1.5 ${
-                          txType === "expense" ? "text-foreground scale-[1.01]" : "text-muted-foreground/70 hover:text-muted-foreground"
+                          txType === "expense" ? "scale-[1.01]" : "opacity-70 hover:opacity-100"
                         }`}
-                        style={txType === "expense" ? {
-                          background: `linear-gradient(135deg, hsl(var(--card)), var(--expense-bg))`,
-                          boxShadow: `0 4px 12px -3px var(--expense-text-soft)55, 0 2px 4px -2px hsl(var(--foreground) / 0.08), inset 0 1px 0 rgba(255,255,255,0.08)`,
-                          border: `1px solid var(--expense-text-soft)35`,
-                        } : undefined}
+                        style={{
+                          color: 'var(--expense-text-soft)',
+                          ...(txType === "expense" ? {
+                            background: `linear-gradient(135deg, hsl(var(--card)), var(--expense-bg))`,
+                            boxShadow: `0 4px 12px -3px var(--expense-text-soft)55, 0 2px 4px -2px hsl(var(--foreground) / 0.08), inset 0 1px 0 rgba(255,255,255,0.08)`,
+                            border: `1px solid var(--expense-text-soft)35`,
+                          } : {}),
+                        }}
                       >
-                        <TrendingDown className="w-3.5 h-3.5" style={{ color: txType === "expense" ? 'var(--expense-text-soft)' : undefined }} strokeWidth={2.5} />
+                        <TrendingDown className="w-3.5 h-3.5" style={{ color: 'var(--expense-text-soft)' }} strokeWidth={2.5} />
                         খরচ
                       </button>
                     </div>
