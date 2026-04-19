@@ -1372,6 +1372,60 @@ const LedgerDetailPage = () => {
           <Plus className="w-6 h-6" />
         </button>
       </div>
+
+      {/* ─── DELETE TRANSACTION CONFIRM ─── */}
+      <AlertDialog open={!!deleteTxId} onOpenChange={(o) => !o && setDeleteTxId(null)}>
+        <AlertDialogContent className="rounded-2xl max-w-[85%]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>লেনদেন মুছবেন?</AlertDialogTitle>
+            <AlertDialogDescription>
+              এই লেনদেনটি স্থায়ীভাবে মুছে যাবে। এটি ফেরানো যাবে না।
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>বাতিল</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={async () => {
+                if (!deleteTxId) return;
+                const id = deleteTxId;
+                setDeleteTxId(null);
+                const { error } = await supabase.from("transactions").delete().eq("id", id);
+                if (error) { toast.error("মুছতে ব্যর্থ"); return; }
+                queryClient.invalidateQueries({ queryKey: ["transactions", ledgerId] });
+                toast.success("লেনদেন মুছে ফেলা হয়েছে");
+              }}
+            >
+              মুছে ফেলুন
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ─── DELETE CATEGORY CONFIRM ─── */}
+      <AlertDialog open={!!deleteCategoryId} onOpenChange={(o) => !o && setDeleteCategoryId(null)}>
+        <AlertDialogContent className="rounded-2xl max-w-[85%]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>ক্যাটাগরি মুছবেন?</AlertDialogTitle>
+            <AlertDialogDescription>
+              এই ক্যাটাগরিটি স্থায়ীভাবে মুছে যাবে।
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>বাতিল</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (!deleteCategoryId) return;
+                deleteCategory.mutate(deleteCategoryId);
+                setDeleteCategoryId(null);
+              }}
+            >
+              মুছে ফেলুন
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
