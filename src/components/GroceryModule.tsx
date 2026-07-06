@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { collection, query, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc, orderBy, where, serverTimestamp } from "firebase/firestore";
+import { db } from "@/integrations/firebase/client";
+import { GroceryMasterItem, GroceryBatch, GroceryBatchItem, Ledger } from "@/integrations/firebase/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -79,7 +81,10 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
   const { data: masterItems, isLoading } = useQuery({
     queryKey: ["grocery-master", ledgerId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("grocery_master_items").select("*").eq("ledger_id", ledgerId).order("name");
+      const q = query(collection(db, "grocery_master_items"), where("ledger_id", "==", ledgerId));
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as GroceryMasterItem)).sort((a,b) => a.name.localeCompare(b.name));
+      const error = null;
       if (error) throw error;
       return data;
     },
@@ -90,7 +95,10 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
   const { data: batches } = useQuery({
     queryKey: ["grocery-batches", ledgerId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("grocery_batches").select("*").eq("ledger_id", ledgerId).eq("status", "completed").order("batch_date", { ascending: false }).limit(5);
+      const q = query(collection(db, "grocery_batches"), where("ledger_id", "==", ledgerId), where("status", "==", "completed"));
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as GroceryBatch)).sort((a,b) => new Date(b.batch_date).getTime() - new Date(a.batch_date).getTime()).slice(0, 5);
+      const error = null;
       if (error) throw error;
       return data;
     },
@@ -119,7 +127,10 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
   const { data: allLedgers } = useQuery({
     queryKey: ["ledgers"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("ledgers").select("id, name").order("name");
+      const q = query(collection(db, "ledgers"));
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Ledger)).sort((a,b) => a.name.localeCompare(b.name));
+      const error = null;
       if (error) throw error;
       return data;
     },
@@ -132,7 +143,10 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
     queryKey: ["grocery-master-import", importSourceLedger],
     enabled: !!importSourceLedger,
     queryFn: async () => {
-      const { data, error } = await supabase.from("grocery_master_items").select("*").eq("ledger_id", importSourceLedger).order("name");
+      const q = query(collection(db, "grocery_master_items"), where("ledger_id", "==", importSourceLedger));
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as GroceryMasterItem)).sort((a,b) => a.name.localeCompare(b.name));
+      const error = null;
       if (error) throw error;
       return data;
     },
@@ -151,7 +165,7 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
       }
       const { error } = await supabase.from("grocery_master_items").insert(
         newItems.map(item => ({
-          ledger_id: ledgerId, user_id: user!.id, name: item.name, unit: item.unit, default_quantity: item.default_quantity,
+          ledger_id: ledgerId, user_id: user!.uid, name: item.name, unit: item.unit, default_quantity: item.default_quantity,
         }))
       );
       if (error) throw error;
@@ -205,9 +219,12 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
 
   const addMasterItem = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("grocery_master_items").insert({
-        ledger_id: ledgerId, user_id: user!.id, name: newName.trim(), unit: newUnit, default_quantity: parseFloat(newQty) || 1,
-      });
+      const itemData = {
+        ledger_id: ledgerId, user_id: user!.uid, name: newName.trim(), unit: newUnit, default_quantity: parseFloat(newQty) || 1,
+      };
+      itemData.created_at = new Date().toISOString();
+      await addDoc(collection(db, "grocery_master_items"), itemData);
+      const error = null;
       if (error) throw error;
     },
     onSuccess: () => {
@@ -235,7 +252,8 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
 
   const deleteMasterItem = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("grocery_master_items").delete().eq("id", id);
+      await deleteDoc(doc(db, "grocery_master_items", id));
+      const error = null;
       if (error) throw error;
     },
     onSuccess: () => {
@@ -317,32 +335,45 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
       const categoryId = groceryCategory?.id ?? categories.find((c) => c.type === "expense")?.id;
       const itemNames = selectedItems.map((i) => i.name).join(", ");
       const noteText = itemNames.length > 120 ? itemNames.slice(0, 117) + "..." : itemNames;
-      const { data: tx, error: txError } = await supabase.from("transactions").insert({
-        ledger_id: ledgerId, user_id: user!.id, account_id: selectedAccount,
+      const txData = {
+        ledger_id: ledgerId, user_id: user!.uid, account_id: selectedAccount,
         category_id: categoryId || null, type: "expense", amount: grandTotal,
         date: new Date().toISOString().split("T")[0],
         time: new Date().toTimeString().slice(0, 5),
         note: noteText,
-      }).select().single();
+      };
+      txData.created_at = new Date().toISOString();
+      const txRef = await addDoc(collection(db, "transactions"), txData);
+      const tx = { id: txRef.id, ...txData };
+      const txError = null;
       if (txError) throw txError;
 
-      const { data: batch, error: batchError } = await supabase.from("grocery_batches").insert({
-        ledger_id: ledgerId, user_id: user!.id, total_amount: grandTotal, transaction_id: tx.id, status: "completed",
-      }).select().single();
+      const batchData = {
+        ledger_id: ledgerId, user_id: user!.uid, total_amount: grandTotal, transaction_id: tx.id, status: "completed",
+      };
+      batchData.created_at = new Date().toISOString();
+      const batchRef = await addDoc(collection(db, "grocery_batches"), batchData);
+      const batch = { id: batchRef.id, ...batchData };
+      const batchError = null;
       if (batchError) throw batchError;
 
       const batchItems = selectedItems.map((item) => ({
-        batch_id: batch.id, user_id: user!.id, master_item_id: item.masterId, name: item.name,
+        batch_id: batch.id, user_id: user!.uid, master_item_id: item.masterId, name: item.name,
         unit: item.unit, quantity: item.quantity, price_per_unit: item.pricePerUnit,
         subtotal: item.useDirectTotal ? item.directTotal : item.quantity * item.pricePerUnit,
       }));
-      const { error: itemsError } = await supabase.from("grocery_batch_items").insert(batchItems);
+      for (const bItem of batchItems) { await addDoc(collection(db, "grocery_batch_items"), bItem); }
+      const itemsError = null;
       if (itemsError) throw itemsError;
 
       const masterIds = selectedItems.filter((i) => i.masterId).map((i) => i.masterId!);
       if (masterIds.length > 0) {
         const today = new Date().toISOString().split("T")[0];
-        const { data: currentMasters } = await supabase.from("grocery_master_items").select("id, last_purchase_date, average_interval").in("id", masterIds);
+        const currentMasters = [];
+        for (const mid of masterIds) {
+          const mSnap = await getDoc(doc(db, "grocery_master_items", mid));
+          if (mSnap.exists()) currentMasters.push({ id: mSnap.id, ...mSnap.data() });
+        }
         if (currentMasters) {
           for (const master of currentMasters) {
             let newInterval = master.average_interval;
@@ -353,7 +384,7 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
                 newInterval = Math.round(oldInterval * 0.7 + daysBetween * 0.3);
               }
             }
-            await supabase.from("grocery_master_items").update({ last_purchase_date: today, average_interval: newInterval }).eq("id", master.id);
+            await updateDoc(doc(db, "grocery_master_items", master.id as string), { last_purchase_date: today, average_interval: newInterval });
           }
         }
       }
@@ -361,7 +392,7 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
       const newItems = selectedItems.filter((i) => !i.masterId);
       if (newItems.length > 0) {
         await supabase.from("grocery_master_items").insert(
-          newItems.map((item) => ({ ledger_id: ledgerId, user_id: user!.id, name: item.name, unit: item.unit, default_quantity: item.quantity, last_purchase_date: new Date().toISOString().split("T")[0] }))
+          newItems.map((item) => ({ ledger_id: ledgerId, user_id: user!.uid, name: item.name, unit: item.unit, default_quantity: item.quantity, last_purchase_date: new Date().toISOString().split("T")[0] }))
         );
       }
 
@@ -587,7 +618,7 @@ const GroceryModule = ({ ledgerId, accounts, categories }: GroceryModuleProps) =
                   onClick={() => {
                     if (!masterItems?.some((m) => m.name === item.name)) {
                       supabase.from("grocery_master_items").insert({
-                        ledger_id: ledgerId, user_id: user!.id, name: item.name, unit: item.unit, default_quantity: item.quantity,
+                        ledger_id: ledgerId, user_id: user!.uid, name: item.name, unit: item.unit, default_quantity: item.quantity,
                       }).then(() => queryClient.invalidateQueries({ queryKey: ["grocery-master", ledgerId] }));
                       toast.success(`${item.name} মাস্টার লিস্টে যোগ হয়েছে`);
                     } else {

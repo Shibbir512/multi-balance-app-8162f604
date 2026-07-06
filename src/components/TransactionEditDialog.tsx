@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { collection, query, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc, orderBy, where, serverTimestamp } from "firebase/firestore";
+import { db } from "@/integrations/firebase/client";
+import { Ledger, Account, Category, Transaction, GroceryMasterItem, GroceryBatch, GroceryBatchItem } from "@/integrations/firebase/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BottomSheet, BottomSheetContent } from "@/components/ui/bottom-sheet";
@@ -72,12 +74,16 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
 
   const addCategory = useMutation({
     mutationFn: async () => {
-      const { data, error } = await supabase.from("categories").insert({
+      const catData = {
         ledger_id: ledgerId,
-        user_id: user!.id,
+        user_id: user!.uid,
         name: newCategoryName.trim(),
         type: transaction!.type,
-      }).select().single();
+      };
+      catData.created_at = new Date().toISOString();
+      const docRef = await addDoc(collection(db, "categories"), catData);
+      const data = { id: docRef.id, ...catData };
+      const error = null;
       if (error) throw error;
       return data;
     },
@@ -93,17 +99,15 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
 
   const updateMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
-        .from("transactions")
-        .update({
+      await updateDoc(doc(db, "transactions", transaction!.id as string), {
           amount: parseFloat(amount),
           category_id: categoryId || null,
           account_id: accountId || null,
           date,
           time: time || null,
           note: note || null,
-        })
-        .eq("id", transaction!.id);
+        });
+      const error = null;
       if (error) throw error;
     },
     onSuccess: () => {
@@ -117,7 +121,8 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("transactions").delete().eq("id", transaction!.id);
+      await deleteDoc(doc(db, "transactions", transaction!.id as string));
+      const error = null;
       if (error) throw error;
     },
     onSuccess: () => {

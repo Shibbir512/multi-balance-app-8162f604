@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { collection, query, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc, orderBy, where, serverTimestamp } from "firebase/firestore";
+import { db } from "@/integrations/firebase/client";
+import { Ledger, Account, Category, Transaction } from "@/integrations/firebase/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -120,7 +122,10 @@ const LedgerDetailPage = () => {
   const { data: ledger } = useQuery({
     queryKey: ["ledger", ledgerId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("ledgers").select("*").eq("id", ledgerId!).single();
+      const docSnap = await getDoc(doc(db, "ledgers", ledgerId!));
+      if (!docSnap.exists()) throw new Error("Ledger not found");
+      const data = { id: docSnap.id, ...docSnap.data() } as Ledger;
+      const error = null;
       if (error) throw error;
       return data;
     },
@@ -129,7 +134,11 @@ const LedgerDetailPage = () => {
   const { data: allLedgers } = useQuery({
     queryKey: ["ledgers"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("ledgers").select("*").order("created_at", { ascending: false });
+      const q = query(collection(db, "ledgers"), where("user_id", "==", user!.uid));
+      const querySnapshot = await getDocs(q);
+      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      data.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      const error = null;
       if (error) throw error;
       return data;
     },
@@ -138,7 +147,10 @@ const LedgerDetailPage = () => {
   const { data: accounts } = useQuery({
     queryKey: ["accounts", ledgerId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("accounts").select("*").eq("ledger_id", ledgerId!);
+      const q = query(collection(db, "accounts"), where("ledger_id", "==", ledgerId!));
+      const querySnapshot = await getDocs(q);
+      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Account));
+      const error = null;
       if (error) throw error;
       return data;
     },
@@ -162,7 +174,10 @@ const LedgerDetailPage = () => {
   const { data: categories } = useQuery({
     queryKey: ["categories", ledgerId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("categories").select("*").eq("ledger_id", ledgerId!);
+      const q = query(collection(db, "categories"), where("ledger_id", "==", ledgerId!));
+      const querySnapshot = await getDocs(q);
+      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
+      const error = null;
       if (error) throw error;
       return data;
     },
@@ -171,13 +186,28 @@ const LedgerDetailPage = () => {
   const { data: transactions } = useQuery({
     queryKey: ["transactions", ledgerId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("transactions")
-        .select("*, accounts(name), categories(name)")
-        .eq("ledger_id", ledgerId!)
-        .order("date", { ascending: false })
-        .order("created_at", { ascending: false })
-        .limit(500);
+      const q = query(collection(db, "transactions"), where("ledger_id", "==", ledgerId!));
+      const querySnapshot = await getDocs(q);
+      const fetchedData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Transaction));
+      
+      fetchedData.sort((a: any, b: any) => {
+        if (a.date !== b.date) return new Date(b.date).getTime() - new Date(a.date).getTime();
+        return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+      });
+      
+      const accountDocs = await getDocs(query(collection(db, "accounts"), where("ledger_id", "==", ledgerId!)));
+      const categoryDocs = await getDocs(query(collection(db, "categories"), where("ledger_id", "==", ledgerId!)));
+      const accMap: Record<string, string> = {}; 
+      accountDocs.forEach(d => accMap[d.id] = d.data().name);
+      const catMap: Record<string, string> = {}; 
+      categoryDocs.forEach(d => catMap[d.id] = d.data().name);
+      
+      const data = fetchedData.map(t => ({
+        ...t,
+        accounts: { name: accMap[t.account_id] || 'Unknown' },
+        categories: { name: catMap[t.category_id] || 'Unknown' }
+      }));
+      const error = null;
       if (error) throw error;
       return data as any[];
     },
@@ -295,9 +325,9 @@ const LedgerDetailPage = () => {
 
   const addTransaction = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("transactions").insert({
+      const txData = {
         ledger_id: ledgerId!,
-        user_id: user!.id,
+        user_id: user!.uid,
         account_id: txAccount || null,
         category_id: txCategory || null,
         type: txType,
@@ -305,7 +335,10 @@ const LedgerDetailPage = () => {
         date: txDate,
         time: txTime || null,
         note: txNote || null,
-      });
+      };
+      txData.created_at = new Date().toISOString();
+      await addDoc(collection(db, "transactions"), txData);
+      const error = null;
       if (error) throw error;
     },
     onSuccess: () => {
@@ -328,12 +361,16 @@ const LedgerDetailPage = () => {
 
   const addCategory = useMutation({
     mutationFn: async () => {
-      const { data, error } = await supabase.from("categories").insert({
+      const catData = {
         ledger_id: ledgerId!,
-        user_id: user!.id,
+        user_id: user!.uid,
         name: newCategoryName.trim(),
         type: txType,
-      }).select().single();
+      };
+      catData.created_at = new Date().toISOString();
+      const docRef = await addDoc(collection(db, "categories"), catData);
+      const data = { id: docRef.id, ...catData };
+      const error = null;
       if (error) throw error;
       return data;
     },
@@ -349,7 +386,8 @@ const LedgerDetailPage = () => {
 
   const updateCategory = useMutation({
     mutationFn: async ({ id, name }: { id: string; name: string }) => {
-      const { error } = await supabase.from("categories").update({ name }).eq("id", id);
+      await updateDoc(doc(db, "categories", id), { name });
+      const error = null;
       if (error) throw error;
     },
     onSuccess: () => {
@@ -363,7 +401,8 @@ const LedgerDetailPage = () => {
 
   const deleteCategory = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("categories").delete().eq("id", id);
+      await deleteDoc(doc(db, "categories", id));
+      const error = null;
       if (error) throw error;
     },
     onSuccess: () => {
@@ -1450,7 +1489,8 @@ const LedgerDetailPage = () => {
                 if (!deleteTxId) return;
                 const id = deleteTxId;
                 setDeleteTxId(null);
-                const { error } = await supabase.from("transactions").delete().eq("id", id);
+                await deleteDoc(doc(db, "transactions", id));
+      const error = null;
                 if (error) { toast.error("মুছতে ব্যর্থ"); return; }
                 queryClient.invalidateQueries({ queryKey: ["transactions", ledgerId] });
                 toast.success("লেনদেন মুছে ফেলা হয়েছে");

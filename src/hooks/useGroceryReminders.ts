@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { collection, query, getDocs, where } from "firebase/firestore";
+import { db } from "@/integrations/firebase/client";
+import { GroceryMasterItem } from "@/integrations/firebase/types";
 
 export interface GroceryReminder {
   itemId: string;

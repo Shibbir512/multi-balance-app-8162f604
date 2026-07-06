@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { collection, query, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc, orderBy, where, serverTimestamp } from "firebase/firestore";
+import { db } from "@/integrations/firebase/client";
+import { Ledger, Account, Category, Transaction, GroceryMasterItem, GroceryBatch, GroceryBatchItem } from "@/integrations/firebase/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -76,7 +78,11 @@ const ZakatCalculator = ({ ledgerId }: Props) => {
   const { data: history } = useQuery({
     queryKey: ["zakat-history", ledgerId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("zakat_calculations").select("*").eq("ledger_id", ledgerId).order("year", { ascending: false });
+      const q = query(collection(db, "zakat_calculations"), where("ledger_id", "==", ledgerId));
+      const querySnapshot = await getDocs(q);
+      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
+      data.sort((a,b) => b.year - a.year);
+      const error = null;
       if (error) throw error;
       return data;
     },
@@ -86,8 +92,8 @@ const ZakatCalculator = ({ ledgerId }: Props) => {
     mutationFn: async () => {
       const gp = num(goldPricePerGram) || DEFAULT_GOLD_PRICE;
       const sp = num(silverPricePerGram) || DEFAULT_SILVER_PRICE;
-      const { error } = await supabase.from("zakat_calculations").insert({
-        ledger_id: ledgerId, user_id: user!.id, year: new Date().getFullYear(),
+      const zData = {
+        ledger_id: ledgerId, user_id: user!.uid, year: new Date().getFullYear(),
         cash: num(cash), bank_balance: num(bankBalance), mobile_banking: num(mobileBanking),
         gold_grams: num(goldGrams), gold_value: num(goldGrams) * gp,
         silver_grams: num(silverGrams), silver_value: num(silverGrams) * sp,
@@ -96,7 +102,10 @@ const ZakatCalculator = ({ ledgerId }: Props) => {
         total_assets: result.totalAssets, total_liabilities: result.totalLiabilities,
         net_wealth: result.netWealth, nisab_amount: result.nisab,
         zakat_amount: result.zakatAmount, is_zakat_due: result.isDue,
-      });
+      };
+      zData.created_at = new Date().toISOString();
+      await addDoc(collection(db, "zakat_calculations"), zData);
+      const error = null;
       if (error) throw error;
     },
     onSuccess: () => {
