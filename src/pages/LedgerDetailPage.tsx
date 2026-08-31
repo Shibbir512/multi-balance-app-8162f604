@@ -276,6 +276,9 @@ const LedgerDetailPage = () => {
     });
   }, [transactions, filterMonth, filterYear, filterCategory, filterDateFrom, filterDateTo]);
 
+  const reportTotalIncome = reportFilteredTransactions.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0);
+  const reportTotalExpense = reportFilteredTransactions.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+
   // Quick stat period filter for dashboard
   const periodFilteredTransactions = useMemo(() => {
     if (!transactions) return [];
@@ -885,7 +888,13 @@ const LedgerDetailPage = () => {
             {/* Filtered transaction list in reports */}
             {reportFilteredTransactions.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs text-muted-foreground px-1">{reportFilteredTransactions.length}টি লেনদেন</p>
+                <div className="flex justify-between items-center px-1 mb-2">
+                  <p className="text-xs text-muted-foreground font-medium">{reportFilteredTransactions.length}টি লেনদেন</p>
+                  <div className="flex gap-3 text-[11px]">
+                    <span className="text-emerald-600 font-semibold bg-emerald-50 dark:bg-emerald-950/30 px-2 py-0.5 rounded-full">জমা: ৳{reportTotalIncome.toLocaleString('bn-BD')}</span>
+                    <span className="text-rose-500 font-semibold bg-rose-50 dark:bg-rose-950/30 px-2 py-0.5 rounded-full">খরচ: ৳{reportTotalExpense.toLocaleString('bn-BD')}</span>
+                  </div>
+                </div>
                 {reportFilteredTransactions.slice(0, 20).map((tx) => (
                   <div key={tx.id} className="premium-card p-3">
                     <div className="flex items-center justify-between">
