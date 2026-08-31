@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "445316898742",
+    "project_id": "jomakhoroch-60203",
+    "storage_bucket": "jomakhoroch-60203.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:445316898742:android:afb89299534c0daf87eb17",
+        "android_client_info": {
+          "package_name": "com.jomakhoroch.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "445316898742-j8gma12shmji93nvurdbr4gvjf6l4es5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDDnTfoMthllbf12Jp5qz7Y7G9Gc_BxCFQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "445316898742-j8gma12shmji93nvurdbr4gvjf6l4es5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

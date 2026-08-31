@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "@/integrations/firebase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,22 @@ const AuthPage = () => {
         await createUserWithEmailAndPassword(auth, email, password);
         toast.success("অ্যাকাউন্ট তৈরি হয়েছে!");
       }
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!email) {
+      toast.error("পাসওয়ার্ড রিসেট করতে প্রথমে উপরের বক্সে আপনার ইমেইলটি লিখুন");
+      return;
+    }
+    try {
+      setLoading(true);
+      await sendPasswordResetEmail(auth, email);
+      toast.success("পাসওয়ার্ড রিসেট লিংক আপনার ইমেইলে পাঠানো হয়েছে! ইনবক্স বা স্প্যাম ফোল্ডার চেক করুন।");
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -101,6 +117,18 @@ const AuthPage = () => {
               minLength={6}
               className="rounded-xl"
             />
+            {isLogin && (
+              <div className="flex justify-end pt-1">
+                <button
+                  type="button"
+                  onClick={handleResetPassword}
+                  className="text-xs font-medium text-primary hover:underline opacity-80 hover:opacity-100 transition-opacity"
+                  disabled={loading}
+                >
+                  পাসওয়ার্ড ভুলে গেছেন?
+                </button>
+              </div>
+            )}
           </div>
           <Button type="submit" className="w-full h-11 rounded-2xl btn-primary" disabled={loading}>
             {loading ? "অপেক্ষা করুন..." : isLogin ? "লগইন" : "সাইন আপ"}
