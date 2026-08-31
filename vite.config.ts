@@ -19,6 +19,9 @@ export default defineConfig(({ mode }) => ({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.png', 'favicon.ico', 'robots.txt'],
+      workbox: {
+        maximumFileSizeToCacheInBytes: 5000000 // 5MB
+      },
       manifest: {
         name: 'জমাখরচ',
         short_name: 'JomaKhoroch',
