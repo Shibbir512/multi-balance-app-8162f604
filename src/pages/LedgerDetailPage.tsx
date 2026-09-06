@@ -26,6 +26,7 @@ import CalculatorInput from "@/components/CalculatorInput";
 import MonthlyChart from "@/components/MonthlyChart";
 import ExpensePieChart from "@/components/ExpensePieChart";
 import SwipeableCard from "@/components/SwipeableCard";
+import LedgerWatermarkBackground from "@/components/LedgerWatermarkBackground";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -488,7 +489,10 @@ const LedgerDetailPage = () => {
   ];
 
   return (
-    <div className="min-h-screen page-gradient">
+    <div className="min-h-screen page-gradient relative overflow-hidden flex flex-col">
+      <LedgerWatermarkBackground />
+      <main className="relative z-10 flex-1 flex flex-col">
+      
       {/* ─── PREMIUM HEADER ─── */}
       <div className="sticky top-0 z-20 gradient-header px-4 pt-3 pb-3 relative overflow-hidden">
         {/* Accent halos */}
@@ -509,7 +513,7 @@ const LedgerDetailPage = () => {
           }}
         />
 
-        <div className="relative max-w-lg mx-auto">
+        <div className="relative w-full max-w-7xl mx-auto">
           {/* Top row: back, ledger switcher, theme toggle */}
           <div className="flex items-center gap-2">
             <Button
@@ -594,7 +598,7 @@ const LedgerDetailPage = () => {
 
       {/* ─── TOP NAVIGATION TABS ─── */}
       <div className="sticky top-[60px] z-10 px-4 py-1.5" style={{ background: 'var(--page-gradient)' }}>
-        <div className="max-w-lg mx-auto">
+        <div className="w-full max-w-7xl mx-auto">
           <div
             ref={tabStripRef}
             className="relative flex gap-1 overflow-x-auto no-scrollbar p-0.5 rounded-xl border"
@@ -643,7 +647,7 @@ const LedgerDetailPage = () => {
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 pt-3">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 pt-3 flex-1">
         {reminders && reminders.length > 0 && activeTab === "transactions" && (
           <div className="mb-3">
             <GroceryReminders reminders={reminders} compact />
@@ -652,105 +656,114 @@ const LedgerDetailPage = () => {
 
         {/* ═══ TRANSACTIONS TAB ═══ */}
         {activeTab === "transactions" && (
-          <div key="tab-transactions" className="space-y-3 pb-24 animate-fade-in-up">
-            {/* Donut Hero */}
-            <ExpensePieChart
-              transactions={periodFilteredTransactions}
-              totalBalance={totalBalance}
-              onCategorySelect={setChartCategory}
-              selectedCategory={chartCategory}
-            />
+          <div key="tab-transactions" className="pb-24 animate-fade-in-up">
+            <div className="lg:grid lg:grid-cols-[minmax(320px,38%)_minmax(0,1fr)] lg:gap-6 xl:gap-8 items-start">
+              {/* Left Column: Summary & Chart */}
+              <div className="space-y-3">
+                {/* Quick Stats Bar */}
+                <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+                  {statPeriods.map((sp) => {
+                    const stats = periodStats[sp.id];
+                    const isActive = statPeriod === sp.id;
+                    
+                    if (sp.id === "month") {
+                      return (
+                        <Select key={sp.id} value={dashboardMonth} onValueChange={(v) => { setDashboardMonth(v); setStatPeriod("month"); setChartCategory(null); }}>
+                          <SelectPrimitive.Trigger asChild>
+                            <button
+                              onClick={() => { setStatPeriod("month"); setChartCategory(null); }}
+                              className={`stat-pill min-w-[80px] text-center outline-none ${isActive ? 'stat-pill-active' : ''}`}
+                            >
+                              <p className="text-[10px] font-bold uppercase tracking-wider mb-1">
+                                {isActive ? getMonthYearLabel(dashboardMonth).split(' ')[0] : sp.label}
+                              </p>
+                              <div className="flex items-center justify-center gap-2">
+                                <span className="text-[10px]" style={{ color: 'var(--income-text-soft)' }}>
+                                  +{(stats.income / 1000).toFixed(stats.income >= 1000 ? 0 : 1)}k
+                                </span>
+                                <span className="text-[10px]" style={{ color: 'var(--expense-text-soft)' }}>
+                                  -{(stats.expense / 1000).toFixed(stats.expense >= 1000 ? 0 : 1)}k
+                                </span>
+                              </div>
+                            </button>
+                          </SelectPrimitive.Trigger>
+                          <SelectContent className="max-h-[300px]">
+                            {RECENT_MONTHS.map(ym => (
+                              <SelectItem key={ym} value={ym} className="text-xs font-semibold">{getMonthYearLabel(ym)}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      );
+                    }
 
-            {/* Quick Stats Bar */}
-            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-              {statPeriods.map((sp) => {
-                const stats = periodStats[sp.id];
-                const isActive = statPeriod === sp.id;
-                
-                if (sp.id === "month") {
-                  return (
-                    <Select key={sp.id} value={dashboardMonth} onValueChange={(v) => { setDashboardMonth(v); setStatPeriod("month"); setChartCategory(null); }}>
-                      <SelectPrimitive.Trigger asChild>
-                        <button
-                          onClick={() => { setStatPeriod("month"); setChartCategory(null); }}
-                          className={`stat-pill min-w-[80px] text-center outline-none ${isActive ? 'stat-pill-active' : ''}`}
-                        >
-                          <p className="text-[10px] font-bold uppercase tracking-wider mb-1">
-                            {isActive ? getMonthYearLabel(dashboardMonth).split(' ')[0] : sp.label}
-                          </p>
-                          <div className="flex items-center justify-center gap-2">
-                            <span className="text-[10px]" style={{ color: 'var(--income-text-soft)' }}>
-                              +{(stats.income / 1000).toFixed(stats.income >= 1000 ? 0 : 1)}k
-                            </span>
-                            <span className="text-[10px]" style={{ color: 'var(--expense-text-soft)' }}>
-                              -{(stats.expense / 1000).toFixed(stats.expense >= 1000 ? 0 : 1)}k
-                            </span>
-                          </div>
-                        </button>
-                      </SelectPrimitive.Trigger>
-                      <SelectContent className="max-h-[300px]">
-                        {RECENT_MONTHS.map(ym => (
-                          <SelectItem key={ym} value={ym} className="text-xs font-semibold">{getMonthYearLabel(ym)}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  );
-                }
+                    return (
+                      <button
+                        key={sp.id}
+                        onClick={() => { setStatPeriod(sp.id); setChartCategory(null); }}
+                        className={`stat-pill min-w-[80px] text-center ${isActive ? 'stat-pill-active' : ''}`}
+                      >
+                        <p className="text-[10px] font-bold uppercase tracking-wider mb-1 h-[14px] flex items-center justify-center">{sp.label}</p>
+                        <div className="flex items-center justify-center gap-2">
+                          <span className="text-[10px]" style={{ color: 'var(--income-text-soft)' }}>
+                            +{(stats.income / 1000).toFixed(stats.income >= 1000 ? 0 : 1)}k
+                          </span>
+                          <span className="text-[10px]" style={{ color: 'var(--expense-text-soft)' }}>
+                            -{(stats.expense / 1000).toFixed(stats.expense >= 1000 ? 0 : 1)}k
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
 
-                return (
-                  <button
-                    key={sp.id}
-                    onClick={() => { setStatPeriod(sp.id); setChartCategory(null); }}
-                    className={`stat-pill min-w-[80px] text-center ${isActive ? 'stat-pill-active' : ''}`}
-                  >
-                    <p className="text-[10px] font-bold uppercase tracking-wider mb-1 h-[14px] flex items-center justify-center">{sp.label}</p>
-                    <div className="flex items-center justify-center gap-2">
-                      <span className="text-[10px]" style={{ color: 'var(--income-text-soft)' }}>
-                        +{(stats.income / 1000).toFixed(stats.income >= 1000 ? 0 : 1)}k
-                      </span>
-                      <span className="text-[10px]" style={{ color: 'var(--expense-text-soft)' }}>
-                        -{(stats.expense / 1000).toFixed(stats.expense >= 1000 ? 0 : 1)}k
-                      </span>
+                {/* Income / Expense Summary */}
+                <div className="grid grid-cols-2 gap-3 animate-fade-in-up" style={{ animationDelay: '0.15s' }}>
+                  <div className="income-zone border rounded-2xl p-2.5 flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'var(--income-bg)' }}>
+                      <TrendingUp className="w-4 h-4" style={{ color: 'var(--income-text-soft)' }} />
                     </div>
-                  </button>
-                );
-              })}
-            </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-medium" style={{ color: 'var(--income-text-soft)', opacity: 0.7 }}>মোট আয়</p>
+                      <p className="text-sm lg:text-base font-bold truncate" style={{ color: 'var(--income-text)' }}>৳{totalIncome.toLocaleString("bn-BD")}</p>
+                    </div>
+                  </div>
+                  <div className="expense-zone border rounded-2xl p-2.5 flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'var(--expense-bg)' }}>
+                      <TrendingDown className="w-4 h-4" style={{ color: 'var(--expense-text-soft)' }} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-medium" style={{ color: 'var(--expense-text-soft)', opacity: 0.7 }}>মোট ব্যয়</p>
+                      <p className="text-sm lg:text-base font-bold truncate" style={{ color: 'var(--expense-text)' }}>৳{totalExpense.toLocaleString("bn-BD")}</p>
+                    </div>
+                  </div>
+                </div>
 
-            {/* Income / Expense Summary */}
-            <div className="grid grid-cols-2 gap-3 animate-fade-in-up" style={{ animationDelay: '0.15s' }}>
-              <div className="income-zone border rounded-2xl p-3 flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'var(--income-bg)' }}>
-                  <TrendingUp className="w-4 h-4" style={{ color: 'var(--income-text-soft)' }} />
-                </div>
-                <div>
-                  <p className="text-[10px] font-medium" style={{ color: 'var(--income-text-soft)', opacity: 0.7 }}>জমা</p>
-                  <p className="text-sm font-bold" style={{ color: 'var(--income-text)' }}>৳{totalIncome.toLocaleString("bn-BD")}</p>
-                </div>
+                {/* Donut Hero */}
+                <ExpensePieChart
+                  transactions={periodFilteredTransactions}
+                  totalBalance={totalBalance}
+                  onCategorySelect={setChartCategory}
+                  selectedCategory={chartCategory}
+                />
               </div>
-              <div className="expense-zone border rounded-2xl p-3 flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'var(--expense-bg)' }}>
-                  <TrendingDown className="w-4 h-4" style={{ color: 'var(--expense-text-soft)' }} />
-                </div>
-                <div>
-                  <p className="text-[10px] font-medium" style={{ color: 'var(--expense-text-soft)', opacity: 0.7 }}>খরচ</p>
-                  <p className="text-sm font-bold" style={{ color: 'var(--expense-text)' }}>৳{totalExpense.toLocaleString("bn-BD")}</p>
-                </div>
-              </div>
-            </div>
 
-            {/* Transaction List */}
-            <div className="space-y-2 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-              <div className="flex items-center justify-between px-1">
-                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  সাম্প্রতিক লেনদেন
+              {/* Right Column: Transaction List */}
+              <div className="mt-6 lg:mt-0 space-y-2 lg:space-y-2.5 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+                <div className="flex items-center justify-between px-1 mb-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-foreground">সাম্প্রতিক লেনদেন</h3>
+                    {periodFilteredTransactions.length > 0 && (
+                      <span className="bg-muted text-muted-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
+                        {periodFilteredTransactions.length}
+                      </span>
+                    )}
+                  </div>
                   {chartCategory && (
-                    <button onClick={() => setChartCategory(null)} className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-primary/10 text-primary font-medium">
+                    <button onClick={() => setChartCategory(null)} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-primary/10 text-primary font-medium">
                       {chartCategory} <X className="w-2.5 h-2.5" />
                     </button>
                   )}
-                </h3>
-              </div>
+                </div>
 
               {!periodFilteredTransactions.length ? (
                 <div className="premium-card p-10 text-center border-dashed">
@@ -772,7 +785,7 @@ const LedgerDetailPage = () => {
                     className="stagger-item"
                     style={{ animationDelay: `${Math.min(index * 0.03, 0.3)}s` }}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between relative z-10">
                       <div className="flex items-center gap-2.5">
                         <div className="w-9 h-9 rounded-xl flex items-center justify-center"
                           style={{ background: tx.type === "income" ? 'var(--income-bg)' : 'var(--expense-bg)', color: tx.type === "income" ? 'var(--income-text-soft)' : 'var(--expense-text-soft)' }}
@@ -802,6 +815,7 @@ const LedgerDetailPage = () => {
                 })}
                 </>
               )}
+              </div>
             </div>
           </div>
         )}
@@ -939,9 +953,9 @@ const LedgerDetailPage = () => {
                   <div className="w-2 h-2 rounded-full" style={{ background: type === "income" ? 'var(--income-text-soft)' : 'var(--expense-text-soft)' }} />
                   {type === "income" ? "জমার ক্যাটাগরি" : "খরচের ক্যাটাগরি"}
                 </h3>
-                <div className="space-y-1.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {categories?.filter((c) => c.type === type).map((c) => (
-                    <div key={c.id} className="premium-card p-3 flex items-center justify-between gap-2">
+                    <div key={c.id} className="premium-card p-3 flex items-center justify-between gap-2 h-full">
                       {editCategoryId === c.id ? (
                         <div className="flex items-center gap-2 flex-1">
                           <Input
@@ -1634,6 +1648,7 @@ const LedgerDetailPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </main>
     </div>
   );
 };

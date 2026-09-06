@@ -1,6 +1,6 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Sector } from "recharts";
-import { useState } from "react";
+import { BookOpen } from "lucide-react";
 
 interface Transaction {
   date: string;
@@ -71,7 +71,22 @@ const ExpensePieChart = ({ transactions, totalBalance = 0, onCategorySelect, sel
 
   const total = chartData.reduce((s, d) => s + d.value, 0);
 
-  if (chartData.length === 0) return null;
+  if (chartData.length === 0) {
+    return (
+      <div className="premium-card p-4 lg:p-5 mb-4 animate-fade-in-up flex flex-col items-center justify-center text-center">
+        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center mb-2.5">
+          <svg className="w-5 h-5 text-muted-foreground opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+          </svg>
+        </div>
+        <h3 className="text-sm font-bold text-foreground mb-1">কোনো খরচের তথ্য নেই</h3>
+        <p className="text-xs text-muted-foreground max-w-[200px]">
+          খরচের লেনদেন যোগ করলে এখানে আপনার খরচের বিশ্লেষণ দেখা যাবে।
+        </p>
+      </div>
+    );
+  }
 
   const handleClick = (_: any, index: number) => {
     const cat = chartData[index]?.name;
@@ -87,7 +102,8 @@ const ExpensePieChart = ({ transactions, totalBalance = 0, onCategorySelect, sel
   };
 
   return (
-    <div className="hero-card p-5 mb-4 animate-fade-in-up">
+    <div className="premium-card p-5 lg:p-6 mb-4 animate-fade-in-up">
+      <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">খরচের বিশ্লেষণ</h3>
       <div className="flex items-center justify-center mb-4">
         <div className="relative w-48 h-48">
           <ResponsiveContainer width="100%" height="100%">

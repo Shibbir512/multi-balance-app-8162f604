@@ -77,7 +77,7 @@ const SwipeableCard = ({ children, onEdit, onDelete, className = "", style }: Sw
       {/* Swipeable content */}
       <div
         ref={cardRef}
-        className="premium-card p-3.5 cursor-pointer relative z-10"
+        className="premium-card p-3.5 lg:p-2.5 cursor-pointer relative z-10"
         style={{
           transform: `translateX(${offset}px)`,
           transition: dragging.current ? "none" : "transform 0.25s ease-out",
