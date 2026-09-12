@@ -44,6 +44,7 @@ const SectionLabel = ({ icon: Icon, label }: { icon: any; label: string }) => (
 const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, categories, ledgerId }: Props) => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const [txType, setTxType] = useState<"income" | "expense">("expense");
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [accountId, setAccountId] = useState("");
@@ -60,6 +61,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
 
   useEffect(() => {
     if (transaction) {
+      setTxType(transaction.type as "income" | "expense");
       setAmount(transaction.amount.toString());
       setCategoryId(transaction.category_id || "");
       setAccountId(transaction.account_id || "");
@@ -75,8 +77,8 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
     }
   }, [transaction]);
 
-  const filteredCategories = categories.filter((c) => c.type === transaction?.type);
-  const isIncome = transaction?.type === "income";
+  const filteredCategories = categories.filter((c) => c.type === txType);
+  const isIncome = txType === "income";
   const accentSoft = isIncome ? 'var(--income-text-soft)' : 'var(--expense-text-soft)';
   const accentBg = isIncome ? 'var(--income-bg)' : 'var(--expense-bg)';
 
@@ -86,7 +88,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
         ledger_id: ledgerId,
         user_id: user!.uid,
         name: newCategoryName.trim(),
-        type: transaction!.type,
+        type: txType,
       };
       catData.created_at = new Date().toISOString();
       const docRef = await addDoc(collection(db, "categories"), catData);
@@ -133,6 +135,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
   const updateMutation = useMutation({
     mutationFn: async () => {
       await updateDoc(doc(db, "transactions", transaction!.id as string), {
+          type: txType,
           amount: parseFloat(amount),
           category_id: categoryId || null,
           account_id: accountId || null,
@@ -227,6 +230,34 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
             onSubmit={(e) => { e.preventDefault(); updateMutation.mutate(); }}
             className="px-4 pb-5 space-y-3.5 max-h-[70vh] overflow-y-auto"
           >
+            {/* Type Toggle */}
+            <div className="flex p-1 bg-muted/50 rounded-xl mb-1 border border-border/40">
+              <button
+                type="button"
+                onClick={() => { setTxType("expense"); setCategoryId(""); }}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${
+                  !isIncome
+                    ? "bg-background text-foreground shadow-sm ring-1 ring-border/50"
+                    : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                }`}
+              >
+                <TrendingDown className="w-3.5 h-3.5" style={{ color: !isIncome ? 'var(--expense-text-soft)' : undefined }} />
+                খরচ
+              </button>
+              <button
+                type="button"
+                onClick={() => { setTxType("income"); setCategoryId(""); }}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${
+                  isIncome
+                    ? "bg-background text-foreground shadow-sm ring-1 ring-border/50"
+                    : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                }`}
+              >
+                <TrendingUp className="w-3.5 h-3.5" style={{ color: isIncome ? 'var(--income-text-soft)' : undefined }} />
+                জমা
+              </button>
+            </div>
+
             {/* Premium Amount Card */}
             <div
               className="relative rounded-2xl px-3 py-2.5"

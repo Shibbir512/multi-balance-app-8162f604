@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetTitle, BottomSheetDescription } from "@/components/ui/bottom-sheet";
-import { ArrowLeft, Plus, TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, Pencil, ShoppingCart, Calculator, CreditCard, Tag, Trash2, X, ChevronDown, BarChart3, Calendar, Search, Clock, FileText, Check } from "lucide-react";
+import { ArrowLeft, Plus, TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, Pencil, ShoppingCart, Calculator, CreditCard, Tag, Trash2, X, ChevronDown, BarChart3, Calendar, Search, Clock, FileText, Check, Database, Coins } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import { toast } from "sonner";
 import GroceryModule from "@/components/GroceryModule";
@@ -37,6 +37,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+
+const getTxWatermarkIcon = (tx: any) => {
+  const catName = (tx.categories as { name: string })?.name || "";
+  const note = tx.note?.trim() || "";
+  
+  if (catName.includes("ব্যবসা")) return Wallet;
+  if (catName.includes("খরচ") || tx.type === "expense") return FileText;
+  if (catName.includes("জমা") && !note) return Database;
+  if (tx.type === "income") return TrendingUp;
+  return FileText;
+};
 
 const BENGALI_MONTHS = ["জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"];
 
@@ -207,8 +218,8 @@ const LedgerDetailPage = () => {
       
       const data = fetchedData.map(t => ({
         ...t,
-        accounts: { name: accMap[t.account_id] || 'Unknown' },
-        categories: { name: catMap[t.category_id] || 'Unknown' }
+        accounts: { name: accMap[t.account_id] || '' },
+        categories: { name: catMap[t.category_id] || '' }
       }));
       const error = null;
       if (error) throw error;
@@ -777,38 +788,47 @@ const LedgerDetailPage = () => {
                 <>
                 {periodFilteredTransactions.map((tx, index) => {
                   const cardId = tx.id;
+                  const WatermarkIcon = getTxWatermarkIcon(tx);
                   return (
                   <SwipeableCard
                     key={cardId}
                     onEdit={() => { setEditTx(tx); setEditOpen(true); }}
                     onDelete={() => setDeleteTxId(tx.id)}
-                    className="stagger-item"
+                    className="stagger-item relative overflow-hidden"
                     style={{ animationDelay: `${Math.min(index * 0.03, 0.3)}s` }}
                   >
                     <div className="flex items-center justify-between relative z-10">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
                           style={{ background: tx.type === "income" ? 'var(--income-bg)' : 'var(--expense-bg)', color: tx.type === "income" ? 'var(--income-text-soft)' : 'var(--expense-text-soft)' }}
                         >
                           {tx.type === "income" ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
                         </div>
-                        <div>
-                          <p className="text-sm font-semibold text-foreground">
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-foreground truncate">
                             {tx.note?.trim() ? tx.note : ((tx.categories as { name: string })?.name || "—")}
                           </p>
-                          <p className="text-[11px] text-muted-foreground">
+                          <p className="text-[11px] text-muted-foreground truncate">
                             {(tx.accounts as { name: string })?.name || "—"} • {formatBengaliDate(tx.date, (tx as { time?: string }).time)}
                           </p>
-                          {tx.note?.trim() && (
-                            <p className="text-[11px] text-muted-foreground mt-0.5">
-                              {(tx.categories as { name: string })?.name || "—"}
+                          {tx.note?.trim() && (tx.categories as { name: string })?.name && (
+                            <p className="text-[11px] text-muted-foreground truncate">
+                              {(tx.categories as { name: string })?.name}
                             </p>
                           )}
                         </div>
                       </div>
-                      <p className="text-sm font-bold" style={{ color: tx.type === "income" ? 'var(--income-text-soft)' : 'var(--expense-text-soft)' }}>
-                        {tx.type === "income" ? "+" : "-"}৳{tx.amount.toLocaleString("bn-BD")}
-                      </p>
+                      <div className="flex items-center shrink-0 relative">
+                        <div 
+                          className="absolute right-[110%] top-1/2 -translate-y-1/2 opacity-[0.05] dark:opacity-[0.03] pointer-events-none z-0"
+                          style={{ color: tx.type === "income" ? 'var(--income-text)' : 'var(--expense-text)' }}
+                        >
+                          <WatermarkIcon className="w-16 h-16" strokeWidth={1.5} />
+                        </div>
+                        <p className="text-sm font-bold relative z-10" style={{ color: tx.type === "income" ? 'var(--income-text)' : 'var(--expense-text)' }}>
+                          {tx.type === "income" ? "+" : "-"}৳{tx.amount.toLocaleString("bn-BD")}
+                        </p>
+                      </div>
                     </div>
                   </SwipeableCard>
                   );

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Sector } from "recharts";
-import { BookOpen } from "lucide-react";
+import { BookOpen, BarChart3 } from "lucide-react";
 
 interface Transaction {
   date: string;
@@ -102,80 +102,87 @@ const ExpensePieChart = ({ transactions, totalBalance = 0, onCategorySelect, sel
   };
 
   return (
-    <div className="premium-card p-5 lg:p-6 mb-4 animate-fade-in-up">
-      <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">খরচের বিশ্লেষণ</h3>
-      <div className="flex items-center justify-center mb-4">
-        <div className="relative w-48 h-48">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={chartData}
-                cx="50%"
-                cy="50%"
-                innerRadius={52}
-                outerRadius={80}
-                dataKey="value"
-                stroke="none"
-                paddingAngle={3}
-                activeIndex={activeIndex}
-                activeShape={renderActiveShape}
-                onClick={handleClick}
-                style={{ cursor: 'pointer' }}
-              >
-                {chartData.map((_, i) => (
-                  <Cell
-                    key={i}
-                    fill={COLORS[i % COLORS.length]}
-                    opacity={selectedCategory && chartData[i].name !== selectedCategory ? 0.3 : 1}
-                  />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  background: 'hsl(var(--popover))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '12px',
-                  fontSize: '11px',
-                  color: 'hsl(var(--popover-foreground))',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
-                }}
-                itemStyle={{
-                  color: 'hsl(var(--popover-foreground))',
-                }}
-                labelStyle={{
-                  color: 'hsl(var(--popover-foreground))',
-                }}
-                formatter={(value: number) => [`৳${value.toLocaleString("bn-BD")}`, ""]}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-          {/* Center Balance */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">ব্যালেন্স</p>
-            <p className="text-lg font-extrabold text-foreground leading-tight">
-              ৳{totalBalance.toLocaleString("bn-BD")}
-            </p>
-          </div>
-        </div>
+    <div className="premium-card p-5 lg:p-6 mb-4 animate-fade-in-up relative overflow-hidden">
+      {/* Watermarks for the chart card */}
+      <div className="absolute -bottom-6 -right-6 opacity-[0.03] dark:opacity-[0.02] pointer-events-none z-0 text-primary">
+        <BarChart3 className="w-40 h-40 transform -rotate-12" strokeWidth={1} />
       </div>
 
-      {/* Category Legend */}
-      <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5">
-        {chartData.map((d, i) => (
-          <button
-            key={d.name}
-            onClick={() => handleClick(null, i)}
-            className={`flex items-center gap-1.5 transition-opacity duration-200 ${
-              selectedCategory && selectedCategory !== d.name ? 'opacity-40' : 'opacity-100'
-            }`}
-          >
-            <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
-            <span className="text-[11px] text-muted-foreground">{d.name}</span>
-            <span className="text-[11px] font-bold text-foreground">
-              {total > 0 ? Math.round((d.value / total) * 100) : 0}%
-            </span>
-          </button>
-        ))}
+      <div className="relative z-10">
+        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">খরচের বিশ্লেষণ</h3>
+        <div className="flex items-center justify-center mb-4">
+          <div className="relative w-48 h-48">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={chartData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={52}
+                  outerRadius={80}
+                  dataKey="value"
+                  stroke="none"
+                  paddingAngle={3}
+                  activeIndex={activeIndex}
+                  activeShape={renderActiveShape}
+                  onClick={handleClick}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {chartData.map((_, i) => (
+                    <Cell
+                      key={i}
+                      fill={COLORS[i % COLORS.length]}
+                      opacity={selectedCategory && chartData[i].name !== selectedCategory ? 0.3 : 1}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    background: 'hsl(var(--popover))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '12px',
+                    fontSize: '11px',
+                    color: 'hsl(var(--popover-foreground))',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+                  }}
+                  itemStyle={{
+                    color: 'hsl(var(--popover-foreground))',
+                  }}
+                  labelStyle={{
+                    color: 'hsl(var(--popover-foreground))',
+                  }}
+                  formatter={(value: number) => [`৳${value.toLocaleString("bn-BD")}`, ""]}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            {/* Center Balance */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">ব্যালেন্স</p>
+              <p className="text-lg font-extrabold text-foreground leading-tight">
+                ৳{totalBalance.toLocaleString("bn-BD")}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Category Legend */}
+        <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5">
+          {chartData.map((d, i) => (
+            <button
+              key={d.name}
+              onClick={() => handleClick(null, i)}
+              className={`flex items-center gap-1.5 transition-opacity duration-200 ${
+                selectedCategory && selectedCategory !== d.name ? 'opacity-40' : 'opacity-100'
+              }`}
+            >
+              <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
+              <span className="text-[11px] text-muted-foreground">{d.name}</span>
+              <span className="text-[11px] font-bold text-foreground">
+                {total > 0 ? Math.round((d.value / total) * 100) : 0}%
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
