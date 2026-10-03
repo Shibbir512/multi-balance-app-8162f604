@@ -177,7 +177,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
     <>
       <BottomSheet open={open} onOpenChange={onOpenChange}>
         <BottomSheetContent className="p-0 overflow-hidden border border-border/10
-          md:w-[800px] md:h-[720px] md:max-h-[calc(100vh-48px)] md:max-w-[calc(100vw-48px)] 
+          md:!w-[800px] md:!max-w-[calc(100vw-48px)] md:h-[720px] md:max-h-[calc(100vh-48px)] 
           md:bg-background/95 md:backdrop-blur-xl">
           
           {/* Header */}
