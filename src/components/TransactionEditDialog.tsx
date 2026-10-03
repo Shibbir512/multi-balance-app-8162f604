@@ -274,7 +274,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
                 <span className="text-[10px] font-semibold text-muted-foreground/60">৳ BDT</span>
               </div>
               <div 
-                className="relative flex items-center gap-2 bg-background/80 p-3 rounded-xl border-2 shadow-inner mt-2 transition-colors duration-200"
+                className="relative flex items-center gap-2 bg-background/80 dark:bg-[#1E293B] p-3 rounded-xl border-[2px] dark:border-[rgba(255,255,255,0.06)] shadow-inner mt-2 transition-colors duration-200"
                 style={{ borderColor: accentSoft }}
               >
                 <span
@@ -323,7 +323,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="কিসের জন্য? (ঐচ্ছিক)"
                 rows={2}
-                className="w-full rounded-xl border bg-background/80 p-2.5 text-xs shadow-inner resize-none focus:outline-none focus:ring-1 transition-all duration-200 placeholder:text-muted-foreground/40 min-h-[60px]"
+                className="w-full rounded-xl border dark:border-[rgba(255,255,255,0.06)] bg-background/80 dark:bg-[#1E293B] text-foreground dark:text-[#F8FAFC] p-2.5 text-xs shadow-inner resize-none focus:outline-none focus:ring-1 transition-all duration-200 placeholder:text-muted-foreground/40 min-h-[60px]"
                 style={{
                   borderColor: accentSoft,
                 }}
@@ -530,9 +530,8 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
               <div className="grid grid-cols-2 gap-1.5">
                 {/* Date */}
                 <div
-                  className="relative flex items-center gap-1.5 rounded-lg border px-2 h-9 transition-all duration-200 hover:border-primary/40"
+                  className="relative flex items-center gap-1.5 rounded-lg border dark:border-[rgba(255,255,255,0.06)] px-2 h-9 transition-all duration-200 hover:border-primary/40 bg-card dark:bg-[#1E293B]"
                   style={{
-                    background: 'hsl(var(--card))',
                     borderColor: 'var(--glass-border)',
                   }}
                 >
@@ -550,9 +549,8 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
 
                 {/* Time */}
                 <div
-                  className="relative flex items-center gap-1 rounded-lg border px-2 h-9"
+                  className="relative flex items-center gap-1 rounded-lg border dark:border-[rgba(255,255,255,0.06)] px-2 h-9 bg-card dark:bg-[#1E293B]"
                   style={{
-                    background: 'hsl(var(--card))',
                     borderColor: 'var(--glass-border)',
                   }}
                 >

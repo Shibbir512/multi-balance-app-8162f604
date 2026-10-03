@@ -25,9 +25,9 @@ const ThemeToggle = () => {
       variant="ghost"
       size="icon"
       onClick={() => setIsDark(!isDark)}
-      className="text-white/60 hover:text-white hover:bg-white/10 rounded-xl h-8 w-8"
+      className="w-[40px] h-[40px] rounded-[12px] flex items-center justify-center transition-all duration-150 bg-[rgba(255,255,255,0.07)] border border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.13)] hover:border-[rgba(255,255,255,0.18)] text-[rgba(255,255,255,0.78)] hover:text-white"
     >
-      {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+      {isDark ? <Sun className="w-[18px] h-[18px]" strokeWidth={1.8} /> : <Moon className="w-[18px] h-[18px]" strokeWidth={1.8} />}
     </Button>
   );
 };

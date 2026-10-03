@@ -27,6 +27,16 @@ import MonthlyChart from "@/components/MonthlyChart";
 import ExpensePieChart from "@/components/ExpensePieChart";
 import SwipeableCard from "@/components/SwipeableCard";
 import LedgerWatermarkBackground from "@/components/LedgerWatermarkBackground";
+import FinancialSummaryCards from "@/components/FinancialSummaryCards";
+import QuickOverview from "@/components/QuickOverview";
+import TransactionWorkspace from "@/components/TransactionWorkspace";
+import DashboardSidebar from "@/components/DashboardSidebar";
+import DashboardHeader from "@/components/DashboardHeader";
+import ProfileTab from "@/components/ProfileTab";
+import SettingsTab from "@/components/SettingsTab";
+import HelpTab from "@/components/HelpTab";
+import BudgetTab from "@/components/BudgetTab";
+import SavingsTab from "@/components/SavingsTab";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -132,6 +142,8 @@ const LedgerDetailPage = () => {
   const [statPeriod, setStatPeriod] = useState<StatPeriod>("all");
   const [dashboardMonth, setDashboardMonth] = useState(() => new Date().toISOString().slice(0, 7));
   const [chartCategory, setChartCategory] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: ledger } = useQuery({
     queryKey: ["ledger", ledgerId],
@@ -500,165 +512,43 @@ const LedgerDetailPage = () => {
   ];
 
   return (
-    <div className="min-h-screen page-gradient relative overflow-hidden flex flex-col">
-      <LedgerWatermarkBackground />
-      <main className="relative z-10 flex-1 flex flex-col">
-      
-      {/* ─── PREMIUM HEADER ─── */}
-      <div className="sticky top-0 z-20 gradient-header px-4 pt-3 pb-3 relative overflow-hidden">
-        {/* Accent halos */}
-        <div
-          className="absolute -top-16 -right-10 w-48 h-48 rounded-full opacity-30 blur-3xl pointer-events-none"
-          style={{ background: 'radial-gradient(circle, #A78BFA, transparent 70%)' }}
-        />
-        <div
-          className="absolute -bottom-20 -left-12 w-40 h-40 rounded-full opacity-20 blur-3xl pointer-events-none"
-          style={{ background: 'radial-gradient(circle, #6366F1, transparent 70%)' }}
-        />
-        {/* Subtle dot pattern */}
-        <div
-          className="absolute inset-0 opacity-[0.06] pointer-events-none"
-          style={{
-            backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
-            backgroundSize: '20px 20px',
-          }}
-        />
-
-        <div className="relative w-full max-w-7xl mx-auto">
-          {/* Top row: back, ledger switcher, theme toggle */}
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate("/")}
-              className="text-white/80 hover:text-white hover:bg-white/15 rounded-xl h-9 w-9 shrink-0 backdrop-blur-sm"
-              style={{ background: 'rgba(255,255,255,0.08)' }}
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-
-            {/* Ledger Switcher */}
-            <div className="flex-1 flex justify-center">
-              <div className="relative">
-                <button
-                  onClick={() => setLedgerDropdownOpen(!ledgerDropdownOpen)}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all duration-200 backdrop-blur-sm hover:scale-[1.02]"
-                  style={{
-                    background: 'rgba(255,255,255,0.12)',
-                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 8px rgba(0,0,0,0.15)',
-                  }}
-                >
-                  <div className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-                    <Wallet className="w-3 h-3 text-white" />
-                  </div>
-                  <span className="text-sm font-bold text-white truncate max-w-[140px]" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.25)' }}>
-                    {ledger?.name ?? "..."}
-                  </span>
-                  <ChevronDown className={`w-3.5 h-3.5 text-white/80 transition-transform duration-200 ${ledgerDropdownOpen ? 'rotate-180' : ''}`} />
-                </button>
-
-                {/* Dropdown */}
-                {ledgerDropdownOpen && (
-                  <>
-                    <div className="fixed inset-0 z-[60]" onClick={() => setLedgerDropdownOpen(false)} />
-                    <div className="fixed top-[58px] left-1/2 -translate-x-1/2 w-56 rounded-2xl border bg-popover p-1.5 shadow-xl z-[70] animate-scale-in">
-                      {allLedgers?.map((l) => (
-                        <button
-                          key={l.id}
-                          onClick={() => {
-                            setLedgerDropdownOpen(false);
-                            if (l.id !== ledgerId) navigate(`/ledger/${l.id}`);
-                          }}
-                          className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-sm font-medium transition-colors ${
-                            l.id === ledgerId
-                              ? "bg-primary/10 text-primary"
-                              : "text-foreground hover:bg-muted"
-                          }`}
-                        >
-                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                            l.id === ledgerId ? 'gradient-primary' : 'bg-muted'
-                          }`}>
-                            <Wallet className="w-3.5 h-3.5 text-white" />
-                          </div>
-                          <span className="truncate">{l.name}</span>
-                        </button>
-                      ))}
-                      <button
-                        onClick={() => { setLedgerDropdownOpen(false); navigate("/"); }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-sm font-medium text-muted-foreground hover:bg-muted transition-colors border-t mt-1 pt-2"
-                        style={{ borderColor: 'var(--glass-border)' }}
-                      >
-                        <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border border-dashed border-muted-foreground/30">
-                          <Plus className="w-3.5 h-3.5" />
-                        </div>
-                        <span>নতুন খাতা</span>
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-
-            <div className="shrink-0">
-              <ThemeToggle />
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen flex bg-[#F6F7FC] dark:bg-[#080B14] relative z-0">
+      {/* Vivid Glassy Background */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden -z-10 bg-[#F8F9FE] dark:bg-[#080B14]">
+        {/* Top Right Orb */}
+        <div className="absolute -top-[10%] -right-[5%] w-[500px] h-[500px] rounded-full bg-gradient-to-br from-[#7C3AED]/25 to-[#4338CA]/25 blur-[80px] dark:from-[#7C3AED]/15 dark:to-[#4338CA]/15" />
+        {/* Bottom Left Orb */}
+        <div className="absolute top-[40%] -left-[10%] w-[400px] h-[400px] rounded-full bg-gradient-to-tr from-[#3B82F6]/15 to-[#06B6D4]/15 blur-[80px] dark:from-[#3B82F6]/10 dark:to-[#06B6D4]/10" />
+        {/* Center Accent Orb */}
+        <div className="absolute top-[25%] left-[30%] w-[350px] h-[350px] rounded-full bg-gradient-to-br from-[#EC4899]/10 to-[#8B5CF6]/10 blur-[80px] dark:from-[#EC4899]/5 dark:to-[#8B5CF6]/5" />
+        {/* Very subtle transparent overlay to blend, no muddy white */}
+        <div className="absolute inset-0 bg-white/10 dark:bg-black/10 backdrop-blur-[30px] -z-10" />
       </div>
 
-
-      {/* ─── TOP NAVIGATION TABS ─── */}
-      <div className="sticky top-[60px] z-10 px-4 py-1.5" style={{ background: 'var(--page-gradient)' }}>
-        <div className="w-full max-w-7xl mx-auto">
-          <div
-            ref={tabStripRef}
-            className="relative flex gap-1 overflow-x-auto no-scrollbar p-0.5 rounded-xl border"
-            style={{
-              background: 'var(--tab-strip-bg)',
-              borderColor: 'var(--tab-strip-border)',
-              boxShadow: 'var(--tab-strip-shadow)',
-            }}
-          >
-            {/* Animated sliding indicator (white pill behind active tab) */}
-            <div
-              aria-hidden
-              className="absolute top-0.5 bottom-0.5 rounded-lg bg-white pointer-events-none"
-              style={{
-                left: 0,
-                width: indicatorStyle.width,
-                transform: `translateX(${indicatorStyle.left}px)`,
-                transition: 'transform 350ms cubic-bezier(0.4, 0, 0.2, 1), width 350ms cubic-bezier(0.4, 0, 0.2, 1)',
-                boxShadow: '0 2px 8px -1px rgba(0,0,0,0.18), 0 1px 2px rgba(0,0,0,0.08)',
-                opacity: indicatorStyle.width ? 1 : 0,
-              }}
-            />
-            {tabs.map((tab, idx) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  ref={(el) => (tabRefs.current[idx] = el)}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`relative z-[1] flex items-center gap-1.5 whitespace-nowrap shrink-0 px-2.5 py-1.5 rounded-lg text-xs transition-colors duration-300 ${
-                    isActive
-                      ? "text-primary font-extrabold"
-                      : "text-white font-semibold hover:bg-white/10"
-                  }`}
-                  style={isActive
-                    ? { textShadow: 'none' }
-                    : { textShadow: '0 1px 3px rgba(0,0,0,0.25)' }}
-                >
-                  <Icon className="w-3.5 h-3.5 shrink-0" strokeWidth={isActive ? 2.75 : 2.25} />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 pt-3 flex-1">
+      <DashboardSidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        openTxDialog={openTxDialog}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        ledgerName={ledger?.name}
+        allLedgers={allLedgers}
+        currentLedgerId={ledgerId}
+      />
+      <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
+        <DashboardHeader
+          dashboardMonth={dashboardMonth}
+          onMonthChange={(v: string) => { setDashboardMonth(v); setStatPeriod("month"); setChartCategory(null); }}
+          user={user}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          onMenuClick={() => setSidebarOpen(true)}
+          onProfileClick={() => setActiveTab("profile")}
+          recentMonths={RECENT_MONTHS}
+          getMonthYearLabel={getMonthYearLabel}
+        />
+        <main className="flex-1 overflow-y-auto">
+      <div className="w-full px-4 lg:px-6 xl:px-8 py-6">
         {reminders && reminders.length > 0 && activeTab === "transactions" && (
           <div className="mb-3">
             <GroceryReminders reminders={reminders} compact />
@@ -668,173 +558,114 @@ const LedgerDetailPage = () => {
         {/* ═══ TRANSACTIONS TAB ═══ */}
         {activeTab === "transactions" && (
           <div key="tab-transactions" className="pb-24 animate-fade-in-up">
-            <div className="lg:grid lg:grid-cols-[minmax(320px,38%)_minmax(0,1fr)] lg:gap-6 xl:gap-8 items-start">
+            <FinancialSummaryCards
+              totalIncome={totalIncome}
+              totalExpense={totalExpense}
+              totalBalance={totalBalance}
+              monthlyBudget={(ledger as any)?.monthlyBudget || 0}
+            />
+            <div className="lg:grid lg:grid-cols-[minmax(320px,42%)_minmax(0,1fr)] gap-[20px] items-start">
               {/* Left Column: Summary & Chart */}
-              <div className="space-y-3">
-                {/* Quick Stats Bar */}
-                <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-                  {statPeriods.map((sp) => {
-                    const stats = periodStats[sp.id];
-                    const isActive = statPeriod === sp.id;
-                    
-                    if (sp.id === "month") {
-                      return (
-                        <Select key={sp.id} value={dashboardMonth} onValueChange={(v) => { setDashboardMonth(v); setStatPeriod("month"); setChartCategory(null); }}>
-                          <SelectPrimitive.Trigger asChild>
-                            <button
-                              onClick={() => { setStatPeriod("month"); setChartCategory(null); }}
-                              className={`stat-pill min-w-[80px] text-center outline-none ${isActive ? 'stat-pill-active' : ''}`}
-                            >
-                              <p className="text-[10px] font-bold uppercase tracking-wider mb-1">
-                                {isActive ? getMonthYearLabel(dashboardMonth).split(' ')[0] : sp.label}
-                              </p>
-                              <div className="flex items-center justify-center gap-2">
-                                <span className="text-[10px]" style={{ color: 'var(--income-text-soft)' }}>
-                                  +{(stats.income / 1000).toFixed(stats.income >= 1000 ? 0 : 1)}k
-                                </span>
-                                <span className="text-[10px]" style={{ color: 'var(--expense-text-soft)' }}>
-                                  -{(stats.expense / 1000).toFixed(stats.expense >= 1000 ? 0 : 1)}k
-                                </span>
-                              </div>
-                            </button>
-                          </SelectPrimitive.Trigger>
-                          <SelectContent className="max-h-[300px]">
-                            {RECENT_MONTHS.map(ym => (
-                              <SelectItem key={ym} value={ym} className="text-xs font-semibold">{getMonthYearLabel(ym)}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      );
-                    }
-
-                    return (
-                      <button
-                        key={sp.id}
-                        onClick={() => { setStatPeriod(sp.id); setChartCategory(null); }}
-                        className={`stat-pill min-w-[80px] text-center ${isActive ? 'stat-pill-active' : ''}`}
-                      >
-                        <p className="text-[10px] font-bold uppercase tracking-wider mb-1 h-[14px] flex items-center justify-center">{sp.label}</p>
-                        <div className="flex items-center justify-center gap-2">
-                          <span className="text-[10px]" style={{ color: 'var(--income-text-soft)' }}>
-                            +{(stats.income / 1000).toFixed(stats.income >= 1000 ? 0 : 1)}k
-                          </span>
-                          <span className="text-[10px]" style={{ color: 'var(--expense-text-soft)' }}>
-                            -{(stats.expense / 1000).toFixed(stats.expense >= 1000 ? 0 : 1)}k
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Income / Expense Summary */}
-                <div className="grid grid-cols-2 gap-3 animate-fade-in-up" style={{ animationDelay: '0.15s' }}>
-                  <div className="income-zone border rounded-2xl p-2.5 flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'var(--income-bg)' }}>
-                      <TrendingUp className="w-4 h-4" style={{ color: 'var(--income-text-soft)' }} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[10px] font-medium" style={{ color: 'var(--income-text-soft)', opacity: 0.7 }}>মোট আয়</p>
-                      <p className="text-sm lg:text-base font-bold truncate" style={{ color: 'var(--income-text)' }}>৳{totalIncome.toLocaleString("bn-BD")}</p>
-                    </div>
-                  </div>
-                  <div className="expense-zone border rounded-2xl p-2.5 flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'var(--expense-bg)' }}>
-                      <TrendingDown className="w-4 h-4" style={{ color: 'var(--expense-text-soft)' }} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[10px] font-medium" style={{ color: 'var(--expense-text-soft)', opacity: 0.7 }}>মোট ব্যয়</p>
-                      <p className="text-sm lg:text-base font-bold truncate" style={{ color: 'var(--expense-text)' }}>৳{totalExpense.toLocaleString("bn-BD")}</p>
-                    </div>
-                  </div>
-                </div>
-
+              <div className="flex flex-col gap-[20px]">
                 {/* Donut Hero */}
                 <ExpensePieChart
                   transactions={periodFilteredTransactions}
                   totalBalance={totalBalance}
                   onCategorySelect={setChartCategory}
                   selectedCategory={chartCategory}
+                  periodLabel={statPeriod === 'month' ? getMonthYearLabel(dashboardMonth).split(' ')[0] : statPeriods.find(s => s.id === statPeriod)?.label}
+                  periodSelector={
+                                    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+                                      {statPeriods.map((sp) => {
+                                        const stats = periodStats[sp.id];
+                                        const isActive = statPeriod === sp.id;
+                                        
+                                        if (sp.id === "month") {
+                                          return (
+                                            <Select key={sp.id} value={dashboardMonth} onValueChange={(v) => { setDashboardMonth(v); setStatPeriod("month"); setChartCategory(null); }}>
+                                              <SelectPrimitive.Trigger asChild>
+                                                <button
+                                                  onClick={() => { setStatPeriod("month"); setChartCategory(null); }}
+                                                  className={`stat-pill min-w-[80px] text-center outline-none ${isActive ? 'stat-pill-active' : ''}`}
+                                                >
+                                                  <p className="text-[10px] font-bold uppercase tracking-wider mb-1">
+                                                    {isActive ? getMonthYearLabel(dashboardMonth).split(' ')[0] : sp.label}
+                                                  </p>
+                                                  <div className="flex items-center justify-center gap-2">
+                                                    <span className="text-[10px]" style={{ color: 'var(--income-text-soft)' }}>
+                                                      +{(stats.income / 1000).toFixed(stats.income >= 1000 ? 0 : 1)}k
+                                                    </span>
+                                                    <span className="text-[10px]" style={{ color: 'var(--expense-text-soft)' }}>
+                                                      -{(stats.expense / 1000).toFixed(stats.expense >= 1000 ? 0 : 1)}k
+                                                    </span>
+                                                  </div>
+                                                </button>
+                                              </SelectPrimitive.Trigger>
+                                              <SelectContent className="max-h-[300px]">
+                                                {RECENT_MONTHS.map(ym => (
+                                                  <SelectItem key={ym} value={ym} className="text-xs font-semibold">{getMonthYearLabel(ym)}</SelectItem>
+                                                ))}
+                                              </SelectContent>
+                                            </Select>
+                                          );
+                                        }
+                    
+                                        return (
+                                          <button
+                                            key={sp.id}
+                                            onClick={() => { setStatPeriod(sp.id); setChartCategory(null); }}
+                                            className={`stat-pill min-w-[80px] text-center ${isActive ? 'stat-pill-active' : ''}`}
+                                          >
+                                            <p className="text-[10px] font-bold uppercase tracking-wider mb-1 h-[14px] flex items-center justify-center">{sp.label}</p>
+                                            <div className="flex items-center justify-center gap-2">
+                                              <span className="text-[10px]" style={{ color: 'var(--income-text-soft)' }}>
+                                                +{(stats.income / 1000).toFixed(stats.income >= 1000 ? 0 : 1)}k
+                                              </span>
+                                              <span className="text-[10px]" style={{ color: 'var(--expense-text-soft)' }}>
+                                                -{(stats.expense / 1000).toFixed(stats.expense >= 1000 ? 0 : 1)}k
+                                              </span>
+                                            </div>
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                    
+                  }
+                />
+                <QuickOverview
+                  transactions={periodFilteredTransactions}
+                  totalIncome={totalIncome}
+                  totalExpense={totalExpense}
                 />
               </div>
 
               {/* Right Column: Transaction List */}
-              <div className="mt-6 lg:mt-0 space-y-2 lg:space-y-2.5 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-                <div className="flex items-center justify-between px-1 mb-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-bold text-foreground">সাম্প্রতিক লেনদেন</h3>
-                    {periodFilteredTransactions.length > 0 && (
-                      <span className="bg-muted text-muted-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
-                        {periodFilteredTransactions.length}
-                      </span>
-                    )}
-                  </div>
-                  {chartCategory && (
-                    <button onClick={() => setChartCategory(null)} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-primary/10 text-primary font-medium">
-                      {chartCategory} <X className="w-2.5 h-2.5" />
-                    </button>
-                  )}
-                </div>
-
-              {!periodFilteredTransactions.length ? (
-                <div className="premium-card p-10 text-center border-dashed">
-                  <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-3">
-                    <CreditCard className="w-5 h-5 text-muted-foreground" />
-                  </div>
-                  <p className="text-muted-foreground font-medium text-sm">কোনো লেনদেন নেই</p>
-                  <p className="text-xs text-muted-foreground mt-1">জমা বা খরচ যোগ করুন</p>
-                </div>
-              ) : (
-                <>
-                {periodFilteredTransactions.map((tx, index) => {
-                  const cardId = tx.id;
-                  const WatermarkIcon = getTxWatermarkIcon(tx);
-                  return (
-                  <SwipeableCard
-                    key={cardId}
-                    onEdit={() => { setEditTx(tx); setEditOpen(true); }}
-                    onDelete={() => setDeleteTxId(tx.id)}
-                    className="stagger-item relative overflow-hidden"
-                    style={{ animationDelay: `${Math.min(index * 0.03, 0.3)}s` }}
-                  >
-                    <div className="flex items-center justify-between relative z-10">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                          style={{ background: tx.type === "income" ? 'var(--income-bg)' : 'var(--expense-bg)', color: tx.type === "income" ? 'var(--income-text-soft)' : 'var(--expense-text-soft)' }}
-                        >
-                          {tx.type === "income" ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-foreground truncate">
-                            {tx.note?.trim() ? tx.note : ((tx.categories as { name: string })?.name || "—")}
-                          </p>
-                          <p className="text-[11px] text-muted-foreground truncate">
-                            {(tx.accounts as { name: string })?.name || "—"} • {formatBengaliDate(tx.date, (tx as { time?: string }).time)}
-                          </p>
-                          {tx.note?.trim() && (tx.categories as { name: string })?.name && (
-                            <p className="text-[11px] text-muted-foreground truncate">
-                              {(tx.categories as { name: string })?.name}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center shrink-0 relative">
-                        <div 
-                          className="absolute right-[110%] top-1/2 -translate-y-1/2 opacity-[0.05] dark:opacity-[0.03] pointer-events-none z-0"
-                          style={{ color: tx.type === "income" ? 'var(--income-text)' : 'var(--expense-text)' }}
-                        >
-                          <WatermarkIcon className="w-16 h-16" strokeWidth={1.5} />
-                        </div>
-                        <p className="text-sm font-bold relative z-10" style={{ color: tx.type === "income" ? 'var(--income-text)' : 'var(--expense-text)' }}>
-                          {tx.type === "income" ? "+" : "-"}৳{tx.amount.toLocaleString("bn-BD")}
-                        </p>
-                      </div>
+              <div className="mt-6 lg:mt-0 animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+                <TransactionWorkspace
+                  transactions={periodFilteredTransactions as any[]}
+                  onEdit={(tx) => { setEditTx(tx as any); setEditOpen(true); }}
+                  onDelete={(id) => setDeleteTxId(id)}
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  filterButton={
+                    <div className="p-4 bg-white dark:bg-[#1E293B] rounded-xl">
+                      <TransactionFilters
+                        month={filterMonth}
+                        year={filterYear}
+                        onMonthChange={setFilterMonth}
+                        onYearChange={setFilterYear}
+                        onClear={() => { setFilterMonth("all"); setFilterYear("all"); setFilterCategory("all"); setFilterDateFrom(""); setFilterDateTo(""); }}
+                        categoryFilter={filterCategory}
+                        onCategoryChange={setFilterCategory}
+                        categories={categories ?? []}
+                        dateFrom={filterDateFrom}
+                        dateTo={filterDateTo}
+                        onDateFromChange={setFilterDateFrom}
+                        onDateToChange={setFilterDateTo}
+                      />
                     </div>
-                  </SwipeableCard>
-                  );
-                })}
-                </>
-              )}
+                  }
+                />
               </div>
             </div>
           </div>
@@ -1031,7 +862,13 @@ const LedgerDetailPage = () => {
             ))}
           </div>
         )}
+        {activeTab === "profile" && <ProfileTab user={user} />}
+        {activeTab === "settings" && <SettingsTab />}
+        {activeTab === "help" && <HelpTab />}
+        {activeTab === "budget" && <BudgetTab />}
+        {activeTab === "savings" && <SavingsTab />}
       </div>
+        </main>
 
       {/* ─── ADD TRANSACTION BOTTOM SHEET ─── */}
       <BottomSheet open={txDialogOpen} onOpenChange={setTxDialogOpen}>
@@ -1295,7 +1132,7 @@ const LedgerDetailPage = () => {
                       <span className="text-[10px] font-semibold text-muted-foreground/60">৳ BDT</span>
                     </div>
                     <div 
-                      className="relative flex items-center gap-2 bg-background/80 px-2.5 py-1.5 rounded-xl border-2 shadow-inner mt-1 transition-colors duration-200"
+                      className="relative flex items-center gap-2 bg-background/80 dark:bg-[#1E293B] px-2.5 py-1.5 rounded-xl border-[2px] dark:border-[rgba(255,255,255,0.06)] shadow-inner mt-1 transition-colors duration-200"
                       style={{ borderColor: accentSoft }}
                     >
                       <span className="text-2xl font-bold leading-none" style={{ color: accentSoft }}>৳</span>
@@ -1339,7 +1176,7 @@ const LedgerDetailPage = () => {
                       onChange={(e) => setTxNote(e.target.value)}
                       placeholder="কিসের জন্য? (ঐচ্ছিক)"
                       rows={1}
-                      className="w-full rounded-xl border bg-background/80 px-2 py-1.5 text-xs shadow-inner resize-none focus:outline-none focus:ring-1 transition-all duration-200 placeholder:text-muted-foreground/40 min-h-[36px]"
+                      className="w-full rounded-xl border dark:border-[rgba(255,255,255,0.06)] bg-background/80 dark:bg-[#1E293B] px-2 py-1.5 text-xs text-foreground dark:text-[#F8FAFC] shadow-inner resize-none focus:outline-none focus:ring-1 transition-all duration-200 placeholder:text-muted-foreground/40 min-h-[36px]"
                       style={{
                         borderColor: accentSoft,
                       }}
@@ -1428,9 +1265,8 @@ const LedgerDetailPage = () => {
                     <div className="grid grid-cols-2 gap-1.5">
                       {/* Date */}
                       <div
-                        className="relative flex items-center gap-1.5 rounded-lg border px-2 h-9 transition-all duration-200 hover:border-primary/40"
+                        className="relative flex items-center gap-1.5 rounded-lg border dark:border-[rgba(255,255,255,0.06)] px-2 h-9 transition-all duration-200 hover:border-primary/40 bg-card dark:bg-[#1E293B]"
                         style={{
-                          background: 'hsl(var(--card))',
                           borderColor: 'var(--glass-border)',
                         }}
                       >
@@ -1448,9 +1284,8 @@ const LedgerDetailPage = () => {
 
                       {/* Time */}
                       <div
-                        className="relative flex items-center gap-1 rounded-lg border px-2 h-9"
+                        className="relative flex items-center gap-1 rounded-lg border dark:border-[rgba(255,255,255,0.06)] px-2 h-9 bg-card dark:bg-[#1E293B]"
                         style={{
-                          background: 'hsl(var(--card))',
                           borderColor: 'var(--glass-border)',
                         }}
                       >
@@ -1668,7 +1503,7 @@ const LedgerDetailPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      </main>
+      </div>
     </div>
   );
 };

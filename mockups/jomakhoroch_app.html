@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>জমাখরচ - Jomakhoroch</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body, html {
+      margin: 0; padding: 0; width: 100%; height: 100%;
+      font-family: 'Noto Sans Bengali', sans-serif;
+      overflow: hidden;
+    }
+
+    :root {
+      --primary: #6D4AFF;
+    }
+
+    /* DEFAULT TO LIGHT THEME */
+    body {
+      --bg-app: #F6F7FB;
+      --bg-modal: #FFFFFF;
+      --bg-modal-grad: linear-gradient(180deg, #FFFFFF 0%, #F7F8FC 100%);
+      --bg-input: #FFFFFF;
+      --bg-expense-input: #FFF7F7;
+      --bg-category: #FFFFFF;
+      --text-main: #111827;
+      --text-muted: #64748B;
+      --border-subtle: rgba(120, 120, 160, 0.12);
+      --border-input: #E5E7EB;
+      --color-expense: #EF4444;
+      --color-income: #10B981;
+      --expense-active-bg: #FEE2E2;
+      --btn-cancel-bg: #F3F4F8;
+      --btn-cancel-text: #475569;
+      --sticky-bar-bg: rgba(255, 255, 255, 0.94);
+      --shadow-modal: 0 20px 40px rgba(0, 0, 0, 0.05), 0 0 40px rgba(109, 74, 255, 0.05);
+      --overlay-bg: rgba(255, 255, 255, 0.1);
+    }
+
+    body.theme-dark {
+      --bg-app: #080D1C;
+      --bg-modal: #151B2D;
+      --bg-modal-grad: #151B2D;
+      --bg-input: #1C2538;
+      --bg-expense-input: #1D2336;
+      --bg-category: #1C2538;
+      --text-main: #F8FAFC;
+      --text-muted: #94A3B8;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-input: rgba(255, 255, 255, 0.08);
+      --color-expense: #F0525D;
+      --color-income: #22C55E;
+      --expense-active-bg: #451A1F;
+      --btn-cancel-bg: #1C2538;
+      --btn-cancel-text: #94A3B8;
+      --sticky-bar-bg: rgba(21, 27, 45, 0.96);
+      --shadow-modal: 0 24px 48px rgba(0, 0, 0, 0.4), 0 0 40px rgba(109, 74, 255, 0.05);
+      --overlay-bg: rgba(8, 13, 28, 0.4);
+    }
+
+    .app-wrapper {
+      width: 100%; height: 100%; position: relative; background: var(--bg-app);
+      display: flex; flex-direction: column;
+    }
+
+    /* BACKGROUND DASHBOARD */
+    .dashboard-bg {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex;
+    }
+    
+    .sidebar { display: none; }
+    
+    .brand-box {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 40px;
+    }
+    .brand-box .logo {
+      width: 40px; height: 40px; background: var(--primary); border-radius: 12px;
+      display: flex; align-items: center; justify-content: center; color: #fff;
+    }
+    .brand-box h1 { font-size: 22px; font-weight: 800; margin: 0; color: var(--text-main); line-height: 1.2; }
+    .brand-box p { font-size: 12px; color: var(--text-muted); margin: 0; }
+    
+    .side-nav { display: flex; flex-direction: column; gap: 8px; }
+    .side-nav a {
+      display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px;
+      text-decoration: none; color: var(--text-muted); font-size: 15px; font-weight: 500; transition: 0.2s;
+    }
+    .side-nav a.active { background: rgba(109, 74, 255, 0.1); color: var(--primary); font-weight: 600; }
+    
+    .main-content { flex: 1; background: var(--bg-app); display: flex; flex-direction: column; }
+    .top-header {
+      height: 64px; padding: 0 16px; background: var(--bg-modal); border-bottom: 1px solid var(--border-subtle);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    
+    .search-bar { display: none; }
+    .search-bar input { border: none; background: none; outline: none; color: var(--text-main); width: 100%; font-family: inherit; }
+    
+    .header-actions { display: flex; align-items: center; gap: 16px; color: var(--text-muted); }
+    .date-selector { display: flex; align-items: center; gap: 8px; font-weight: 500; }
+    .icon-btn { cursor: pointer; transition: 0.2s; }
+    .icon-btn:hover { color: var(--text-main); }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--primary); }
+    
+    .content-body { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+    .stats-row { display: flex; flex-direction: column; gap: 16px; }
+    .stat-card { flex: 1; height: 100px; background: var(--bg-modal); border-radius: 16px; border: 1px solid var(--border-subtle); }
+    .chart-area { height: 300px; background: var(--bg-modal); border-radius: 16px; border: 1px solid var(--border-subtle); }
+
+    /* MODAL OVERLAY */
+    .modal-overlay {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: var(--overlay-bg); backdrop-filter: blur(8px) brightness(0.85); -webkit-backdrop-filter: blur(8px) brightness(0.85);
+      z-index: 10; display: flex; align-items: flex-end; /* Mobile default */
+    }
+
+    /* MODAL CONTAINER */
+    .transaction-modal {
+      background: var(--bg-modal-grad); border: 1px solid var(--border-subtle);
+      position: relative; display: flex; flex-direction: column;
+      width: 100%; height: 92%; border-radius: 24px 24px 0 0; overflow: hidden; /* Mobile default */
+    }
+
+    /* MOBILE DRAG HANDLE */
+    .drag-handle {
+      display: block; width: 36px; height: 4px; border-radius: 999px;
+      background: #D1D5DB; position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+    }
+    body.theme-dark .drag-handle { background: #475569; }
+
+    /* MODAL HEADER */
+    .modal-header { padding: 32px 16px 24px 16px; display: flex; align-items: center; position: relative; }
+    .header-icon-box {
+      width: 48px; height: 48px; border-radius: 12px; background: var(--expense-active-bg);
+      color: var(--color-expense); display: flex; align-items: center; justify-content: center; margin-right: 16px;
+    }
+    .header-text h2 { font-size: 18px; font-weight: 700; margin: 0; color: var(--text-main); }
+    .header-text p { font-size: 12px; color: var(--text-muted); margin: 4px 0 0 0; }
+    .close-btn {
+      position: absolute; top: 28px; right: 16px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border-subtle);
+      background: transparent; display: flex; align-items: center; justify-content: center; color: var(--text-muted); cursor: pointer; transition: 0.2s;
+    }
+    .close-btn:hover { background: rgba(120,120,120,0.1); }
+
+    /* MODAL BODY */
+    .modal-body { flex: 1; overflow-y: auto; padding: 0 16px 24px; display: flex; flex-direction: column; gap: 16px; }
+
+    /* SEGMENT TOGGLE */
+    .segment-toggle { display: flex; height: 52px; background: var(--bg-input); border-radius: 14px; border: 1px solid var(--border-input); padding: 4px; gap: 4px; }
+    .segment {
+      flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 15px;
+      border-radius: 10px; cursor: pointer; color: var(--text-muted); border: 1.5px solid transparent; transition: all 0.2s;
+    }
+    .segment.expense.active { background: var(--expense-active-bg); border-color: var(--color-expense); color: var(--color-expense); }
+
+    /* FORM GROUPS */
+    .form-group { display: flex; flex-direction: column; gap: 8px; }
+    .label-row { display: flex; justify-content: space-between; align-items: center; }
+    label { font-size: 13px; font-weight: 600; color: var(--text-main); }
+    .currency-hint, .view-all { font-size: 13px; color: var(--text-muted); text-decoration: none; }
+    .view-all { color: var(--primary); font-weight: 500; }
+
+    /* AMOUNT FIELD */
+    .amount-input-box {
+      height: 72px; background: var(--bg-expense-input); border: 1.5px solid var(--color-expense); border-radius: 14px; display: flex; align-items: center; padding: 0 16px; transition: all 0.2s;
+    }
+    .amount-input-box:hover { box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1); }
+    body.theme-dark .amount-input-box:hover { box-shadow: 0 4px 12px rgba(240, 82, 93, 0.15); }
+
+    .currency-symbol { font-size: 32px; font-weight: 800; color: var(--color-expense); margin-right: 12px; }
+    .amount-input { flex: 1; background: transparent; border: none; font-size: 32px; font-weight: 800; color: var(--text-main); outline: none; font-family: inherit; width: 100%; }
+
+    /* CATEGORIES - MOBILE DEFAULT */
+    .category-grid {
+      display: flex; overflow-x: auto; gap: 12px; scroll-snap-type: x mandatory; scroll-padding-left: 16px; margin: 0 -16px; padding: 0 16px 8px 16px;
+    }
+    .category-grid::-webkit-scrollbar { display: none; }
+    .category-card {
+      flex: 0 0 84px; scroll-snap-align: start; height: 48px; border-radius: 12px; border: 1px solid var(--border-input); background: var(--bg-category);
+      display: flex; align-items: center; padding: 0 12px; gap: 8px; cursor: pointer; transition: all 0.2s;
+    }
+    .category-card:not(.active):hover { background: rgba(120, 120, 160, 0.05); }
+    body.theme-dark .category-card:not(.active):hover { background: rgba(255, 255, 255, 0.05); }
+
+    .category-card.active { background: var(--expense-active-bg); border: 1px solid var(--color-expense); color: var(--color-expense); }
+    .category-card.active .cat-icon { color: var(--color-expense) !important; }
+    .category-card .cat-icon { width: 18px; height: 18px; }
+    .category-card span { font-size: 13px; font-weight: 500; white-space: nowrap; }
+
+    .cat-food .cat-icon { color: #EF4444; } .cat-shopping .cat-icon { color: #16B981; } .cat-transport .cat-icon { color: #3B82F6; } .cat-bill .cat-icon { color: #06B6D4; } .cat-medical .cat-icon { color: #0D9488; } .cat-edu .cat-icon { color: #8B5CF6; } .cat-market .cat-icon { color: #F59E0B; } .cat-other .cat-icon { color: #64748B; }
+
+    /* INPUT BOXES */
+    .select-box, .input-box {
+      height: 52px; border: 1px solid var(--border-input); border-radius: 12px; background: var(--bg-input); display: flex; align-items: center; padding: 0 16px; gap: 12px; cursor: pointer;
+    }
+    .select-box { justify-content: space-between; }
+    .select-value { display: flex; align-items: center; gap: 12px; font-size: 15px; font-weight: 500; color: var(--text-main); }
+    .input-box input { flex: 1; background: transparent; border: none; font-size: 15px; font-weight: 500; color: var(--text-main); outline: none; font-family: inherit; }
+    .input-box input::placeholder { color: var(--text-muted); }
+
+    /* DATE / TIME ROW */
+    .row-2 { display: flex; gap: 8px; }
+    .row-2 .form-group { flex: 1; }
+    .ampm-toggle { display: flex; background: var(--bg-app); border-radius: 8px; padding: 2px; gap: 2px; }
+    .ampm-toggle span { padding: 4px 8px; font-size: 12px; font-weight: 600; border-radius: 6px; color: var(--text-muted); cursor: pointer; }
+    .ampm-toggle span.active { background: var(--primary); color: #fff; }
+
+    /* FOOTER ACTIONS - MOBILE DEFAULT */
+    .modal-footer {
+      flex-shrink: 0; background: var(--sticky-bar-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid var(--border-subtle);
+      padding: 16px; padding-bottom: max(16px, env(safe-area-inset-bottom)); display: flex; gap: 12px;
+    }
+    .btn-cancel {
+      width: 33%; height: 52px; border-radius: 14px; border: none; background: var(--btn-cancel-bg); color: var(--btn-cancel-text); font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;
+    }
+    .btn-submit {
+      width: 67%; height: 52px; border-radius: 14px; border: none; background: #EF5261; color: #fff; font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; box-shadow: 0 4px 12px rgba(239, 82, 97, 0.25); transition: all 0.2s;
+    }
+    body.theme-dark .btn-submit { background: var(--color-expense); box-shadow: 0 4px 12px rgba(240, 82, 93, 0.3); }
+    .btn-submit:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(239, 82, 97, 0.35); }
+
+    /* =========================================
+       DESKTOP RESPONSIVE BREAKPOINT (> 768px)
+       ========================================= */
+    @media (min-width: 768px) {
+      .sidebar {
+        width: 260px; background: var(--bg-modal); border-right: 1px solid var(--border-subtle); padding: 24px; display: flex; flex-direction: column;
+      }
+      .top-header { height: 80px; padding: 0 32px; }
+      .search-bar {
+        display: flex; align-items: center; gap: 12px; background: var(--bg-app); padding: 0 16px; height: 48px; border-radius: 12px; width: 300px; color: var(--text-muted);
+      }
+      .content-body { padding: 32px; gap: 24px; }
+      .stats-row { flex-direction: row; gap: 24px; }
+      
+      .modal-overlay { align-items: center; justify-content: center; }
+      .transaction-modal { width: 800px; max-width: 90vw; height: auto; border-radius: 22px; box-shadow: var(--shadow-modal); overflow: visible; }
+      .drag-handle { display: none; }
+      .modal-header { padding: 24px; }
+      .header-text h2 { font-size: 20px; }
+      .close-btn { top: 24px; right: 24px; }
+      
+      .modal-body { padding: 0 24px 24px; gap: 24px; overflow: visible; }
+      .segment-toggle { height: 56px; }
+      .amount-input-box { height: 76px; padding: 0 20px; }
+      .amount-input { font-size: 36px; }
+      
+      .category-grid {
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; overflow-x: visible; scroll-snap-type: none; margin: 0; padding: 0;
+      }
+      .category-card { flex: auto; }
+      
+      .row-2 { gap: 12px; }
+      
+      .modal-footer {
+        padding: 0 24px 24px; background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; border-top: none; gap: 16px;
+      }
+      .btn-cancel, .btn-submit { height: 56px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-wrapper">
+    <!-- DASHBOARD BACKGROUND -->
+    <div class="dashboard-bg">
+      <div class="sidebar">
+        <div class="brand-box">
+           <div class="logo"><i data-lucide="banknote"></i></div>
+           <div>
+             <h1>জমাখরচ</h1>
+             <p>আয় বুঝে ব্যয়</p>
+           </div>
+        </div>
+        <nav class="side-nav">
+          <a href="#"><i data-lucide="layout-dashboard"></i> ড্যাশবোর্ড</a>
+          <a href="#" class="active"><i data-lucide="list"></i> লেনদেন</a>
+          <a href="#"><i data-lucide="arrow-down-circle"></i> খরচ যোগ করুন</a>
+          <a href="#"><i data-lucide="arrow-up-circle"></i> আয় যোগ করুন</a>
+          <a href="#"><i data-lucide="tags"></i> ক্যাটাগরি</a>
+          <a href="#"><i data-lucide="landmark"></i> অ্যাকাউন্ট</a>
+          <a href="#"><i data-lucide="pie-chart"></i> বাজেট</a>
+          <a href="#"><i data-lucide="bar-chart-2"></i> রিপোর্ট</a>
+          <a href="#"><i data-lucide="calculator"></i> হিসাব ক্যালকুলেটর</a>
+          <a href="#"><i data-lucide="target"></i> লক্ষ্য ও সঞ্চয়</a>
+          <a href="#"><i data-lucide="settings"></i> সেটিংস</a>
+        </nav>
+      </div>
+      <div class="main-content">
+        <header class="top-header">
+          <div class="search-bar">
+             <i data-lucide="search"></i>
+             <input type="text" placeholder="সার্চ করুন...">
+          </div>
+          <div class="header-actions">
+             <div class="date-selector"><i data-lucide="calendar"></i> মার্চ ২০২৬</div>
+             <i data-lucide="bell" class="icon-btn"></i>
+             
+             <!-- THEME TOGGLE -->
+             <div id="theme-toggle" style="cursor:pointer;" title="Toggle Theme">
+                <i data-lucide="moon" class="icon-moon icon-btn"></i>
+                <i data-lucide="sun" class="icon-sun icon-btn" style="display:none;"></i>
+             </div>
+             
+             <div class="avatar"></div>
+          </div>
+        </header>
+        <div class="content-body">
+          <div class="stats-row">
+            <div class="stat-card"></div>
+            <div class="stat-card"></div>
+            <div class="stat-card"></div>
+          </div>
+          <div class="chart-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL OVERLAY -->
+    <div class="modal-overlay">
+      <div class="transaction-modal">
+        <div class="drag-handle"></div>
+        
+        <header class="modal-header">
+          <div class="header-icon-box">
+            <i data-lucide="trending-down"></i>
+          </div>
+          <div class="header-text">
+            <h2>নতুন লেনদেন</h2>
+            <p>দ্রুত আয় বা খরচ যোগ করুন</p>
+          </div>
+          <button class="close-btn"><i data-lucide="x"></i></button>
+        </header>
+
+        <div class="modal-body">
+          
+          <div class="segment-toggle">
+            <div class="segment income">
+              <i data-lucide="trending-up"></i> আয়
+            </div>
+            <div class="segment expense active">
+              <i data-lucide="trending-down"></i> খরচ
+            </div>
+          </div>
+
+          <div class="form-group amount-group">
+            <div class="label-row">
+              <label>পরিমাণ</label>
+              <span class="currency-hint">BDT</span>
+            </div>
+            <div class="amount-input-box">
+              <span class="currency-symbol">৳</span>
+              <input type="text" class="amount-input" value="১,২০০" readonly>
+              <i data-lucide="calculator" class="calc-icon"></i>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="label-row">
+              <label>ক্যাটাগরি</label>
+              <a href="#" class="view-all">সব দেখুন &rarr;</a>
+            </div>
+            <div class="category-grid">
+              <div class="category-card active cat-food">
+                <i data-lucide="utensils" class="cat-icon"></i>
+                <span>খাবার</span>
+              </div>
+              <div class="category-card cat-shopping">
+                <i data-lucide="shopping-cart" class="cat-icon"></i>
+                <span>শপিং</span>
+              </div>
+              <div class="category-card cat-transport">
+                <i data-lucide="car" class="cat-icon"></i>
+                <span>যাতায়াত</span>
+              </div>
+              <div class="category-card cat-bill">
+                <i data-lucide="file-text" class="cat-icon"></i>
+                <span>বিল</span>
+              </div>
+              <div class="category-card cat-medical">
+                <i data-lucide="stethoscope" class="cat-icon"></i>
+                <span>চিকিৎসা</span>
+              </div>
+              <div class="category-card cat-edu">
+                <i data-lucide="graduation-cap" class="cat-icon"></i>
+                <span>শিক্ষা</span>
+              </div>
+              <div class="category-card cat-market">
+                <i data-lucide="shopping-bag" class="cat-icon"></i>
+                <span>বাজার</span>
+              </div>
+              <div class="category-card cat-other">
+                <i data-lucide="more-horizontal" class="cat-icon"></i>
+                <span>অন্যান্য</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>অ্যাকাউন্ট</label>
+            <div class="select-box">
+               <div class="select-value">
+                  <i data-lucide="banknote"></i> নগদ
+               </div>
+               <i data-lucide="chevron-down"></i>
+            </div>
+          </div>
+
+          <div class="row-2">
+            <div class="form-group">
+              <label>তারিখ</label>
+              <div class="input-box">
+                 <i data-lucide="calendar"></i>
+                 <input type="text" value="10/03/2026" readonly>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>সময়</label>
+              <div class="input-box time-box">
+                 <i data-lucide="clock"></i>
+                 <input type="text" value="6:48" readonly>
+                 <div class="ampm-toggle">
+                   <span class="active">AM</span>
+                   <span>PM</span>
+                 </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>নোট</label>
+            <div class="input-box note-box">
+               <i data-lucide="file-text"></i>
+               <input type="text" placeholder="কীসের জন্য খরচটি করা হলো...">
+            </div>
+          </div>
+          
+        </div> 
+        
+        <div class="modal-footer">
+          <button class="btn-cancel"><i data-lucide="x"></i> বাতিল</button>
+          <button class="btn-submit"><i data-lucide="check"></i> খরচ যোগ করুন</button>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    // Theme Toggle Logic
+    const themeToggle = document.getElementById('theme-toggle');
+    const moonIcon = document.querySelector('.icon-moon');
+    const sunIcon = document.querySelector('.icon-sun');
+
+    themeToggle.addEventListener('click', () => {
+      const isDark = document.body.classList.toggle('theme-dark');
+      if (isDark) {
+        moonIcon.style.display = 'none';
+        sunIcon.style.display = 'block';
+      } else {
+        moonIcon.style.display = 'block';
+        sunIcon.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>
