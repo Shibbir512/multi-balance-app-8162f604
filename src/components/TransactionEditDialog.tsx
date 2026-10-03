@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { collection, query, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc, orderBy, where, serverTimestamp } from "firebase/firestore";
 import { db } from "@/integrations/firebase/client";
@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BottomSheet, BottomSheetContent } from "@/components/ui/bottom-sheet";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { TrendingUp, TrendingDown, Trash2, Plus, X, Calendar, Clock, Wallet, Tag, FileText, Check, Pencil, ChevronDown } from "lucide-react";
+import { TrendingUp, TrendingDown, Trash2, Plus, X, Calendar, Clock, Wallet, Tag, FileText, Check, Pencil, ChevronDown, Calculator } from "lucide-react";
 import CalculatorInput from "./CalculatorInput";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { getCategoryConfig } from "@/lib/categoryColors";
 
 interface Transaction {
   id: string;
@@ -102,7 +103,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
       setCategoryId(data.id);
       setNewCategoryName("");
       setShowNewCategory(false);
-      toast.success("ক্যাটাগরি যোগ হয়েছে!");
+      toast.success("à¦•à§چà¦¯à¦¾à¦ںà¦¾à¦—à¦°à¦؟ à¦¯à§‹à¦— à¦¹à¦¯à¦¼à§‡à¦›à§‡!");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -115,7 +116,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
       queryClient.invalidateQueries({ queryKey: ["categories", ledgerId] });
       setEditCategoryId(null);
       setEditCategoryName("");
-      toast.success("ক্যাটাগরি আপডেট হয়েছে!");
+      toast.success("à¦•à§چà¦¯à¦¾à¦ںà¦¾à¦—à¦°à¦؟ à¦†à¦ھà¦،à§‡à¦ں à¦¹à¦¯à¦¼à§‡à¦›à§‡!");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -127,7 +128,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories", ledgerId] });
       if (categoryId === editCategoryId) setCategoryId("");
-      toast.success("ক্যাটাগরি মুছে ফেলা হয়েছে!");
+      toast.success("à¦•à§چà¦¯à¦¾à¦ںà¦¾à¦—à¦°à¦؟ à¦®à§پà¦›à§‡ à¦«à§‡à¦²à¦¾ à¦¹à¦¯à¦¼à§‡à¦›à§‡!");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -150,7 +151,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
       queryClient.invalidateQueries({ queryKey: ["transactions", ledgerId] });
       queryClient.invalidateQueries({ queryKey: ["ledger-balances"] });
       onOpenChange(false);
-      toast.success("লেনদেন আপডেট হয়েছে!");
+      toast.success("à¦²à§‡à¦¨à¦¦à§‡à¦¨ à¦†à¦ھà¦،à§‡à¦ں à¦¹à¦¯à¦¼à§‡à¦›à§‡!");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -165,7 +166,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
       queryClient.invalidateQueries({ queryKey: ["transactions", ledgerId] });
       queryClient.invalidateQueries({ queryKey: ["ledger-balances"] });
       onOpenChange(false);
-      toast.success("লেনদেন মুছে ফেলা হয়েছে!");
+      toast.success("à¦²à§‡à¦¨à¦¦à§‡à¦¨ à¦®à§پà¦›à§‡ à¦«à§‡à¦²à¦¾ à¦¹à¦¯à¦¼à§‡à¦›à§‡!");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -175,501 +176,210 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
   return (
     <>
       <BottomSheet open={open} onOpenChange={onOpenChange}>
-        <BottomSheetContent className="p-0 rounded-t-[28px] overflow-hidden">
-          {/* Premium Header with accent gradient */}
-          <div className="relative px-5 pt-3 pb-4 overflow-hidden">
-            {/* Soft accent halo */}
-            <div
-              className="absolute -top-20 -right-16 w-56 h-56 rounded-full opacity-40 blur-3xl pointer-events-none"
-              style={{ background: accentBg }}
-            />
-            <div
-              className="absolute -top-10 -left-10 w-32 h-32 rounded-full opacity-20 blur-2xl pointer-events-none"
-              style={{ background: 'hsl(var(--primary))' }}
-            />
-
-            <div className="relative flex justify-center mb-3">
-              <div className="w-10 h-1 rounded-full bg-muted-foreground/25" />
+        <BottomSheetContent className="p-0 rounded-t-[28px] sm:rounded-[24px] overflow-hidden sm:bottom-auto sm:top-[50%] sm:left-[50%] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:inset-x-auto sm:w-full sm:max-w-[500px] border border-border/10 sm:bg-background/95 sm:backdrop-blur-xl">
+          
+          {/* Header */}
+          <div className="flex items-center p-5 lg:p-6 pb-4 relative">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center mr-4 ${isIncome ? 'bg-[#DCFCE7] text-[#22C55E] dark:bg-[#22C55E]/10' : 'bg-[#FEE2E2] text-[#EF4444] dark:bg-[#EF4444]/10'}`}>
+              {isIncome ? <TrendingUp className="w-6 h-6" strokeWidth={2.5} /> : <TrendingDown className="w-6 h-6" strokeWidth={2.5} />}
             </div>
-
-            <div className="relative flex items-center gap-3">
-              <div
-                className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ring-1 ring-white/10"
-                style={{
-                  background: accentBg,
-                  boxShadow: `0 8px 24px -8px ${accentSoft}, inset 0 1px 0 rgba(255,255,255,0.08)`,
-                }}
-              >
-                {isIncome ? (
-                  <TrendingUp className="w-5 h-5" style={{ color: accentSoft }} strokeWidth={2.5} />
-                ) : (
-                  <TrendingDown className="w-5 h-5" style={{ color: accentSoft }} strokeWidth={2.5} />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <h2 className="text-base font-bold tracking-tight" style={{ color: accentSoft }}>
-                  {isIncome ? "জমা সম্পাদনা" : "খরচ সম্পাদনা"}
-                </h2>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
-                  {isIncome ? "জমার তথ্য পরিবর্তন করুন" : "খরচের তথ্য পরিবর্তন করুন"}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => onOpenChange(false)}
-                className="w-8 h-8 rounded-full flex items-center justify-center bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Close"
-              >
-                <X className="w-4 h-4" />
-              </button>
+            <div>
+              <h2 className="text-[18px] lg:text-[20px] font-bold text-foreground">নতুন লেনদেন</h2>
+              <p className="text-[12px] text-muted-foreground mt-0.5">দ্রুত আয় বা খরচ যোগ করুন</p>
             </div>
+            <button
+              onClick={() => onOpenChange(false)}
+              className="absolute top-5 right-5 lg:top-6 lg:right-6 w-9 h-9 lg:w-10 lg:h-10 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:bg-muted/50 transition-colors"
+            >
+              <X className="w-4 h-4 lg:w-5 lg:h-5" />
+            </button>
           </div>
 
           {/* Form */}
           <form
             onSubmit={(e) => { e.preventDefault(); updateMutation.mutate(); }}
-            className="px-4 pb-5 space-y-3.5 max-h-[70vh] overflow-y-auto"
+            className="px-5 lg:px-6 pb-5 lg:pb-6 space-y-5 lg:space-y-6 max-h-[75vh] overflow-y-auto"
           >
-            {/* Type Toggle */}
-            <div className="flex p-1 bg-muted/50 rounded-xl mb-1 border border-border/40">
-              <button
-                type="button"
-                onClick={() => { setTxType("expense"); setCategoryId(""); }}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${
-                  !isIncome
-                    ? "bg-background text-foreground shadow-sm ring-1 ring-border/50"
-                    : "text-muted-foreground hover:text-foreground hover:bg-background/50"
-                }`}
-              >
-                <TrendingDown className="w-3.5 h-3.5" style={{ color: !isIncome ? 'var(--expense-text-soft)' : undefined }} />
-                খরচ
-              </button>
+            {/* Segment Toggle */}
+            <div className="flex h-[52px] lg:h-[56px] bg-muted/40 border border-border rounded-xl lg:rounded-2xl p-1 gap-1">
               <button
                 type="button"
                 onClick={() => { setTxType("income"); setCategoryId(""); }}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${
+                className={`flex-1 flex items-center justify-center gap-2 rounded-[10px] text-[15px] font-semibold transition-all ${
                   isIncome
-                    ? "bg-background text-foreground shadow-sm ring-1 ring-border/50"
-                    : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                    ? "bg-[#DCFCE7] text-[#16B981] border border-[#22C55E]/30 dark:bg-[#16B981]/20 dark:text-[#4ADE80] dark:border-[#4ADE80]/30 shadow-sm"
+                    : "text-muted-foreground hover:bg-muted/50 border border-transparent"
                 }`}
               >
-                <TrendingUp className="w-3.5 h-3.5" style={{ color: isIncome ? 'var(--income-text-soft)' : undefined }} />
-                জমা
+                <TrendingUp className="w-4 h-4" /> আয়
+              </button>
+              <button
+                type="button"
+                onClick={() => { setTxType("expense"); setCategoryId(""); }}
+                className={`flex-1 flex items-center justify-center gap-2 rounded-[10px] text-[15px] font-semibold transition-all ${
+                  !isIncome
+                    ? "bg-[#FEE2E2] text-[#EF4444] border border-[#EF4444]/30 dark:bg-[#EF4444]/20 dark:text-[#F87171] dark:border-[#F87171]/30 shadow-sm"
+                    : "text-muted-foreground hover:bg-muted/50 border border-transparent"
+                }`}
+              >
+                <TrendingDown className="w-4 h-4" /> খরচ
               </button>
             </div>
 
-            {/* Premium Amount Card */}
-            <div
-              className="relative rounded-2xl px-3 py-2.5"
-              style={{
-                background: 'hsl(var(--card))',
-                border: '1px solid var(--glass-border)',
-                boxShadow: 'var(--shadow-card)',
-              }}
-            >
-              <div className="relative flex items-baseline justify-between mb-0.5">
-                <label className="text-[10px] font-bold text-muted-foreground/80 uppercase tracking-[0.14em]">
-                  পরিমাণ
-                </label>
-                <span className="text-[10px] font-semibold text-muted-foreground/60">৳ BDT</span>
+            {/* Amount */}
+            <div className="space-y-1.5">
+              <div className="flex justify-between items-center">
+                <label className="text-[13px] font-semibold text-foreground">পরিমাণ</label>
+                <span className="text-[13px] text-muted-foreground">BDT</span>
               </div>
-              <div 
-                className="relative flex items-center gap-2 bg-background/80 dark:bg-[#1E293B] p-3 rounded-xl border-[2px] dark:border-[rgba(255,255,255,0.06)] shadow-inner mt-2 transition-colors duration-200"
-                style={{ borderColor: accentSoft }}
-              >
-                <span
-                  className="text-3xl font-bold leading-none"
-                  style={{ color: accentSoft }}
-                >৳</span>
+              <div className={`h-[72px] lg:h-[76px] flex items-center px-4 lg:px-5 border-2 rounded-xl lg:rounded-2xl transition-all ${
+                isIncome ? 'bg-green-50/50 border-green-500/30 dark:bg-[#1C2538] dark:border-green-500/20' : 'bg-[#FFF7F7] border-[#EF4444] dark:bg-[#1C2538] dark:border-[#EF4444]/40'
+              }`}>
+                <span className={`text-[32px] lg:text-[36px] font-extrabold mr-3 ${isIncome ? 'text-[#10B981]' : 'text-[#EF4444]'}`}>৳</span>
                 <CalculatorInput
                   value={amount}
                   onChange={setAmount}
                   required
-                  className="border-0 bg-transparent text-3xl font-bold h-10 px-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/30 tracking-tight"
+                  className="flex-1 bg-transparent border-none text-[32px] lg:text-[36px] font-extrabold text-foreground focus-visible:ring-0 focus-visible:ring-offset-0 p-0 shadow-none placeholder:text-muted-foreground/30 h-auto"
                 />
+                <button type="button" className="text-muted-foreground">
+                  <Calculator className="w-5 h-5" />
+                </button>
               </div>
-              <p className="text-[10px] text-muted-foreground/80 mt-1">
-                ১০০০+১০% = ১১০০ এভাবেও লেখা যাবে
-              </p>
-              {amount && parseFloat(amount) > 0 && (
-                <div className="relative mt-2 pt-2 border-t border-border/40 flex items-center justify-between">
-                  <span className="text-[10px] text-muted-foreground/70 uppercase tracking-wider font-semibold">
-                    মোট পরিমাণ
-                  </span>
-                  <span className="text-xs font-bold" style={{ color: accentSoft }}>
-                    ৳{parseFloat(amount).toLocaleString("bn-BD")}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Note Card */}
-            <div
-              className="relative rounded-2xl px-3 py-2.5 mb-2"
-              style={{
-                background: 'hsl(var(--card))',
-                border: '1px solid var(--glass-border)',
-                boxShadow: 'var(--shadow-card)',
-              }}
-            >
-              <div className="relative flex items-center gap-1.5 mb-2">
-                <FileText className="w-3 h-3" style={{ color: accentSoft }} strokeWidth={2.5} />
-                <label className="text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: accentSoft }}>
-                  নোট
-                </label>
-              </div>
-              <textarea
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="কিসের জন্য? (ঐচ্ছিক)"
-                rows={2}
-                className="w-full rounded-xl border dark:border-[rgba(255,255,255,0.06)] bg-background/80 dark:bg-[#1E293B] text-foreground dark:text-[#F8FAFC] p-2.5 text-xs shadow-inner resize-none focus:outline-none focus:ring-1 transition-all duration-200 placeholder:text-muted-foreground/40 min-h-[60px]"
-                style={{
-                  borderColor: accentSoft,
-                }}
-              />
             </div>
 
             {/* Category */}
-            <div>
-              <div className="flex items-center gap-1.5 mb-2 px-0.5 cursor-pointer select-none" onClick={() => setIsCategoryExpanded(!isCategoryExpanded)}>
-                <Tag className="w-3 h-3 text-muted-foreground/70" strokeWidth={2.5} />
-                <span className="text-[10px] font-bold text-muted-foreground/80 uppercase tracking-[0.12em]">ক্যাটাগরি</span>
-                <div className="flex-1 h-px bg-gradient-to-r from-border/60 to-transparent ml-1" />
-                <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isCategoryExpanded ? "rotate-180" : ""}`} />
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <label className="text-[13px] font-semibold text-foreground">ক্যাটাগরি</label>
+                <button type="button" className="text-[13px] font-medium text-primary hover:underline">সব দেখুন &rarr;</button>
               </div>
-              {!isCategoryExpanded ? (
-                <div 
-                  onClick={() => setIsCategoryExpanded(true)}
-                  className="flex items-center justify-between p-3 rounded-xl border border-border/60 bg-card/50 cursor-pointer hover:bg-card hover:border-primary/30 transition-all shadow-sm"
-                >
-                  <span className="text-sm font-semibold text-foreground">
-                    {categoryId ? filteredCategories.find(c => c.id === categoryId)?.name || "ক্যাটাগরি নির্বাচন করুন" : "ক্যাটাগরি নির্বাচন করুন"}
-                  </span>
-                </div>
-              ) : (
-                <>
-                  {showNewCategory ? (
-                    <div className="flex gap-1.5">
-                      <Input
-                        value={newCategoryName}
-                        onChange={(e) => setNewCategoryName(e.target.value)}
-                        placeholder="ক্যাটাগরি নাম"
-                        className="form-input flex-1 h-9 text-xs rounded-xl"
-                        autoFocus
-                      />
-                      <Button
-                        type="button"
-                        size="icon"
-                        className="h-9 w-9 shrink-0 rounded-xl btn-primary"
-                        disabled={!newCategoryName.trim() || addCategory.isPending}
-                        onClick={() => { addCategory.mutate(); setIsCategoryExpanded(false); }}
-                      >
-                        <Check className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        className="h-9 w-9 shrink-0 rounded-xl"
-                        onClick={() => { setShowNewCategory(false); setNewCategoryName(""); }}
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex flex-wrap gap-1">
-                      {filteredCategories.map((c) => {
-                        const selected = categoryId === c.id;
-                        if (editCategoryId === c.id) {
-                          return (
-                            <div key={c.id} className="flex gap-1.5 w-full mt-1 mb-1">
-                              <Input
-                                value={editCategoryName}
-                                onChange={(e) => setEditCategoryName(e.target.value)}
-                                className="form-input flex-1 h-8 text-[11px] rounded-xl"
-                                autoFocus
-                              />
-                              <Button
-                                type="button"
-                                size="icon"
-                                className="h-8 w-8 shrink-0 rounded-xl btn-primary"
-                                disabled={!editCategoryName.trim() || updateCategory.isPending}
-                                onClick={() => updateCategory.mutate({ id: c.id, name: editCategoryName.trim() })}
-                              >
-                                <Check className="w-3.5 h-3.5" />
-                              </Button>
-                              <Button
-                                type="button"
-                                size="icon"
-                                variant="ghost"
-                                className="h-8 w-8 shrink-0 rounded-xl"
-                                onClick={() => { setEditCategoryId(null); setEditCategoryName(""); }}
-                              >
-                                <X className="w-3.5 h-3.5" />
-                              </Button>
-                            </div>
-                          );
-                        }
-                        return (
-                          <div key={c.id} className={`relative flex items-center gap-0.5 px-1 py-1 rounded-full text-[10px] font-semibold transition-all duration-200 border ${
-                            selected
-                              ? "text-foreground shadow-sm pr-1.5"
-                              : "border-border/60 bg-card text-muted-foreground hover:border-primary/40 hover:bg-primary/5 px-2.5"
-                          }`}
-                          style={selected ? {
-                            borderColor: accentSoft,
-                            background: `linear-gradient(135deg, ${accentBg}, hsl(var(--card)))`,
-                            boxShadow: `0 2px 6px -2px ${accentSoft}40`,
-                          } : undefined}>
-                            <button
-                              type="button"
-                              onClick={() => { setCategoryId(c.id); setIsCategoryExpanded(false); }}
-                              className="flex items-center gap-1 outline-none px-1.5"
-                            >
-                              {selected && (
-                                <span
-                                  className="w-1 h-1 rounded-full shrink-0"
-                                  style={{ background: accentSoft }}
-                                />
-                              )}
-                              {c.name}
-                            </button>
-                            {selected && (
-                              <div className="flex items-center gap-0.5 pl-1 ml-0.5 border-l border-foreground/10">
-                                <button
-                                  type="button"
-                                  onClick={(e) => { e.stopPropagation(); setEditCategoryId(c.id); setEditCategoryName(c.name); }}
-                                  className="p-1.5 rounded-full hover:bg-foreground/5 text-muted-foreground hover:text-foreground transition-colors"
-                                >
-                                  <Pencil className="w-3 h-3" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={(e) => { e.stopPropagation(); if(confirm("ক্যাটাগরি মুছবেন?")) deleteCategory.mutate(c.id); }}
-                                  className="p-1.5 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                      <button
-                        type="button"
-                        onClick={() => setShowNewCategory(true)}
-                        className="flex items-center gap-0.5 px-2.5 py-1 rounded-full text-[10px] font-semibold border border-dashed border-primary/40 text-primary hover:bg-primary/5 hover:border-primary/60 transition-all duration-200"
-                      >
-                        <Plus className="w-2.5 h-2.5" strokeWidth={2.5} /> নতুন
-                      </button>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-
-            {/* Account */}
-            <div>
-              <div className="flex items-center gap-1.5 mb-2 px-0.5 cursor-pointer select-none" onClick={() => setIsAccountExpanded(!isAccountExpanded)}>
-                <Wallet className="w-3 h-3 text-muted-foreground/70" strokeWidth={2.5} />
-                <span className="text-[10px] font-bold text-muted-foreground/80 uppercase tracking-[0.12em]">অ্যাকাউন্ট</span>
-                <div className="flex-1 h-px bg-gradient-to-r from-border/60 to-transparent ml-1" />
-                <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isAccountExpanded ? "rotate-180" : ""}`} />
-              </div>
-              {!isAccountExpanded ? (
-                <div 
-                  onClick={() => setIsAccountExpanded(true)}
-                  className="flex items-center justify-between p-3 rounded-xl border border-border/60 bg-card/50 cursor-pointer hover:bg-card hover:border-primary/30 transition-all shadow-sm"
-                >
-                  <span className="text-sm font-semibold text-foreground flex items-center gap-2">
-                    {accountId ? (
-                      <>
-                        <span>{accounts.find(a => a.id === accountId)?.type === "bank" ? "🏦" : accounts.find(a => a.id === accountId)?.type === "mobile_banking" ? "📱" : "💵"}</span>
-                        {accounts.find(a => a.id === accountId)?.name}
-                      </>
-                    ) : "অ্যাকাউন্ট নির্বাচন করুন"}
-                  </span>
-                </div>
-              ) : (
-                <div className="flex flex-wrap gap-1">
-                  {accounts.map((a) => {
-                    const selected = accountId === a.id;
-                    const icon = a.type === "bank" ? "🏦" : a.type === "mobile_banking" ? "📱" : "💵";
-                    return (
-                      <button
-                        key={a.id}
-                        type="button"
-                        onClick={() => { setAccountId(a.id); setIsAccountExpanded(false); }}
-                      className={`relative flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold transition-all duration-200 border ${
-                        selected
-                          ? "text-foreground shadow-sm"
-                          : "border-border/60 bg-card text-muted-foreground hover:border-primary/40 hover:bg-primary/5"
+              
+              <div className="flex overflow-x-auto md:grid md:grid-cols-4 gap-3 no-scrollbar pb-1 -mx-2 px-2 md:mx-0 md:px-0" style={{ scrollSnapType: 'x mandatory' }}>
+                {filteredCategories.slice(0, 8).map((c) => {
+                  const selected = categoryId === c.id;
+                  const config = getCategoryConfig(c.name, txType);
+                  const Icon = config.icon;
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => setCategoryId(c.id)}
+                      style={{ scrollSnapAlign: 'start' }}
+                      className={`flex shrink-0 w-[90px] md:w-auto h-[48px] items-center gap-2 px-3 rounded-[12px] border transition-all ${
+                        selected 
+                          ? (isIncome ? 'bg-[#DCFCE7] border-[#22C55E] text-[#16B981] dark:bg-[#16B981]/10' : 'bg-[#FEE2E2] border-[#EF4444] text-[#EF4444] dark:bg-[#EF4444]/10')
+                          : 'bg-card border-border hover:bg-muted/30 text-foreground'
                       }`}
-                      style={selected ? {
-                        borderColor: accentSoft,
-                        background: `linear-gradient(135deg, ${accentBg}, hsl(var(--card)))`,
-                        boxShadow: `0 2px 6px -2px ${accentSoft}40`,
-                      } : undefined}
                     >
-                      <span className="text-[11px] leading-none">{icon}</span>
-                      <span className="leading-none">{a.name}</span>
-                      {selected && (
-                        <span className="w-1 h-1 rounded-full" style={{ background: accentSoft }} />
-                      )}
+                      <Icon className="w-[18px] h-[18px] shrink-0" style={{ color: selected ? undefined : config.text }} />
+                      <span className="text-[13px] font-medium truncate">{c.name}</span>
                     </button>
                   );
                 })}
               </div>
-            )}
-          </div>
+            </div>
 
-            {/* Date & Time */}
-            <div>
-              <SectionLabel icon={Clock} label="তারিখ ও সময়" />
-              <div className="grid grid-cols-2 gap-1.5">
-                {/* Date */}
-                <div
-                  className="relative flex items-center gap-1.5 rounded-lg border dark:border-[rgba(255,255,255,0.06)] px-2 h-9 transition-all duration-200 hover:border-primary/40 bg-card dark:bg-[#1E293B]"
-                  style={{
-                    borderColor: 'var(--glass-border)',
-                  }}
-                >
-                  <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0 bg-primary/10">
-                    <Calendar className="w-3 h-3 text-primary" strokeWidth={2.5} />
+            {/* Account */}
+            <div className="space-y-1.5">
+              <label className="text-[13px] font-semibold text-foreground">অ্যাকাউন্ট</label>
+              <div 
+                className="h-[52px] border border-border rounded-xl bg-card flex items-center justify-between px-4 cursor-pointer hover:bg-muted/30 transition-colors"
+                onClick={() => setIsAccountExpanded(!isAccountExpanded)}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded bg-[#22C55E]/10 flex items-center justify-center">
+                    <Wallet className="w-3.5 h-3.5 text-[#22C55E]" />
                   </div>
+                  <span className="text-[15px] font-medium text-foreground">
+                    {accountId ? accounts.find(a => a.id === accountId)?.name : "নগদ"}
+                  </span>
+                </div>
+                <ChevronDown className={`w-[18px] h-[18px] text-muted-foreground transition-transform ${isAccountExpanded ? "rotate-180" : ""}`} />
+              </div>
+              {isAccountExpanded && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {accounts.map(a => (
+                    <button key={a.id} type="button" onClick={() => { setAccountId(a.id); setIsAccountExpanded(false); }} className={`px-3 py-1.5 rounded-lg text-sm font-medium border ${accountId === a.id ? 'bg-primary/10 border-primary text-primary' : 'bg-card border-border hover:bg-muted/50 text-muted-foreground'}`}>
+                      {a.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Date & Time Row */}
+            <div className="flex gap-3">
+              <div className="flex-1 space-y-1.5 min-w-0">
+                <label className="text-[13px] font-semibold text-foreground">তারিখ</label>
+                <div className="h-[52px] border border-border rounded-xl bg-card flex items-center px-4 gap-3 hover:bg-muted/30 transition-colors relative">
+                  <Calendar className="w-[18px] h-[18px] text-muted-foreground shrink-0 pointer-events-none" />
                   <input
                     type="date"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
                     required
-                    className="bg-transparent border-0 outline-none text-[11px] font-semibold text-foreground flex-1 w-full min-w-0 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                    className="flex-1 bg-transparent border-none text-[15px] font-medium text-foreground focus:ring-0 p-0 outline-none w-full cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full"
                   />
                 </div>
-
-                {/* Time */}
-                <div
-                  className="relative flex items-center gap-1 rounded-lg border dark:border-[rgba(255,255,255,0.06)] px-2 h-9 bg-card dark:bg-[#1E293B]"
-                  style={{
-                    borderColor: 'var(--glass-border)',
-                  }}
-                >
-                  <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0 bg-primary/10">
-                    <Clock className="w-3 h-3 text-primary" strokeWidth={2.5} />
-                  </div>
-                  {(() => {
-                    const [h24Str = "", mStr = ""] = (time || "").split(":");
-                    const h24 = parseInt(h24Str, 10);
-                    const hasTime = !isNaN(h24);
-                    const period: "AM" | "PM" = hasTime ? (h24 >= 12 ? "PM" : "AM") : "AM";
-                    const h12 = hasTime ? ((h24 % 12) || 12) : NaN;
-                    const setFromParts = (h12New: number, mNew: string, periodNew: "AM" | "PM") => {
-                      let h = h12New % 12;
-                      if (periodNew === "PM") h += 12;
-                      const hh = String(h).padStart(2, "0");
-                      const mm = (mNew || "00").padStart(2, "0");
-                      setTime(`${hh}:${mm}`);
-                    };
-                    return (
-                      <>
-                        <div className="flex items-center">
-                          <input
-                            type="number"
-                            min={1}
-                            max={12}
-                            placeholder="১২"
-                            value={isNaN(h12) ? "" : h12}
-                            onChange={(e) => {
-                              const v = parseInt(e.target.value, 10);
-                              if (isNaN(v)) { setTime(""); return; }
-                              const clamped = Math.min(12, Math.max(1, v));
-                              setFromParts(clamped, mStr || "00", period);
-                            }}
-                            className="bg-transparent border-0 outline-none text-[11px] font-bold text-foreground w-5 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                          />
-                          <span className="text-[11px] font-bold text-muted-foreground/60">:</span>
-                          <input
-                            type="number"
-                            min={0}
-                            max={59}
-                            placeholder="০০"
-                            value={mStr}
-                            onChange={(e) => {
-                              const v = parseInt(e.target.value, 10);
-                              if (isNaN(v)) return;
-                              const clamped = Math.min(59, Math.max(0, v));
-                              setFromParts(isNaN(h12) ? 12 : h12, String(clamped).padStart(2, "0"), period);
-                            }}
-                            className="bg-transparent border-0 outline-none text-[11px] font-bold text-foreground w-5 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                          />
-                        </div>
-                        <div
-                          className="ml-auto flex rounded-md overflow-hidden border shrink-0"
-                          style={{ borderColor: 'var(--glass-border)' }}
-                        >
-                          <button
-                            type="button"
-                            onClick={() => setFromParts(isNaN(h12) ? 12 : h12, mStr || "00", "AM")}
-                            className={`px-1.5 py-0.5 text-[9px] font-bold transition-all ${
-                              period === "AM"
-                                ? "bg-primary text-primary-foreground shadow-sm"
-                                : "bg-transparent text-muted-foreground hover:text-foreground"
-                            }`}
-                          >
-                            AM
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setFromParts(isNaN(h12) ? 12 : h12, mStr || "00", "PM")}
-                            className={`px-1.5 py-0.5 text-[9px] font-bold transition-all ${
-                              period === "PM"
-                                ? "bg-primary text-primary-foreground shadow-sm"
-                                : "bg-transparent text-muted-foreground hover:text-foreground"
-                            }`}
-                          >
-                            PM
-                          </button>
-                        </div>
-                      </>
-                    );
-                  })()}
+              </div>
+              
+              <div className="flex-1 space-y-1.5 min-w-0">
+                <label className="text-[13px] font-semibold text-foreground">সময়</label>
+                <div className="h-[52px] border border-border rounded-xl bg-card flex items-center px-3 gap-2 hover:bg-muted/30 transition-colors">
+                  <Clock className="w-[18px] h-[18px] text-muted-foreground shrink-0" />
+                  <input 
+                    type="time" 
+                    value={time} 
+                    onChange={(e) => setTime(e.target.value)}
+                    className="flex-1 bg-transparent border-none text-[15px] font-medium text-foreground focus:ring-0 p-0 outline-none min-w-0 [&::-webkit-calendar-picker-indicator]:hidden"
+                  />
                 </div>
               </div>
             </div>
 
-
-
-            {/* Action buttons */}
-            <div className="flex gap-2 pt-1">
-              <Button
-                type="submit"
-                className="flex-1 h-12 rounded-2xl text-sm font-bold btn-primary active:scale-[0.97] transition-all duration-200 shadow-lg shadow-primary/20"
-                disabled={updateMutation.isPending}
-              >
-                {updateMutation.isPending ? (
-                  "আপডেট হচ্ছে..."
-                ) : (
-                  <span className="flex items-center justify-center gap-1.5">
-                    <Check className="w-4 h-4" strokeWidth={3} />
-                    আপডেট করুন
-                  </span>
-                )}
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setDeleteOpen(true)}
-                className="h-12 w-12 rounded-2xl border shrink-0 hover:bg-destructive/10 hover:border-destructive/40 transition-all duration-200"
-                style={{ borderColor: 'var(--glass-border)' }}
-                aria-label="মুছে ফেলুন"
-              >
-                <Trash2 className="w-4 h-4 text-destructive" />
-              </Button>
+            {/* Note */}
+            <div className="space-y-1.5">
+              <label className="text-[13px] font-semibold text-foreground">নোট</label>
+              <div className="h-[52px] border border-border rounded-xl bg-card flex items-center px-4 gap-3 hover:bg-muted/30 transition-colors focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20">
+                <FileText className="w-[18px] h-[18px] text-muted-foreground shrink-0" />
+                <input
+                  type="text"
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="কিসের জন্য খরচটি করা হলো..."
+                  className="flex-1 bg-transparent border-none text-[15px] font-medium text-foreground placeholder:text-muted-foreground focus:ring-0 p-0 outline-none"
+                />
+              </div>
             </div>
+            
           </form>
+
+          {/* Footer Actions */}
+          <div className="p-4 lg:p-6 flex gap-3 border-t border-border bg-background/80 backdrop-blur-md sticky bottom-0">
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="w-1/3 lg:w-[140px] h-[52px] lg:h-[56px] rounded-xl lg:rounded-[14px] bg-[#F3F4F8] dark:bg-[#1C2538] text-[#475569] dark:text-[#94A3B8] font-semibold text-[15px] flex items-center justify-center gap-2 hover:bg-[#E5E7EB] dark:hover:bg-[#263449] transition-colors"
+            >
+              <X className="w-[18px] h-[18px]" /> বাতিল
+            </button>
+            <button
+              type="button"
+              onClick={() => updateMutation.mutate()}
+              disabled={updateMutation.isPending}
+              className={`flex-1 h-[52px] lg:h-[56px] rounded-xl lg:rounded-[14px] font-semibold text-[15px] flex items-center justify-center gap-2 text-white transition-all shadow-[0_4px_12px_rgba(0,0,0,0.1)] ${
+                isIncome ? 'bg-[#10B981] hover:bg-[#059669] hover:shadow-[0_6px_16px_rgba(16,185,129,0.3)]' : 'bg-[#EF5261] hover:bg-[#E11D48] hover:shadow-[0_6px_16px_rgba(239,82,97,0.35)] dark:bg-[#EF4444] dark:hover:bg-[#DC2626]'
+              }`}
+            >
+              <Check className="w-[18px] h-[18px]" strokeWidth={3} /> {isIncome ? 'আয় যোগ করুন' : 'খরচ যোগ করুন'}
+            </button>
+          </div>
+
         </BottomSheetContent>
       </BottomSheet>
-
+      
+      {/* Alert Dialog code is kept intact just in case */}
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent className="rounded-2xl bg-popover border-white/10">
           <AlertDialogHeader>
