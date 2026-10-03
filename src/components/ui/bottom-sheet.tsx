@@ -13,7 +13,7 @@ const BottomSheetOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-50 bg-[#080d1c]/45 backdrop-blur-[6px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className,
     )}
     {...props}
@@ -54,11 +54,16 @@ const BottomSheetContent = React.forwardRef<
         ref={ref}
         style={{ ...style, paddingBottom: keyboardHeight > 0 ? keyboardHeight : undefined }}
         className={cn(
-          "fixed inset-x-0 bottom-0 z-50 w-full rounded-t-3xl border-t bg-popover p-5 shadow-xl",
+          "fixed z-50 bg-popover p-5 shadow-xl",
           "data-[state=open]:animate-in data-[state=closed]:animate-out",
           "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-          "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
           "duration-300 ease-out",
+          // Mobile styles (bottom sheet)
+          "inset-x-0 bottom-0 w-full rounded-t-3xl border-t",
+          "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
+          // Desktop styles (centered dialog)
+          "md:inset-auto md:left-[50%] md:top-[50%] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-[24px] md:border",
+          "md:data-[state=closed]:slide-out-to-left-1/2 md:data-[state=closed]:slide-out-to-top-[48%] md:data-[state=open]:slide-in-from-left-1/2 md:data-[state=open]:slide-in-from-top-[48%]",
           "max-h-[90dvh] overflow-y-auto",
           className,
         )}

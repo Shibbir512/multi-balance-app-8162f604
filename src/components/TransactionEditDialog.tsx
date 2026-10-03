@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { collection, query, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc, orderBy, where, serverTimestamp } from "firebase/firestore";
 import { db } from "@/integrations/firebase/client";
@@ -176,7 +176,9 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
   return (
     <>
       <BottomSheet open={open} onOpenChange={onOpenChange}>
-        <BottomSheetContent className="p-0 rounded-t-[28px] sm:rounded-[24px] overflow-hidden sm:bottom-auto sm:top-[50%] sm:left-[50%] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:inset-x-auto sm:w-full sm:max-w-[500px] border border-border/10 sm:bg-background/95 sm:backdrop-blur-xl">
+        <BottomSheetContent className="p-0 overflow-hidden border border-border/10
+          md:w-[800px] md:h-[720px] md:max-h-[calc(100vh-48px)] md:max-w-[calc(100vw-48px)] 
+          md:bg-background/95 md:backdrop-blur-xl">
           
           {/* Header */}
           <div className="flex items-center p-5 lg:p-6 pb-4 relative">
