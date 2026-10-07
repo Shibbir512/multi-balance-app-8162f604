@@ -312,11 +312,11 @@ const LedgerDetailPage = () => {
 
     let filtered = transactions;
     if (statPeriod === "today") {
-      filtered = transactions.filter(t => t.date === todayStr);
+      filtered = filtered.filter(t => t.date === todayStr);
     } else if (statPeriod === "month") {
-      filtered = transactions.filter(t => t.date.startsWith(dashboardMonth));
+      filtered = filtered.filter(t => t.date.startsWith(dashboardMonth));
     } else if (statPeriod === "year") {
-      filtered = transactions.filter(t => t.date.startsWith(yearStr));
+      filtered = filtered.filter(t => t.date.startsWith(yearStr));
     }
 
     // Apply chart category filter
@@ -324,8 +324,27 @@ const LedgerDetailPage = () => {
       filtered = filtered.filter(t => (t.categories as { name: string })?.name === chartCategory);
     }
 
+    // Apply advanced filters
+    if (filterMonth !== "all" || filterYear !== "all") {
+      filtered = filtered.filter((t) => {
+        const [y, m] = t.date.split("-");
+        if (filterMonth !== "all" && m !== filterMonth) return false;
+        if (filterYear !== "all" && y !== filterYear) return false;
+        return true;
+      });
+    }
+    if (filterCategory !== "all") {
+      filtered = filtered.filter(t => (t.categories as { name: string })?.name === filterCategory);
+    }
+    if (filterDateFrom) {
+      filtered = filtered.filter(t => t.date >= filterDateFrom);
+    }
+    if (filterDateTo) {
+      filtered = filtered.filter(t => t.date <= filterDateTo);
+    }
+
     return filtered;
-  }, [transactions, statPeriod, chartCategory, dashboardMonth]);
+  }, [transactions, statPeriod, chartCategory, dashboardMonth, filterMonth, filterYear, filterCategory, filterDateFrom, filterDateTo]);
 
   const totalIncome = periodFilteredTransactions.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
   const totalExpense = periodFilteredTransactions.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
