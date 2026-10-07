@@ -103,7 +103,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
       setCategoryId(data.id);
       setNewCategoryName("");
       setShowNewCategory(false);
-      toast.success("à¦•à§چà¦¯à¦¾à¦ںà¦¾à¦—à¦°à¦؟ à¦¯à§‹à¦— à¦¹à¦¯à¦¼à§‡à¦›à§‡!");
+      toast.success("ক্যাটাগরি যোগ হয়েছে!");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -116,7 +116,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
       queryClient.invalidateQueries({ queryKey: ["categories", ledgerId] });
       setEditCategoryId(null);
       setEditCategoryName("");
-      toast.success("à¦•à§چà¦¯à¦¾à¦ںà¦¾à¦—à¦°à¦؟ à¦†à¦ھà¦،à§‡à¦ں à¦¹à¦¯à¦¼à§‡à¦›à§‡!");
+      toast.success("ক্যাটাগরি আপডেট হয়েছে!");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -128,7 +128,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories", ledgerId] });
       if (categoryId === editCategoryId) setCategoryId("");
-      toast.success("à¦•à§چà¦¯à¦¾à¦ںà¦¾à¦—à¦°à¦؟ à¦®à§پà¦›à§‡ à¦«à§‡à¦²à¦¾ à¦¹à¦¯à¦¼à§‡à¦›à§‡!");
+      toast.success("ক্যাটাগরি মুছে ফেলা হয়েছে!");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -151,7 +151,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
       queryClient.invalidateQueries({ queryKey: ["transactions", ledgerId] });
       queryClient.invalidateQueries({ queryKey: ["ledger-balances"] });
       onOpenChange(false);
-      toast.success("à¦²à§‡à¦¨à¦¦à§‡à¦¨ à¦†à¦ھà¦،à§‡à¦ں à¦¹à¦¯à¦¼à§‡à¦›à§‡!");
+      toast.success("লেনদেন আপডেট হয়েছে!");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -166,7 +166,7 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
       queryClient.invalidateQueries({ queryKey: ["transactions", ledgerId] });
       queryClient.invalidateQueries({ queryKey: ["ledger-balances"] });
       onOpenChange(false);
-      toast.success("à¦²à§‡à¦¨à¦¦à§‡à¦¨ à¦®à§پà¦›à§‡ à¦«à§‡à¦²à¦¾ à¦¹à¦¯à¦¼à§‡à¦›à§‡!");
+      toast.success("লেনদেন মুছে ফেলা হয়েছে!");
     },
     onError: (e: Error) => toast.error(e.message),
   });
