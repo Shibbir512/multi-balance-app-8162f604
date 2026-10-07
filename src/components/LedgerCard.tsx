@@ -210,7 +210,7 @@ export const LedgerCard = ({
                 {ledger.name}
               </h3>
               <p className="text-[12px] font-medium text-[#94A3B8] mt-[1px]">
-                {ledger.currency || "BDT"}
+                {ledger.currency || "BDT"} · {transactionCount.toLocaleString("bn-BD")}টি লেনদেন
               </p>
             </div>
           </div>

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Plus, Wallet, LogOut, BookOpen, Trash2, Layers, BarChart3, PieChart, Settings, ArrowRight } from "lucide-react";
+import { Plus, Wallet, LogOut, BookOpen, Trash2, Layers, BarChart3, PieChart, Settings, ArrowRight, Home, FileText, MoreHorizontal, Receipt } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import { toast } from "sonner";
 import { LedgerCard } from "@/components/LedgerCard";
@@ -122,7 +122,7 @@ const LedgerListPage = () => {
 
   return (
     <div className="min-h-screen ll-page-bg pb-20 relative overflow-hidden z-0">
-      {/* Vivid Glassy Background */}
+      {/* Vivid Glassy Background — hidden on mobile via CSS for clean subtle bg */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden -z-10 bg-[#F8F9FE] dark:bg-[#080B14]">
         {/* Top Right Orb */}
         <div className="absolute -top-[10%] -right-[5%] w-[500px] h-[500px] rounded-full bg-gradient-to-br from-[#7C3AED]/30 to-[#4338CA]/30 blur-[80px] dark:from-[#7C3AED]/20 dark:to-[#4338CA]/20" />
@@ -135,43 +135,86 @@ const LedgerListPage = () => {
       </div>
 
       {/* Header */}
-      <div className="gradient-header px-4 pt-0 pb-0 sticky top-0 z-50" style={{ height: '64px' }}>
-        <div className="flex items-center justify-between w-full h-full max-w-[1280px] mx-auto px-2 sm:px-4">
-          <div className="flex items-center gap-[10px]">
-            <div className="w-[36px] h-[36px] rounded-[10px] flex items-center justify-center bg-white/15 border border-white/15">
-              <Wallet className="w-[18px] h-[18px] text-white" strokeWidth={2} />
+      <div 
+        className="gradient-header px-0 pt-0 pb-0 relative md:sticky top-0 z-50 transition-all duration-300" 
+        style={{ height: 'auto', minHeight: '76px' }}
+      >
+        {/* Mobile & Desktop Hero Background */}
+        <div className="absolute inset-0 z-0 h-[180px] md:h-full transition-all duration-300 overflow-hidden rounded-b-[44px] md:rounded-none">
+          <div 
+            className="absolute inset-0 transition-opacity duration-300 opacity-100 dark:opacity-0"
+            style={{
+              backgroundImage: "url('/images/header/day-header.webp')",
+              backgroundSize: "cover",
+              backgroundPosition: "center center", 
+            }}
+          />
+          <div 
+            className="absolute inset-0 transition-opacity duration-300 opacity-0 dark:opacity-100"
+            style={{
+              backgroundImage: "url('/images/header/night-header.webp')",
+              backgroundSize: "cover",
+              backgroundPosition: "center center",
+            }}
+          />
+          
+          {/* Subtle Gradient Overlay for Readability */}
+          <div className="absolute inset-0 transition-colors duration-300 bg-gradient-to-b from-black/30 via-transparent to-black/10 dark:from-[#090C15]/50 dark:via-[#090C15]/10 dark:to-[#090C15]/30 pointer-events-none" />
+        </div>
+
+        <div className="relative z-[2] flex items-start md:items-start justify-between w-full max-w-[1280px] mx-auto px-[20px] pt-[24px] min-[400px]:px-[28px] min-[400px]:pt-[28px] md:pt-[32px] md:px-4 h-[180px] md:h-[180px]">
+          <div className="flex items-center gap-[12px] md:gap-[10px]">
+            <div className="w-[56px] h-[56px] min-[400px]:w-[62px] min-[400px]:h-[62px] md:w-[38px] md:h-[38px] rounded-[18px] md:rounded-full flex items-center justify-center bg-white/15 dark:bg-black/20 border border-white/30 dark:border-white/10 backdrop-blur-[12px] shadow-sm">
+              <Wallet className="w-[28px] h-[28px] md:w-[18px] md:h-[18px] text-white" strokeWidth={2} />
             </div>
-            <div>
-              <h1 className="text-[16px] font-bold text-white leading-tight tracking-tight">জমাখরচ</h1>
-              <p className="text-[10px] text-white/65 leading-none mt-0.5 font-medium">আয় বুঝে ব্যয়</p>
+            <div className="drop-shadow-sm flex flex-col items-start">
+              <h1 className="text-[24px] md:text-[18px] font-extrabold text-white leading-tight tracking-tight" style={{ textShadow: "0 2px 4px rgba(0,0,0,0.3)" }}>জমাখরচ</h1>
+              <p className="text-[12px] md:text-[11px] text-white/90 leading-none mt-[4px] md:mt-0.5 font-medium" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.3)" }}>আয় বুঝে ব্যয়</p>
             </div>
           </div>
-          <div className="flex items-center gap-[6px]">
-            <div className="rounded-[10px] bg-white/10 border border-white/10">
+          
+          {/* Mobile Controls (shown at top right on mobile) */}
+          <div className="flex md:hidden items-center gap-[8px] min-[400px]:gap-[10px]">
+            <div className="w-[54px] h-[54px] rounded-[18px] flex items-center justify-center bg-white/15 dark:bg-black/20 border border-white/30 dark:border-white/10 backdrop-blur-[14px] shadow-sm overflow-hidden text-white [&>button]:text-white">
               <ThemeToggle />
             </div>
             <Button
               variant="ghost"
               size="icon"
               onClick={signOut}
-              className="text-white/65 hover:text-white hover:bg-white/10 rounded-[10px] h-9 w-9 border border-transparent hover:border-white/10 transition-all"
+              className="text-white hover:text-white bg-white/15 dark:bg-black/20 hover:bg-white/25 rounded-[18px] h-[54px] w-[54px] border border-white/30 dark:border-white/10 backdrop-blur-[14px] shadow-sm transition-all"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-[22px] h-[22px]" strokeWidth={2.5} />
+            </Button>
+          </div>
+
+          {/* Desktop Controls */}
+          <div className="hidden md:flex items-center gap-[8px]">
+            <div className="w-[42px] h-[42px] rounded-full flex items-center justify-center bg-white/10 border border-white/20 backdrop-blur-md shadow-sm overflow-hidden hover:bg-white/20">
+              <ThemeToggle />
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={signOut}
+              className="text-white/90 hover:text-white bg-white/10 hover:bg-white/20 rounded-full h-[42px] w-[42px] border border-white/20 backdrop-blur-md shadow-sm transition-all"
+            >
+              <LogOut className="w-[18px] h-[18px]" strokeWidth={2} />
             </Button>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-7 pb-10">
+      <div className="relative w-full max-w-[1280px] mx-auto px-[20px] min-[400px]:px-[24px] sm:px-6 lg:px-8 pt-[24px] pb-10 mt-0 z-10">
 
         {/* Welcome Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-7">
-          <div>
-            <h2 className="text-[24px] font-bold text-[#1E293B] dark:text-[#E2E8F0] tracking-tight mb-1">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-7">
+          <div className="md:mt-0 mt-2">
+            <h2 className="text-[26px] md:text-[24px] font-bold text-[#1E293B] dark:text-[#E2E8F0] tracking-tight mb-1 md:mb-1">
               আবারও স্বাগতম! 👋
             </h2>
-            <p className="text-[13px] text-[#94A3B8] dark:text-[#64748B] font-medium">
+            <p className="text-[14px] md:text-[13px] text-[#64748B] dark:text-[#94A3B8] font-medium">
               আজকের দিনটাও হোক সচেতন হিসাবের দিন
             </p>
           </div>
@@ -179,7 +222,7 @@ const LedgerListPage = () => {
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button
-                className="w-full md:w-auto gap-2 rounded-[11px] btn-primary h-[42px] px-5 shadow-sm text-[14px]"
+                className="w-full md:w-auto gap-2 rounded-[14px] md:rounded-[11px] btn-primary h-[54px] md:h-[42px] px-6 shadow-sm text-[16px] md:text-[14px] bg-gradient-to-r from-[#2563EB] to-[#7C3AED] hover:from-[#1D4ED8] hover:to-[#6D28D9] text-white border-0"
                 style={{ fontWeight: 600 }}
               >
                 <Plus className="w-4 h-4" /> নতুন লেজার তৈরি
@@ -204,10 +247,13 @@ const LedgerListPage = () => {
         </div>
 
         {/* Ledger Section Header */}
-        <div className="mb-4">
+        <div className="mb-4 flex items-center justify-between">
           <h3 className="text-[14px] font-semibold text-[#64748B] dark:text-[#475569] uppercase tracking-wider">
             আপনার লেজারসমূহ
           </h3>
+          <span className="text-[14px] font-medium text-[#7C3AED] dark:text-[#A78BFA] cursor-pointer hover:opacity-80 transition-opacity hidden max-[767px]:inline-flex items-center gap-1">
+            সব দেখুন <ArrowRight className="w-3.5 h-3.5 inline" />
+          </span>
         </div>
 
         {isLoading ? (
@@ -284,9 +330,14 @@ const LedgerListPage = () => {
             {/* Quick Actions */}
             {totalLedgers > 0 && (
               <div className="mt-8 animate-fade-in-up" style={{ animationDelay: '0.25s' }}>
-                <h3 className="text-[14px] font-semibold text-[#64748B] dark:text-[#475569] uppercase tracking-wider mb-4">
-                  দ্রুত শুরু করুন
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-[14px] font-semibold text-[#64748B] dark:text-[#475569] uppercase tracking-wider">
+                    দ্রুত শুরু করুন
+                  </h3>
+                  <span className="text-[14px] font-medium text-[#7C3AED] dark:text-[#A78BFA] cursor-pointer hover:opacity-80 transition-opacity hidden max-[767px]:inline-flex items-center gap-1">
+                    সব দেখুন <ArrowRight className="w-3.5 h-3.5 inline" />
+                  </span>
+                </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-[14px]">
 
                   {/* Add Transaction */}
@@ -363,6 +414,26 @@ const LedgerListPage = () => {
           </>
         )}
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="mobile-bottom-nav">
+        <button className="mobile-bottom-nav-item active" type="button">
+          <Home strokeWidth={1.8} />
+          <span>হোম</span>
+        </button>
+        <button className="mobile-bottom-nav-item" type="button" onClick={() => ledgers?.[0] && navigate(`/ledger/${ledgers[0].id}`)}>
+          <Receipt strokeWidth={1.8} />
+          <span>লেনদেন</span>
+        </button>
+        <button className="mobile-bottom-nav-item" type="button" onClick={() => ledgers?.[0] && navigate(`/ledger/${ledgers[0].id}`)}>
+          <BarChart3 strokeWidth={1.8} />
+          <span>রিপোর্ট</span>
+        </button>
+        <button className="mobile-bottom-nav-item" type="button">
+          <MoreHorizontal strokeWidth={1.8} />
+          <span>আরও</span>
+        </button>
+      </nav>
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) { setDeleteTarget(null); setDeleteConfirmText(""); } }}>
         <AlertDialogContent className="rounded-2xl bg-popover">

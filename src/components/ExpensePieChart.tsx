@@ -94,10 +94,10 @@ const ExpensePieChart = ({ transactions, totalBalance = 0, onCategorySelect, sel
           <h3 className="text-[15px] font-semibold text-[#172033] dark:text-[#F8FAFC]">এই সময়ে কোনো খরচ নেই</h3>
         </div>
       ) : (
-        <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8">
+        <div className="flex flex-row items-center gap-2 md:gap-8">
           {/* Donut Chart */}
           <div className="flex justify-center md:justify-start shrink-0">
-            <div className="relative w-[215px] lg:w-[260px] h-[215px] lg:h-[260px]">
+            <div className="relative w-[130px] md:w-[215px] lg:w-[260px] h-[130px] md:h-[215px] lg:h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -144,14 +144,14 @@ const ExpensePieChart = ({ transactions, totalBalance = 0, onCategorySelect, sel
               </ResponsiveContainer>
               
               {/* Center Info */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none px-4">
-                <div className="flex flex-col items-center justify-center gap-1 w-full text-center">
-                  <span className="text-[12px] text-[#667085] dark:text-[#94A3B8] font-medium leading-tight">মোট খরচ</span>
-                  <span className="text-[20px] font-bold text-[#172033] dark:text-[#F8FAFC] leading-none max-w-full truncate" title={`৳${totalExpense.toLocaleString("bn-BD")}`}>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none px-2 md:px-4">
+                <div className="flex flex-col items-center justify-center gap-0.5 md:gap-1 w-full text-center">
+                  <span className="text-[10px] md:text-[12px] text-[#667085] dark:text-[#94A3B8] font-medium leading-tight">মোট খরচ</span>
+                  <span className="text-[14px] md:text-[20px] font-bold text-[#172033] dark:text-[#F8FAFC] leading-none max-w-full truncate" title={`৳${totalExpense.toLocaleString("bn-BD")}`}>
                     ৳{totalExpense >= 1000000 ? (totalExpense / 100000).toLocaleString("bn-BD", { maximumFractionDigits: 1 }) + ' লক্ষ' : totalExpense.toLocaleString("bn-BD")}
                   </span>
                   {periodLabel && (
-                    <span className="text-[11px] text-[#667085] dark:text-[#94A3B8] bg-[#F6F7FC] dark:bg-[#1E293B] px-2 py-0.5 rounded-full truncate max-w-full leading-tight">
+                    <span className="text-[9px] md:text-[11px] text-[#667085] dark:text-[#94A3B8] bg-[#F6F7FC] dark:bg-[#1E293B] px-1.5 md:px-2 py-0.5 rounded-full truncate max-w-full leading-tight">
                       {periodLabel}
                     </span>
                   )}
@@ -161,21 +161,21 @@ const ExpensePieChart = ({ transactions, totalBalance = 0, onCategorySelect, sel
           </div>
 
           {/* Category Legend */}
-          <div className="w-full flex-1 min-w-0 flex flex-col gap-[2px] overflow-y-auto max-h-[200px] lg:max-h-[230px] no-scrollbar pr-1">
+          <div className="w-full flex-1 min-w-0 flex flex-col gap-[2px] overflow-y-auto max-h-[160px] md:max-h-[200px] lg:max-h-[230px] no-scrollbar pr-1">
             {chartData.map((d, i) => (
               <button
                 key={d.name}
                 onClick={() => handleClick(null, i)}
-                className={`grid grid-cols-[10px_1fr_48px_80px] items-center gap-2 w-full py-1 px-2 rounded-lg hover:bg-[#F6F7FC] dark:hover:bg-[#1E293B] transition-colors text-left ${
+                className={`grid grid-cols-[8px_1fr_26px_50px] md:grid-cols-[10px_1fr_48px_80px] items-center gap-1.5 md:gap-2 w-full py-1 px-1.5 md:px-2 rounded-lg hover:bg-[#F6F7FC] dark:hover:bg-[#1E293B] transition-colors text-left ${
                   selectedCategory && selectedCategory !== d.name ? 'opacity-40' : 'opacity-100'
                 }`}
               >
-                <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: getCategoryColor(d.name) }} />
-                <span className="text-[12px] md:text-[13px] text-[#475467] dark:text-[#CBD5E1] font-medium whitespace-nowrap">{d.name}</span>
-                <span className="text-[12px] md:text-[13px] font-semibold text-[#172033] dark:text-[#F8FAFC] text-right">
+                <div className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full shrink-0" style={{ background: getCategoryColor(d.name) }} />
+                <span className="text-[9.5px] md:text-[13px] text-[#475467] dark:text-[#CBD5E1] font-medium whitespace-nowrap overflow-hidden text-ellipsis">{d.name}</span>
+                <span className="text-[9.5px] md:text-[13px] font-semibold text-[#172033] dark:text-[#F8FAFC] text-right">
                   {totalExpense > 0 ? Math.round((d.value / totalExpense) * 100) : 0}%
                 </span>
-                <span className="text-[12px] md:text-[13px] font-medium text-[#667085] dark:text-[#94A3B8] text-right whitespace-nowrap" title={`৳${d.value.toLocaleString("bn-BD")}`}>
+                <span className="text-[9.5px] md:text-[13px] font-medium text-[#667085] dark:text-[#94A3B8] text-right whitespace-nowrap overflow-hidden text-ellipsis" title={`৳${d.value.toLocaleString("bn-BD")}`}>
                   ৳{d.value.toLocaleString("bn-BD")}
                 </span>
               </button>

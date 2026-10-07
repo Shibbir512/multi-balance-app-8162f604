@@ -44,6 +44,7 @@ interface TransactionWorkspaceProps {
   searchQuery: string;
   setSearchQuery: (q: string) => void;
   filterButton: React.ReactNode;
+  monthSelector?: React.ReactNode;
 }
 
 import { getCategoryConfig } from "../lib/categoryColors";
@@ -72,6 +73,7 @@ const TransactionWorkspace = ({
   searchQuery,
   setSearchQuery,
   filterButton,
+  monthSelector,
 }: TransactionWorkspaceProps) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
@@ -110,6 +112,13 @@ const TransactionWorkspace = ({
         </div>
         
         <div className="flex items-center gap-2 lg:gap-3">
+          {/* Month Selector */}
+          {monthSelector && (
+            <div className="shrink-0">
+              {monthSelector}
+            </div>
+          )}
+
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#98A2B3] dark:text-[#64748B]" />
@@ -150,11 +159,13 @@ const TransactionWorkspace = ({
 
       {/* Table Header */}
       <div className="hidden md:grid bg-[#FAFBFD] dark:bg-[#1E293B] h-[42px] lg:h-[46px] border-b border-[#EEF0F5] dark:border-[rgba(255,255,255,0.06)] grid-cols-[44px_100px_44px_1fr_130px_100px_36px] lg:grid-cols-[48px_110px_48px_1fr_150px_120px_36px] items-center px-[16px] gap-2 lg:gap-3">
+        <div></div>
         <div className="text-[12px] lg:text-[13px] font-semibold text-[#667085] dark:text-[#CBD5E1]">তারিখ</div>
+        <div></div>
         <div className="text-[12px] lg:text-[13px] font-semibold text-[#667085] dark:text-[#CBD5E1]">বিবরণ</div>
         <div className="text-[12px] lg:text-[13px] font-semibold text-[#667085] dark:text-[#CBD5E1] text-center">ক্যাটাগরি</div>
         <div className="text-[12px] lg:text-[13px] font-semibold text-[#667085] dark:text-[#CBD5E1] text-right">পরিমাণ</div>
-        <div className="text-[12px] lg:text-[13px] font-semibold text-[#667085] dark:text-[#CBD5E1] text-center"></div>
+        <div></div>
       </div>
 
       {/* Rows */}
@@ -198,7 +209,7 @@ const TransactionWorkspace = ({
                   </div>
                   
                   <div className="flex flex-col items-end gap-1 shrink-0">
-                    <p className="text-[15px] font-bold" style={{ color: tx.type === "income" ? '#4ADE80' : '#F8FAFC' }}>
+                    <p className={`text-[15px] font-bold ${tx.type === "income" ? 'text-[#16A34A] dark:text-[#4ADE80]' : 'text-[#E5484D] dark:text-[#F8FAFC]'}`}>
                       {tx.type === "income" ? "+" : "-"}৳{tx.amount.toLocaleString("bn-BD")}
                     </p>
                     <DropdownMenu>
@@ -267,7 +278,7 @@ const TransactionWorkspace = ({
 
                   {/* Amount */}
                   <div className="text-right">
-                    <p className="text-[14px] lg:text-[15px] font-semibold" style={{ color: tx.type === "income" ? '#4ADE80' : '#F8FAFC' }}>
+                    <p className={`text-[14px] lg:text-[15px] font-semibold ${tx.type === "income" ? 'text-[#16A34A] dark:text-[#4ADE80]' : 'text-[#E5484D] dark:text-[#F8FAFC]'}`}>
                       {tx.type === "income" ? "+" : "-"}৳{tx.amount.toLocaleString("bn-BD")}
                     </p>
                   </div>

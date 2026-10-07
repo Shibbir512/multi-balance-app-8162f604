@@ -534,18 +534,11 @@ const LedgerDetailPage = () => {
         ledgerName={ledger?.name}
         allLedgers={allLedgers}
         currentLedgerId={ledgerId}
+        user={user}
       />
       <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
         <DashboardHeader
-          dashboardMonth={dashboardMonth}
-          onMonthChange={(v: string) => { setDashboardMonth(v); setStatPeriod("month"); setChartCategory(null); }}
-          user={user}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
           onMenuClick={() => setSidebarOpen(true)}
-          onProfileClick={() => setActiveTab("profile")}
-          recentMonths={RECENT_MONTHS}
-          getMonthYearLabel={getMonthYearLabel}
         />
         <main className="flex-1 overflow-y-auto">
       <div className="w-full px-4 lg:px-6 xl:px-8 py-6">
@@ -558,12 +551,14 @@ const LedgerDetailPage = () => {
         {/* ═══ TRANSACTIONS TAB ═══ */}
         {activeTab === "transactions" && (
           <div key="tab-transactions" className="pb-24 animate-fade-in-up">
-            <FinancialSummaryCards
-              totalIncome={totalIncome}
-              totalExpense={totalExpense}
-              totalBalance={totalBalance}
-              monthlyBudget={(ledger as any)?.monthlyBudget || 0}
-            />
+            <div className="hidden md:block">
+              <FinancialSummaryCards
+                totalIncome={totalIncome}
+                totalExpense={totalExpense}
+                totalBalance={totalBalance}
+                monthlyBudget={(ledger as any)?.monthlyBudget || 0}
+              />
+            </div>
             <div className="lg:grid lg:grid-cols-[minmax(320px,42%)_minmax(0,1fr)] gap-[20px] items-start">
               {/* Left Column: Summary & Chart */}
               <div className="flex flex-col gap-[20px]">
@@ -633,9 +628,9 @@ const LedgerDetailPage = () => {
                   }
                 />
                 <QuickOverview
-                  transactions={periodFilteredTransactions}
-                  totalIncome={totalIncome}
-                  totalExpense={totalExpense}
+                  transactions={transactions?.filter(t => t.date.startsWith(dashboardMonth)) || []}
+                  totalIncome={periodStats.month.income}
+                  totalExpense={periodStats.month.expense}
                 />
               </div>
 
@@ -647,6 +642,36 @@ const LedgerDetailPage = () => {
                   onDelete={(id) => setDeleteTxId(id)}
                   searchQuery={searchQuery}
                   setSearchQuery={setSearchQuery}
+                  monthSelector={
+                    <Select value={dashboardMonth} onValueChange={(v: string) => { setDashboardMonth(v); setStatPeriod("month"); setChartCategory(null); }}>
+                      <SelectPrimitive.Trigger asChild>
+                        <button
+                          className="flex items-center gap-[6px] h-[38px] lg:h-[40px] rounded-xl px-[12px] lg:px-[14px] transition-all duration-150 shrink-0 border border-[#E8EAF2] dark:border-[rgba(255,255,255,0.06)] bg-white dark:bg-[#1E293B] hover:bg-[#F9FAFB] dark:hover:bg-[#263449] active:bg-[#F3F4F6] focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED]"
+                        >
+                          <Calendar
+                            className="w-[15px] h-[15px] shrink-0 text-[#64748B] dark:text-[#94A3B8]"
+                            strokeWidth={2}
+                          />
+                          <span
+                            className="text-[#334155] dark:text-[#E2E8F0] whitespace-nowrap font-medium text-[13px]"
+                          >
+                            {getMonthYearLabel(dashboardMonth)}
+                          </span>
+                          <ChevronDown
+                            className="w-[14px] h-[14px] shrink-0 text-[#94A3B8] dark:text-[#64748B] ml-1"
+                            strokeWidth={2}
+                          />
+                        </button>
+                      </SelectPrimitive.Trigger>
+                      <SelectContent className="max-h-[300px]">
+                        {RECENT_MONTHS.map((ym) => (
+                          <SelectItem key={ym} value={ym} className="text-xs font-medium">
+                            {getMonthYearLabel(ym)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  }
                   filterButton={
                     <div className="p-4 bg-white dark:bg-[#1E293B] rounded-xl">
                       <TransactionFilters

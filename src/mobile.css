@@ -1,0 +1,437 @@
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE UI — Premium Fintech Mobile Dashboard for "জমাখরচ"
+   Target: 360–430px   Reference: 390×844
+   ONLY active at max-width: 767px — desktop is completely untouched.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 767px) {
+  /* ── Page Background ────────────────────────────────────────── */
+  .ll-page-bg {
+    background: #F7F8FC !important;
+    padding-bottom: 80px !important;
+  }
+  .dark .ll-page-bg {
+    background: #0B1020 !important;
+  }
+
+  /* Tone down the vivid orbs on mobile for a clean subtle bg */
+  .ll-page-bg > .pointer-events-none.absolute {
+    display: none !important;
+  }
+
+  /* Header styling removed because it is now controlled by Tailwind classes in LedgerListPage */
+
+  /* ── Main Content Container ─────────────────────────────────── */
+  .mobile-content-area {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    padding-top: 20px !important;
+    padding-bottom: 24px !important;
+  }
+
+  /* ── Welcome Section ────────────────────────────────────────── */
+  .mobile-welcome-heading {
+    font-size: 28px !important;
+    font-weight: 800 !important;
+    margin-bottom: 4px !important;
+    line-height: 1.2 !important;
+  }
+
+  .mobile-welcome-subtitle {
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    line-height: 1.4 !important;
+  }
+
+  /* Welcome + CTA wrapper — reduce gap */
+  .mobile-welcome-cta-wrapper {
+    gap: 14px !important;
+    margin-bottom: 20px !important;
+  }
+
+  /* ── Primary CTA Button ─────────────────────────────────────── */
+  .mobile-cta-btn {
+    width: 100% !important;
+    height: 54px !important;
+    border-radius: 15px !important;
+    font-size: 17px !important;
+    font-weight: 600 !important;
+    background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%) !important;
+    box-shadow: 0 8px 24px rgba(79,70,229,0.18) !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+    gap: 10px !important;
+  }
+  .mobile-cta-btn svg {
+    width: 22px !important;
+    height: 22px !important;
+  }
+  .mobile-cta-btn:active {
+    transform: scale(0.98) !important;
+  }
+
+  /* ── Section Headers ────────────────────────────────────────── */
+  .mobile-section-heading {
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    text-transform: none !important;
+    letter-spacing: -0.01em !important;
+    color: #1E293B !important;
+    margin-bottom: 0 !important;
+  }
+  .dark .mobile-section-heading {
+    color: #E2E8F0 !important;
+  }
+
+  .mobile-section-header {
+    margin-bottom: 12px !important;
+  }
+
+  /* ── Ledger Card Grid ───────────────────────────────────────── */
+  .mobile-card-grid {
+    gap: 12px !important;
+  }
+
+  /* ── Ledger Card — Compact Mobile ───────────────────────────── */
+  .ledger-premium-card {
+    border-radius: 18px !important;
+    box-shadow: 0 4px 20px rgba(30,41,59,0.06) !important;
+    border: 1px solid rgba(148,163,184,0.16) !important;
+    overflow: hidden !important;
+  }
+  .dark .ledger-premium-card {
+    box-shadow: none !important;
+    border-color: rgba(255,255,255,0.06) !important;
+  }
+
+  /* Card inner padding */
+  .ledger-card-body {
+    padding: 14px 14px 0 14px !important;
+  }
+
+  /* Card icon container */
+  .ledger-card-icon {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 12px !important;
+  }
+  .ledger-card-icon svg {
+    width: 22px !important;
+    height: 22px !important;
+  }
+
+  /* ── Balance Panel — Compact Strip ──────────────────────────── */
+  .ledger-balance-panel {
+    margin-top: 12px !important;
+  }
+
+  .ledger-balance-inner {
+    padding: 10px 14px !important;
+    min-height: 56px !important;
+    border-radius: 12px !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+
+  /* Decorative subtle mini chart inside balance panel */
+  .ledger-balance-inner::after {
+    content: '';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 52px;
+    height: 28px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 52 28' fill='none'%3E%3Cpath d='M2 22 L10 18 L18 20 L26 12 L34 14 L42 6 L50 10' stroke='%2394A3B8' stroke-width='1.5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: 0.06;
+    pointer-events: none;
+  }
+
+  /* Balance label row */
+  .ledger-balance-label-row {
+    margin-bottom: 3px !important;
+    gap: 6px !important;
+  }
+
+  /* Balance icon in panel */
+  .ledger-balance-icon {
+    width: 26px !important;
+    height: 26px !important;
+    border-radius: 7px !important;
+  }
+  .ledger-balance-icon svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  /* Balance amount */
+  .ledger-balance-amount {
+    font-size: 23px !important;
+    padding-left: 32px !important;
+    line-height: 1.1 !important;
+  }
+
+  /* Large watermark icon — reduce on mobile */
+  .ledger-watermark {
+    opacity: 0.03 !important;
+    right: 4px !important;
+    bottom: 38px !important;
+  }
+  .ledger-watermark svg {
+    width: 80px !important;
+    height: 80px !important;
+  }
+
+  /* ── Metadata Row — Compact ─────────────────────────────────── */
+  .ledger-meta-row {
+    margin-top: 10px !important;
+    padding-top: 10px !important;
+  }
+
+  /* ── Action Bar — Compact ───────────────────────────────────── */
+  .ledger-action-bar {
+    padding: 0 14px 14px 14px !important;
+    margin-top: 10px !important;
+  }
+
+  .ledger-action-btn {
+    height: 38px !important;
+    border-radius: 10px !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+  .ledger-action-btn span {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+  }
+
+  /* ── Summary Bar — Compact ──────────────────────────────────── */
+  .mobile-summary-wrapper {
+    margin-top: 20px !important;
+    max-width: 100% !important;
+  }
+
+  .mobile-summary-card {
+    border-radius: 16px !important;
+    padding: 14px 16px !important;
+    border-width: 1px !important;
+    border-color: rgba(124,58,237,0.15) !important;
+    box-shadow: 0 4px 20px rgba(30,41,59,0.06) !important;
+    flex-direction: row !important;
+    gap: 0 !important;
+  }
+  .dark .mobile-summary-card {
+    box-shadow: none !important;
+    border-color: rgba(124,58,237,0.2) !important;
+  }
+
+  .mobile-summary-icon {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 10px !important;
+  }
+  .mobile-summary-icon svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .mobile-summary-value {
+    font-size: 20px !important;
+  }
+
+  /* Summary vertical divider on mobile */
+  .mobile-summary-divider-v {
+    display: block !important;
+    width: 1px !important;
+    height: 36px !important;
+    margin: 0 12px !important;
+  }
+  .mobile-summary-divider-h {
+    display: none !important;
+  }
+
+  /* ── Quick Actions Section ──────────────────────────────────── */
+  .mobile-quick-section {
+    margin-top: 20px !important;
+  }
+
+  /* Quick action grid — 4 columns on mobile */
+  .mobile-quick-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  /* Quick action cards — compact vertical layout */
+  .mobile-qa-card {
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 12px 6px !important;
+    border-radius: 14px !important;
+    min-height: 80px !important;
+    gap: 8px !important;
+    border-width: 1px !important;
+    box-shadow: 0 2px 10px rgba(15,23,42,0.04) !important;
+  }
+
+  .mobile-qa-card .qa-content {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+
+  .mobile-qa-card .qa-icon {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 10px !important;
+  }
+  .mobile-qa-card .qa-icon svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .mobile-qa-card .qa-label {
+    font-size: 11px !important;
+    text-align: center !important;
+    line-height: 1.3 !important;
+  }
+
+  /* Hide arrow on quick action cards on mobile */
+  .mobile-qa-card .qa-arrow {
+    display: none !important;
+  }
+
+  /* ── Empty State — Compact ──────────────────────────────────── */
+  .mobile-empty-state {
+    min-height: 200px !important;
+    padding: 32px 20px !important;
+  }
+
+  /* ── Loading Skeleton — Compact ─────────────────────────────── */
+  .mobile-skeleton {
+    height: 170px !important;
+  }
+
+  /* ── Bottom Navigation Bar ──────────────────────────────────── */
+  .mobile-bottom-nav {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 1000 !important;
+    height: 68px !important;
+    background: #FFFFFF !important;
+    border-top: 1px solid rgba(148,163,184,0.12) !important;
+    box-shadow: 0 -4px 20px rgba(30,41,59,0.06) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-around !important;
+    padding: 0 8px !important;
+    padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+  }
+  .dark .mobile-bottom-nav {
+    background: #0F172A !important;
+    border-top-color: rgba(255,255,255,0.06) !important;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.3) !important;
+  }
+
+  .mobile-bottom-nav-item {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 3px !important;
+    min-width: 64px !important;
+    min-height: 48px !important;
+    padding: 6px 12px !important;
+    border-radius: 12px !important;
+    cursor: pointer !important;
+    transition: all 150ms ease !important;
+    border: none !important;
+    background: transparent !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+  .mobile-bottom-nav-item:active {
+    transform: scale(0.95) !important;
+  }
+
+  .mobile-bottom-nav-item svg {
+    width: 22px !important;
+    height: 22px !important;
+    stroke-width: 1.8 !important;
+    color: #94A3B8 !important;
+    transition: color 150ms ease !important;
+  }
+  .dark .mobile-bottom-nav-item svg {
+    color: #64748B !important;
+  }
+
+  .mobile-bottom-nav-item span {
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    color: #94A3B8 !important;
+    line-height: 1 !important;
+    transition: color 150ms ease !important;
+  }
+  .dark .mobile-bottom-nav-item span {
+    color: #64748B !important;
+  }
+
+  /* Active state */
+  .mobile-bottom-nav-item.active {
+    background: rgba(124,58,237,0.08) !important;
+  }
+  .dark .mobile-bottom-nav-item.active {
+    background: rgba(124,58,237,0.12) !important;
+  }
+  .mobile-bottom-nav-item.active svg {
+    color: #7C3AED !important;
+  }
+  .dark .mobile-bottom-nav-item.active svg {
+    color: #A78BFA !important;
+  }
+  .mobile-bottom-nav-item.active span {
+    color: #7C3AED !important;
+  }
+  .dark .mobile-bottom-nav-item.active span {
+    color: #A78BFA !important;
+  }
+
+  /* ── Responsive: Narrow (360px) ─────────────────────────────── */
+  @media (max-width: 374px) {
+    .mobile-content-area {
+      padding-left: 12px !important;
+      padding-right: 12px !important;
+    }
+
+    .ledger-card-body {
+      padding: 12px 12px 0 12px !important;
+    }
+
+    .ledger-action-bar {
+      padding: 0 12px 12px 12px !important;
+    }
+
+    .mobile-welcome-heading {
+      font-size: 26px !important;
+    }
+
+    .mobile-cta-btn {
+      height: 50px !important;
+      font-size: 16px !important;
+    }
+
+    .mobile-qa-card .qa-label {
+      font-size: 10px !important;
+    }
+  }
+}
+
+/* Ensure bottom nav is hidden on desktop even if rendered */
+@media (min-width: 768px) {
+  .mobile-bottom-nav {
+    display: none !important;
+  }
+}

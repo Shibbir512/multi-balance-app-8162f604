@@ -25,6 +25,7 @@ interface DashboardSidebarProps {
   ledgerName?: string;
   allLedgers?: any[];
   currentLedgerId?: string;
+  user?: any;
 }
 
 const tabToSidebarMap: Record<string, string> = {
@@ -49,6 +50,7 @@ const DashboardSidebar = ({
   ledgerName,
   allLedgers,
   currentLedgerId,
+  user,
 }: DashboardSidebarProps) => {
   const navigate = useNavigate();
   const [ledgerDropdownOpen, setLedgerDropdownOpen] = useState(false);
@@ -343,6 +345,47 @@ const DashboardSidebar = ({
           <div className="flex flex-col gap-[2px]">
             {bottomNav.map(renderItem)}
           </div>
+          
+          {/* ── Profile Section at bottom ─────────────────────────────────── */}
+          {user && (
+            <div className="mt-4 pt-4 border-t border-[#F0F1F7] dark:border-[rgba(255,255,255,0.04)]">
+              <button
+                onClick={() => {
+                  setActiveTab("profile");
+                  if (window.innerWidth < 1024) onClose();
+                }}
+                className={`
+                  w-full flex items-center gap-[12px] p-[10px] rounded-[12px] text-left transition-all duration-150 outline-none
+                  ${activeTab === "profile" 
+                    ? "bg-gradient-to-r from-[#F0EDFF] to-[#F5F3FF] dark:from-[rgba(99,102,241,0.12)] dark:to-[rgba(124,58,237,0.08)]"
+                    : "hover:bg-[#F8F7FF] dark:hover:bg-[rgba(255,255,255,0.04)]"
+                  }
+                `}
+              >
+                <div
+                  className="w-[36px] h-[36px] rounded-full flex items-center justify-center text-white font-bold shrink-0 shadow-sm border border-[rgba(0,0,0,0.05)] dark:border-[rgba(255,255,255,0.1)]"
+                  style={{
+                    fontSize: "14px",
+                    background: "linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)",
+                  }}
+                >
+                  {user?.displayName?.charAt(0) || user?.email?.charAt(0)?.toUpperCase() || "?"}
+                </div>
+                <div className="flex flex-col items-start min-w-0">
+                  <span
+                    className={`font-semibold whitespace-nowrap truncate max-w-[140px] leading-tight text-[13.5px] ${
+                      activeTab === "profile" ? "text-[#5B3FE4] dark:text-[#A78BFA]" : "text-[#1E293B] dark:text-[#E2E8F0]"
+                    }`}
+                  >
+                    {user?.displayName || user?.email?.split("@")[0] || "ব্যবহারকারী"}
+                  </span>
+                  <span className="text-[#64748B] dark:text-[#94A3B8] text-[11px] truncate max-w-[140px]">
+                    {user?.email}
+                  </span>
+                </div>
+              </button>
+            </div>
+          )}
         </div>
       </aside>
     </>
