@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { collection, query, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc, orderBy, where, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
 import { db } from "@/integrations/firebase/client";
-import { Ledger, Account, Category, Transaction, GroceryMasterItem, GroceryBatch, GroceryBatchItem } from "@/integrations/firebase/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BottomSheet, BottomSheetContent } from "@/components/ui/bottom-sheet";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { TrendingUp, TrendingDown, Trash2, Plus, X, Calendar, Clock, Wallet, Tag, FileText, Check, Pencil, ChevronDown, Calculator } from "lucide-react";
+import { TrendingUp, TrendingDown, Trash2, Plus, X, Calendar, Clock, Wallet, FileText, Check, ChevronDown, Calculator } from "lucide-react";
 import CalculatorInput from "./CalculatorInput";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,25 +25,32 @@ interface Transaction {
 }
 
 interface Props {
-  transaction: Transaction | null;
+  transaction?: Transaction | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   accounts: Array<{ id: string; name: string; type?: string }>;
   categories: Array<{ id: string; name: string; type: string }>;
   ledgerId: string;
+  defaultType?: "income" | "expense";
+  noteSuggestions?: string[];
+  onSuccess?: () => void;
 }
 
-const SectionLabel = ({ icon: Icon, label }: { icon: any; label: string }) => (
-  <div className="flex items-center gap-1.5 mb-2 px-0.5">
-    <Icon className="w-3 h-3 text-muted-foreground/70" strokeWidth={2.5} />
-    <span className="text-[10px] font-bold text-muted-foreground/80 uppercase tracking-[0.12em]">{label}</span>
-    <div className="flex-1 h-px bg-gradient-to-r from-border/60 to-transparent ml-1" />
-  </div>
-);
-
-const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, categories, ledgerId }: Props) => {
+const TransactionEditDialog = ({
+  transaction,
+  open,
+  onOpenChange,
+  accounts,
+  categories,
+  ledgerId,
+  defaultType = "expense",
+  noteSuggestions = [],
+  onSuccess,
+}: Props) => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const isEdit = !!(transaction && transaction.id);
+
   const [txType, setTxType] = useState<"income" | "expense">("expense");
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState("");
@@ -55,33 +61,55 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
-  const [editCategoryId, setEditCategoryId] = useState<string | null>(null);
-  const [editCategoryName, setEditCategoryName] = useState("");
-  const [isCategoryExpanded, setIsCategoryExpanded] = useState(false);
   const [isAccountExpanded, setIsAccountExpanded] = useState(false);
 
   useEffect(() => {
-    if (transaction) {
-      setTxType(transaction.type as "income" | "expense");
-      setAmount(transaction.amount.toString());
-      setCategoryId(transaction.category_id || "");
-      setAccountId(transaction.account_id || "");
-      setDate(transaction.date);
-      setTime(transaction.time || "");
-      setNote(transaction.note || "");
+    if (open) {
+      if (transaction) {
+        setTxType(transaction.type as "income" | "expense");
+        setAmount(transaction.amount ? transaction.amount.toString() : "");
+        setCategoryId(transaction.category_id || "");
+        setAccountId(transaction.account_id || "");
+        setDate(transaction.date || new Date().toISOString().split("T")[0]);
+        setTime(transaction.time || new Date().toTimeString().slice(0, 5));
+        setNote(transaction.note || "");
+      } else {
+        setTxType(defaultType || "expense");
+        setAmount("");
+        setCategoryId("");
+        const lastAccId = localStorage.getItem(`lastAccount_${ledgerId}`);
+        const defaultAcc =
+          (lastAccId && accounts.find((a) => a.id === lastAccId)) ||
+          accounts.find((a) => a.name.includes("নগদ") || a.name.toLowerCase().includes("nagad")) ||
+          accounts[0];
+        setAccountId(defaultAcc?.id || "");
+        setDate(new Date().toISOString().split("T")[0]);
+        setTime(new Date().toTimeString().slice(0, 5));
+        setNote("");
+      }
       setShowNewCategory(false);
       setNewCategoryName("");
-      setEditCategoryId(null);
-      setEditCategoryName("");
-      setIsCategoryExpanded(false);
       setIsAccountExpanded(false);
     }
-  }, [transaction]);
+  }, [open, transaction, defaultType, ledgerId, accounts]);
 
   const filteredCategories = categories.filter((c) => c.type === txType);
   const isIncome = txType === "income";
-  const accentSoft = isIncome ? 'var(--income-text-soft)' : 'var(--expense-text-soft)';
-  const accentBg = isIncome ? 'var(--income-bg)' : 'var(--expense-bg)';
+
+  const triggerSuccessAnimation = () => {
+    try {
+      if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
+    } catch (_) {}
+    import("canvas-confetti").then((mod) => {
+      mod.default({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.7 },
+        colors: ["#6366f1", "#22c55e", "#f59e0b", "#ec4899"],
+        zIndex: 9999,
+      });
+    });
+  };
 
   const addCategory = useMutation({
     mutationFn: async () => {
@@ -90,13 +118,10 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
         user_id: user!.uid,
         name: newCategoryName.trim(),
         type: txType,
+        created_at: new Date().toISOString(),
       };
-      catData.created_at = new Date().toISOString();
       const docRef = await addDoc(collection(db, "categories"), catData);
-      const data = { id: docRef.id, ...catData };
-      const error = null;
-      if (error) throw error;
-      return data;
+      return { id: docRef.id, ...catData };
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["categories", ledgerId] });
@@ -108,108 +133,131 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const updateCategory = useMutation({
-    mutationFn: async ({ id, name }: { id: string; name: string }) => {
-      await updateDoc(doc(db, "categories", id), { name });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["categories", ledgerId] });
-      setEditCategoryId(null);
-      setEditCategoryName("");
-      toast.success("ক্যাটাগরি আপডেট হয়েছে!");
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const deleteCategory = useMutation({
-    mutationFn: async (id: string) => {
-      await deleteDoc(doc(db, "categories", id));
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["categories", ledgerId] });
-      if (categoryId === editCategoryId) setCategoryId("");
-      toast.success("ক্যাটাগরি মুছে ফেলা হয়েছে!");
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const updateMutation = useMutation({
+  const submitMutation = useMutation({
     mutationFn: async () => {
-      await updateDoc(doc(db, "transactions", transaction!.id as string), {
+      const parsedAmount = parseFloat(amount);
+      if (!parsedAmount || isNaN(parsedAmount) || parsedAmount <= 0) {
+        throw new Error("সঠিক পরিমাণ দিন");
+      }
+
+      if (isEdit) {
+        await updateDoc(doc(db, "transactions", transaction!.id), {
           type: txType,
-          amount: parseFloat(amount),
+          amount: parsedAmount,
           category_id: categoryId || null,
           account_id: accountId || null,
           date,
           time: time || null,
           note: note || null,
         });
-      const error = null;
-      if (error) throw error;
+      } else {
+        const txData = {
+          ledger_id: ledgerId,
+          user_id: user!.uid,
+          account_id: accountId || null,
+          category_id: categoryId || null,
+          type: txType,
+          amount: parsedAmount,
+          date,
+          time: time || null,
+          note: note || null,
+          created_at: new Date().toISOString(),
+        };
+        await addDoc(collection(db, "transactions"), txData);
+        if (accountId) {
+          localStorage.setItem(`lastAccount_${ledgerId}`, accountId);
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions", ledgerId] });
       queryClient.invalidateQueries({ queryKey: ["ledger-balances"] });
       onOpenChange(false);
-      toast.success("লেনদেন আপডেট হয়েছে!");
+      if (isEdit) {
+        toast.success("লেনদেন আপডেট হয়েছে!");
+      } else {
+        triggerSuccessAnimation();
+        if (onSuccess) onSuccess();
+        toast.success(isIncome ? "জমা যোগ হয়েছে!" : "খরচ যোগ হয়েছে!");
+      }
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      await deleteDoc(doc(db, "transactions", transaction!.id as string));
-      const error = null;
-      if (error) throw error;
+      if (!transaction?.id) return;
+      await deleteDoc(doc(db, "transactions", transaction.id));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions", ledgerId] });
       queryClient.invalidateQueries({ queryKey: ["ledger-balances"] });
+      setDeleteOpen(false);
       onOpenChange(false);
       toast.success("লেনদেন মুছে ফেলা হয়েছে!");
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
-  if (!transaction) return null;
-
   return (
     <>
       <BottomSheet open={open} onOpenChange={onOpenChange}>
-        <BottomSheetContent className="p-0 overflow-hidden border border-border/10
-          md:!w-[800px] md:!max-w-[calc(100vw-48px)] md:h-[720px] md:max-h-[calc(100vh-48px)] 
-          md:bg-background/95 md:backdrop-blur-xl">
-          
+        <BottomSheetContent
+          className="p-0 overflow-hidden border border-border/10
+          md:!w-[740px] md:!max-w-[calc(100vw-48px)] md:!h-[670px] md:max-h-[calc(100vh-32px)] 
+          md:bg-background/95 md:backdrop-blur-xl flex flex-col justify-between"
+        >
           {/* Header */}
-          <div className="flex items-center p-5 lg:p-6 pb-4 relative">
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center mr-4 ${isIncome ? 'bg-[#DCFCE7] text-[#22C55E] dark:bg-[#22C55E]/10' : 'bg-[#FEE2E2] text-[#EF4444] dark:bg-[#EF4444]/10'}`}>
-              {isIncome ? <TrendingUp className="w-6 h-6" strokeWidth={2.5} /> : <TrendingDown className="w-6 h-6" strokeWidth={2.5} />}
+          <div className="flex items-center px-6 py-4 border-b border-border/40 relative shrink-0">
+            <div
+              className={`w-11 h-11 rounded-xl flex items-center justify-center mr-3.5 shrink-0 ${
+                isIncome
+                  ? "bg-[#DCFCE7] text-[#22C55E] dark:bg-[#22C55E]/10"
+                  : "bg-[#FEE2E2] text-[#EF4444] dark:bg-[#EF4444]/10"
+              }`}
+            >
+              {isIncome ? (
+                <TrendingUp className="w-5 h-5" strokeWidth={2.5} />
+              ) : (
+                <TrendingDown className="w-5 h-5" strokeWidth={2.5} />
+              )}
             </div>
             <div>
-              <h2 className="text-[18px] lg:text-[20px] font-bold text-foreground">নতুন লেনদেন</h2>
-              <p className="text-[12px] text-muted-foreground mt-0.5">দ্রুত আয় বা খরচ যোগ করুন</p>
+              <h2 className="text-[18px] font-bold text-foreground leading-tight">
+                {isEdit ? "লেনদেন এডিট" : "নতুন লেনদেন"}
+              </h2>
+              <p className="text-[12px] text-muted-foreground mt-0.5 leading-tight">
+                {isEdit ? "লেনদেনের তথ্য পরিবর্তন করুন" : "দ্রুত আয় বা খরচ যোগ করুন"}
+              </p>
             </div>
             <button
+              type="button"
               onClick={() => onOpenChange(false)}
-              className="absolute top-5 right-5 lg:top-6 lg:right-6 w-9 h-9 lg:w-10 lg:h-10 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:bg-muted/50 transition-colors"
+              className="absolute top-4 right-6 w-9 h-9 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:bg-muted/50 transition-colors"
             >
-              <X className="w-4 h-4 lg:w-5 lg:h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
 
           {/* Form */}
           <form
-            onSubmit={(e) => { e.preventDefault(); updateMutation.mutate(); }}
-            className="px-5 lg:px-6 pb-5 lg:pb-6 space-y-5 lg:space-y-6 max-h-[75vh] overflow-y-auto"
+            onSubmit={(e) => {
+              e.preventDefault();
+              submitMutation.mutate();
+            }}
+            className="flex-1 px-6 py-4 space-y-3.5 sm:space-y-4 overflow-y-auto no-scrollbar flex flex-col justify-between"
           >
-            {/* Segment Toggle */}
-            <div className="flex h-[52px] lg:h-[56px] bg-muted/40 border border-border rounded-xl lg:rounded-2xl p-1 gap-1">
+            {/* 1. Segment Toggle */}
+            <div className="flex h-[44px] bg-muted/40 border border-border rounded-xl p-1 gap-1">
               <button
                 type="button"
-                onClick={() => { setTxType("income"); setCategoryId(""); }}
-                className={`flex-1 flex items-center justify-center gap-2 rounded-[10px] text-[15px] font-semibold transition-all ${
+                onClick={() => {
+                  setTxType("income");
+                  setCategoryId("");
+                }}
+                className={`flex-1 flex items-center justify-center gap-1.5 rounded-[9px] text-[14px] font-semibold transition-all ${
                   isIncome
-                    ? "bg-[#DCFCE7] text-[#16B981] border border-[#22C55E]/30 dark:bg-[#16B981]/20 dark:text-[#4ADE80] dark:border-[#4ADE80]/30 shadow-sm"
+                    ? "bg-[#DCFCE7] text-[#16B981] border border-[#22C55E]/30 dark:bg-[#16B981]/20 dark:text-[#4ADE80] dark:border-[#4ADE80]/30 shadow-xs"
                     : "text-muted-foreground hover:bg-muted/50 border border-transparent"
                 }`}
               >
@@ -217,10 +265,13 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
               </button>
               <button
                 type="button"
-                onClick={() => { setTxType("expense"); setCategoryId(""); }}
-                className={`flex-1 flex items-center justify-center gap-2 rounded-[10px] text-[15px] font-semibold transition-all ${
+                onClick={() => {
+                  setTxType("expense");
+                  setCategoryId("");
+                }}
+                className={`flex-1 flex items-center justify-center gap-1.5 rounded-[9px] text-[14px] font-semibold transition-all ${
                   !isIncome
-                    ? "bg-[#FEE2E2] text-[#EF4444] border border-[#EF4444]/30 dark:bg-[#EF4444]/20 dark:text-[#F87171] dark:border-[#F87171]/30 shadow-sm"
+                    ? "bg-[#FEE2E2] text-[#EF4444] border border-[#EF4444]/30 dark:bg-[#EF4444]/20 dark:text-[#F87171] dark:border-[#F87171]/30 shadow-xs"
                     : "text-muted-foreground hover:bg-muted/50 border border-transparent"
                 }`}
               >
@@ -228,37 +279,82 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
               </button>
             </div>
 
-            {/* Amount */}
+            {/* 2. Amount */}
             <div className="space-y-1.5">
               <div className="flex justify-between items-center">
-                <label className="text-[13px] font-semibold text-foreground">পরিমাণ</label>
-                <span className="text-[13px] text-muted-foreground">BDT</span>
+                <label className="text-[12.5px] font-semibold text-foreground">পরিমাণ</label>
+                <span className="text-[11.5px] text-muted-foreground font-medium">BDT</span>
               </div>
-              <div className={`h-[72px] lg:h-[76px] flex items-center px-4 lg:px-5 border-2 rounded-xl lg:rounded-2xl transition-all ${
-                isIncome ? 'bg-green-50/50 border-green-500/30 dark:bg-[#1C2538] dark:border-green-500/20' : 'bg-[#FFF7F7] border-[#EF4444] dark:bg-[#1C2538] dark:border-[#EF4444]/40'
-              }`}>
-                <span className={`text-[32px] lg:text-[36px] font-extrabold mr-3 ${isIncome ? 'text-[#10B981]' : 'text-[#EF4444]'}`}>৳</span>
+              <div
+                className={`h-[64px] flex items-center px-4 border-2 rounded-xl transition-all ${
+                  isIncome
+                    ? "bg-green-50/50 border-green-500/40 dark:bg-[#1C2538] dark:border-green-500/30"
+                    : "bg-[#FFF7F7] border-[#EF4444]/40 dark:bg-[#1C2538] dark:border-[#EF4444]/40"
+                }`}
+              >
+                <span
+                  className={`text-[36px] sm:text-[40px] font-extrabold mr-3 select-none leading-none ${
+                    isIncome ? "text-[#10B981]" : "text-[#EF4444]"
+                  }`}
+                >
+                  ৳
+                </span>
                 <CalculatorInput
                   value={amount}
                   onChange={setAmount}
                   required
-                  className="flex-1 bg-transparent border-none text-[32px] lg:text-[36px] font-extrabold text-foreground focus-visible:ring-0 focus-visible:ring-offset-0 p-0 shadow-none placeholder:text-muted-foreground/30 h-auto"
+                  placeholder="০"
+                  className="text-[34px] sm:text-[38px] font-extrabold text-foreground placeholder:text-muted-foreground/25 leading-none"
                 />
-                <button type="button" className="text-muted-foreground">
-                  <Calculator className="w-5 h-5" />
-                </button>
+                <div className="ml-auto pl-3 flex items-center shrink-0 pointer-events-none">
+                  <div className="w-8 h-8 rounded-lg bg-muted/60 dark:bg-muted/30 flex items-center justify-center text-muted-foreground">
+                    <Calculator className="w-4 h-4 text-muted-foreground" />
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Category */}
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <label className="text-[13px] font-semibold text-foreground">ক্যাটাগরি</label>
-                <button type="button" className="text-[13px] font-medium text-primary hover:underline">সব দেখুন &rarr;</button>
+            {/* 3. Note - Directly under Amount */}
+            <div className="space-y-1.5">
+              <label className="text-[12.5px] font-semibold text-foreground">নোট</label>
+              <div className="h-[46px] border-2 border-[#CBD5E1] dark:border-[rgba(255,255,255,0.18)] rounded-xl bg-card flex items-center px-3.5 gap-2.5 shadow-2xs hover:border-primary/50 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+                <div className="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-500/15 flex items-center justify-center shrink-0">
+                  <FileText className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
+                </div>
+                <input
+                  type="text"
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="কিসের জন্য খরচ বা আয় করা হলো..."
+                  className="flex-1 bg-transparent border-none text-[14px] font-medium text-foreground placeholder:text-muted-foreground/60 focus:ring-0 p-0 outline-none"
+                />
               </div>
-              
-              <div className="flex overflow-x-auto md:grid md:grid-cols-4 gap-3 no-scrollbar pb-1 -mx-2 px-2 md:mx-0 md:px-0" style={{ scrollSnapType: 'x mandatory' }}>
-                {filteredCategories.slice(0, 8).map((c) => {
+              {noteSuggestions && noteSuggestions.length > 0 && !note && (
+                <div className="flex flex-wrap gap-1 pt-0.5">
+                  {noteSuggestions.slice(0, 4).map((sugg) => (
+                    <button
+                      key={sugg}
+                      type="button"
+                      onClick={() => setNote(sugg)}
+                      className="text-[11px] px-2.5 py-0.5 rounded-full bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {sugg}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 4. Category - Compact size, all shown */}
+            <div className="space-y-1.5">
+              <div className="flex justify-between items-center">
+                <label className="text-[12.5px] font-semibold text-foreground">
+                  ক্যাটাগরি <span className="text-[11.5px] text-muted-foreground font-normal">({filteredCategories.length}টি)</span>
+                </label>
+              </div>
+
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 gap-2">
+                {filteredCategories.map((c) => {
                   const selected = categoryId === c.id;
                   const config = getCategoryConfig(c.name, txType);
                   const Icon = config.icon;
@@ -266,136 +362,199 @@ const TransactionEditDialog = ({ transaction, open, onOpenChange, accounts, cate
                     <button
                       key={c.id}
                       type="button"
-                      onClick={() => setCategoryId(c.id)}
-                      style={{ scrollSnapAlign: 'start' }}
-                      className={`flex shrink-0 w-[90px] md:w-auto h-[48px] items-center gap-2 px-3 rounded-[12px] border transition-all ${
-                        selected 
-                          ? (isIncome ? 'bg-[#DCFCE7] border-[#22C55E] text-[#16B981] dark:bg-[#16B981]/10' : 'bg-[#FEE2E2] border-[#EF4444] text-[#EF4444] dark:bg-[#EF4444]/10')
-                          : 'bg-card border-border hover:bg-muted/30 text-foreground'
+                      onClick={() => setCategoryId(selected ? "" : c.id)}
+                      className={`h-[38px] px-2.5 rounded-[10px] flex items-center gap-2 border transition-all text-left ${
+                        selected
+                          ? isIncome
+                            ? "bg-[#DCFCE7] border-[#22C55E] text-[#16B981] dark:bg-[#16B981]/15 font-semibold shadow-xs"
+                            : "bg-[#FEE2E2] border-[#EF4444] text-[#EF4444] dark:bg-[#EF4444]/15 font-semibold shadow-xs"
+                          : "bg-card border-border/80 hover:bg-muted/40 text-foreground"
                       }`}
                     >
-                      <Icon className="w-[18px] h-[18px] shrink-0" style={{ color: selected ? undefined : config.text }} />
-                      <span className="text-[13px] font-medium truncate">{c.name}</span>
+                      <Icon
+                        className="w-4 h-4 shrink-0"
+                        style={{ color: selected ? undefined : config.text }}
+                      />
+                      <span className="text-[12px] font-medium truncate leading-none">{c.name}</span>
                     </button>
                   );
                 })}
+
+                {/* Add new category button / input */}
+                {showNewCategory ? (
+                  <div className="flex items-center gap-1.5 col-span-2">
+                    <Input
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      placeholder="নতুন নাম..."
+                      className="h-[38px] text-[12px] rounded-[10px] px-2.5"
+                      autoFocus
+                    />
+                    <Button
+                      type="button"
+                      size="icon"
+                      className="h-[38px] w-[38px] shrink-0 rounded-[10px]"
+                      disabled={!newCategoryName.trim() || addCategory.isPending}
+                      onClick={() => addCategory.mutate()}
+                    >
+                      <Check className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="h-[38px] w-[38px] shrink-0 rounded-[10px]"
+                      onClick={() => {
+                        setShowNewCategory(false);
+                        setNewCategoryName("");
+                      }}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setShowNewCategory(true)}
+                    className="h-[38px] px-2.5 rounded-[10px] flex items-center justify-center gap-1.5 border border-dashed border-primary/40 text-primary hover:bg-primary/5 transition-all text-[12px] font-medium"
+                  >
+                    <Plus className="w-4 h-4" /> নতুন
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* Account */}
+            {/* 5. Date & Time Row */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5 min-w-0">
+                <label className="text-[12.5px] font-semibold text-foreground">তারিখ</label>
+                <div className="h-[44px] border border-border rounded-xl bg-card flex items-center px-3.5 gap-2.5 hover:bg-muted/30 transition-colors relative">
+                  <Calendar className="w-4 h-4 text-muted-foreground shrink-0 pointer-events-none" />
+                  <input
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    required
+                    className="flex-1 bg-transparent border-none text-[13.5px] font-medium text-foreground focus:ring-0 p-0 outline-none w-full cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5 min-w-0">
+                <label className="text-[12.5px] font-semibold text-foreground">সময়</label>
+                <div className="h-[44px] border border-border rounded-xl bg-card flex items-center px-3.5 gap-2 hover:bg-muted/30 transition-colors">
+                  <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <input
+                    type="time"
+                    value={time}
+                    onChange={(e) => setTime(e.target.value)}
+                    className="flex-1 bg-transparent border-none text-[13.5px] font-medium text-foreground focus:ring-0 p-0 outline-none min-w-0"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 6. Account - At the very bottom */}
             <div className="space-y-1.5">
-              <label className="text-[13px] font-semibold text-foreground">অ্যাকাউন্ট</label>
-              <div 
-                className="h-[52px] border border-border rounded-xl bg-card flex items-center justify-between px-4 cursor-pointer hover:bg-muted/30 transition-colors"
+              <label className="text-[12.5px] font-semibold text-foreground">অ্যাকাউন্ট</label>
+              <div
+                className="h-[44px] border border-border rounded-xl bg-card flex items-center justify-between px-3.5 cursor-pointer hover:bg-muted/30 transition-colors"
                 onClick={() => setIsAccountExpanded(!isAccountExpanded)}
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded bg-[#22C55E]/10 flex items-center justify-center">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-5 h-5 rounded bg-[#22C55E]/10 flex items-center justify-center">
                     <Wallet className="w-3.5 h-3.5 text-[#22C55E]" />
                   </div>
-                  <span className="text-[15px] font-medium text-foreground">
-                    {accountId ? accounts.find(a => a.id === accountId)?.name : "নগদ"}
+                  <span className="text-[14px] font-medium text-foreground">
+                    {accountId ? accounts.find((a) => a.id === accountId)?.name : "নগদ"}
                   </span>
                 </div>
-                <ChevronDown className={`w-[18px] h-[18px] text-muted-foreground transition-transform ${isAccountExpanded ? "rotate-180" : ""}`} />
+                <ChevronDown
+                  className={`w-4 h-4 text-muted-foreground transition-transform ${
+                    isAccountExpanded ? "rotate-180" : ""
+                  }`}
+                />
               </div>
               {isAccountExpanded && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {accounts.map(a => (
-                    <button key={a.id} type="button" onClick={() => { setAccountId(a.id); setIsAccountExpanded(false); }} className={`px-3 py-1.5 rounded-lg text-sm font-medium border ${accountId === a.id ? 'bg-primary/10 border-primary text-primary' : 'bg-card border-border hover:bg-muted/50 text-muted-foreground'}`}>
+                <div className="flex flex-wrap gap-1.5 mt-1.5 p-2 bg-muted/20 border border-border/50 rounded-xl">
+                  {accounts.map((a) => (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={() => {
+                        setAccountId(a.id);
+                        setIsAccountExpanded(false);
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-[13px] font-medium border transition-colors ${
+                        accountId === a.id
+                          ? "bg-primary/10 border-primary text-primary font-semibold"
+                          : "bg-card border-border hover:bg-muted/50 text-foreground"
+                      }`}
+                    >
                       {a.name}
                     </button>
                   ))}
                 </div>
               )}
             </div>
-
-            {/* Date & Time Row */}
-            <div className="flex gap-3">
-              <div className="flex-1 space-y-1.5 min-w-0">
-                <label className="text-[13px] font-semibold text-foreground">তারিখ</label>
-                <div className="h-[52px] border border-border rounded-xl bg-card flex items-center px-4 gap-3 hover:bg-muted/30 transition-colors relative">
-                  <Calendar className="w-[18px] h-[18px] text-muted-foreground shrink-0 pointer-events-none" />
-                  <input
-                    type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    required
-                    className="flex-1 bg-transparent border-none text-[15px] font-medium text-foreground focus:ring-0 p-0 outline-none w-full cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full"
-                  />
-                </div>
-              </div>
-              
-              <div className="flex-1 space-y-1.5 min-w-0">
-                <label className="text-[13px] font-semibold text-foreground">সময়</label>
-                <div className="h-[52px] border border-border rounded-xl bg-card flex items-center px-3 gap-2 hover:bg-muted/30 transition-colors">
-                  <Clock className="w-[18px] h-[18px] text-muted-foreground shrink-0" />
-                  <input 
-                    type="time" 
-                    value={time} 
-                    onChange={(e) => setTime(e.target.value)}
-                    className="flex-1 bg-transparent border-none text-[15px] font-medium text-foreground focus:ring-0 p-0 outline-none min-w-0 [&::-webkit-calendar-picker-indicator]:hidden"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Note */}
-            <div className="space-y-1.5">
-              <label className="text-[13px] font-semibold text-foreground">নোট</label>
-              <div className="h-[52px] border border-border rounded-xl bg-card flex items-center px-4 gap-3 hover:bg-muted/30 transition-colors focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20">
-                <FileText className="w-[18px] h-[18px] text-muted-foreground shrink-0" />
-                <input
-                  type="text"
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  placeholder="কিসের জন্য খরচটি করা হলো..."
-                  className="flex-1 bg-transparent border-none text-[15px] font-medium text-foreground placeholder:text-muted-foreground focus:ring-0 p-0 outline-none"
-                />
-              </div>
-            </div>
-            
           </form>
 
           {/* Footer Actions */}
-          <div className="p-4 lg:p-6 flex gap-3 border-t border-border bg-background/80 backdrop-blur-md sticky bottom-0">
+          <div className="px-6 py-4 flex gap-3 border-t border-border bg-background/80 backdrop-blur-md shrink-0">
+            {isEdit && (
+              <button
+                type="button"
+                onClick={() => setDeleteOpen(true)}
+                className="w-12 h-[50px] rounded-xl bg-destructive/10 text-destructive font-semibold flex items-center justify-center hover:bg-destructive/20 transition-colors shrink-0"
+                title="মুছে ফেলুন"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            )}
             <button
               type="button"
               onClick={() => onOpenChange(false)}
-              className="w-1/3 lg:w-[140px] h-[52px] lg:h-[56px] rounded-xl lg:rounded-[14px] bg-[#F3F4F8] dark:bg-[#1C2538] text-[#475569] dark:text-[#94A3B8] font-semibold text-[15px] flex items-center justify-center gap-2 hover:bg-[#E5E7EB] dark:hover:bg-[#263449] transition-colors"
+              className="w-32 sm:w-36 h-[50px] rounded-xl bg-[#F3F4F8] dark:bg-[#1C2538] text-[#475569] dark:text-[#94A3B8] font-semibold text-[15px] flex items-center justify-center gap-1.5 hover:bg-[#E5E7EB] dark:hover:bg-[#263449] transition-colors"
             >
-              <X className="w-[18px] h-[18px]" /> বাতিল
+              <X className="w-4 h-4" /> বাতিল
             </button>
             <button
               type="button"
-              onClick={() => updateMutation.mutate()}
-              disabled={updateMutation.isPending}
-              className={`flex-1 h-[52px] lg:h-[56px] rounded-xl lg:rounded-[14px] font-semibold text-[15px] flex items-center justify-center gap-2 text-white transition-all shadow-[0_4px_12px_rgba(0,0,0,0.1)] ${
-                isIncome ? 'bg-[#10B981] hover:bg-[#059669] hover:shadow-[0_6px_16px_rgba(16,185,129,0.3)]' : 'bg-[#EF5261] hover:bg-[#E11D48] hover:shadow-[0_6px_16px_rgba(239,82,97,0.35)] dark:bg-[#EF4444] dark:hover:bg-[#DC2626]'
+              onClick={() => submitMutation.mutate()}
+              disabled={submitMutation.isPending}
+              className={`flex-1 h-[50px] rounded-xl font-semibold text-[15px] flex items-center justify-center gap-2 text-white transition-all shadow-[0_4px_12px_rgba(0,0,0,0.1)] ${
+                isIncome
+                  ? "bg-[#10B981] hover:bg-[#059669] hover:shadow-[0_6px_16px_rgba(16,185,129,0.3)]"
+                  : "bg-[#EF5261] hover:bg-[#E11D48] hover:shadow-[0_6px_16px_rgba(239,82,97,0.35)] dark:bg-[#EF4444] dark:hover:bg-[#DC2626]"
               }`}
             >
-              <Check className="w-[18px] h-[18px]" strokeWidth={3} /> {isIncome ? 'আয় যোগ করুন' : 'খরচ যোগ করুন'}
+              <Check className="w-4 h-4" strokeWidth={3} />
+              {isEdit ? "আপডেট করুন" : isIncome ? "আয় যোগ করুন" : "খরচ যোগ করুন"}
             </button>
           </div>
-
         </BottomSheetContent>
       </BottomSheet>
-      
-      {/* Alert Dialog code is kept intact just in case */}
-      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <AlertDialogContent className="rounded-2xl bg-popover border-white/10">
-          <AlertDialogHeader>
-            <AlertDialogTitle>লেনদেন মুছে ফেলবেন?</AlertDialogTitle>
-            <AlertDialogDescription>এই লেনদেন স্থায়ীভাবে মুছে যাবে।</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-xl">বাতিল</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl">
-              {deleteMutation.isPending ? "মুছছে..." : "মুছে ফেলুন"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+
+      {/* Delete Confirmation Alert */}
+      {isEdit && (
+        <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+          <AlertDialogContent className="rounded-2xl bg-popover border-white/10">
+            <AlertDialogHeader>
+              <AlertDialogTitle>লেনদেন মুছে ফেলবেন?</AlertDialogTitle>
+              <AlertDialogDescription>এই লেনদেন স্থায়ীভাবে মুছে যাবে।</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="rounded-xl">বাতিল</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => deleteMutation.mutate()}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl"
+              >
+                {deleteMutation.isPending ? "মুছছে..." : "মুছে ফেলুন"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </>
   );
 };

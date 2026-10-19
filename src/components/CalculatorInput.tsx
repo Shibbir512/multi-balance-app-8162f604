@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 interface CalculatorInputProps {
   value: string;
@@ -91,8 +91,8 @@ const CalculatorInput = ({ value, onChange, placeholder = "০", className, requ
   };
 
   return (
-    <div className="relative">
-      <Input
+    <div className="relative flex-1 min-w-0">
+      <input
         type="text"
         inputMode="decimal"
         autoComplete="off"
@@ -105,11 +105,14 @@ const CalculatorInput = ({ value, onChange, placeholder = "০", className, requ
         onBlur={commitPreview}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        className={className}
+        className={cn(
+          "w-full bg-transparent border-0 outline-none focus:outline-none focus:ring-0 p-0 shadow-none",
+          className
+        )}
         required={required}
       />
       {preview !== null && (
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground bg-muted px-2 py-0.5 rounded-md border border-border/50">
           = {preview.toLocaleString("bn-BD")}
         </div>
       )}
