@@ -181,9 +181,11 @@
     @apply border-border;
   }
 
-  body {
+  html, body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', 'Noto Sans Bengali', system-ui, sans-serif;
+    overflow-x: hidden;
+    max-width: 100vw;
   }
 }
 
@@ -444,7 +446,7 @@
 
   /* Quick stat pill */
   .stat-pill {
-    @apply rounded-xl px-3 py-2 text-xs font-semibold transition-all duration-200 border shrink-0;
+    @apply rounded-xl px-2 sm:px-3 py-1.5 sm:py-2 text-xs font-semibold transition-all duration-200 border;
     background: var(--stat-pill-bg);
     border-color: transparent;
   }

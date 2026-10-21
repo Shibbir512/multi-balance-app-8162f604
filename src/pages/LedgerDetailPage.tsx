@@ -559,7 +559,7 @@ const LedgerDetailPage = () => {
         <DashboardHeader
           onMenuClick={() => setSidebarOpen(true)}
         />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden">
       <div className="w-full px-4 lg:px-6 xl:px-8 py-6">
         {reminders && reminders.length > 0 && activeTab === "transactions" && (
           <div className="mb-3">
@@ -589,7 +589,7 @@ const LedgerDetailPage = () => {
                   selectedCategory={chartCategory}
                   periodLabel={statPeriod === 'month' ? getMonthYearLabel(dashboardMonth).split(' ')[0] : statPeriods.find(s => s.id === statPeriod)?.label}
                   periodSelector={
-                                    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+                    <div className="grid grid-cols-4 gap-1.5 sm:gap-2 w-full animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
                                       {statPeriods.map((sp) => {
                                         const stats = periodStats[sp.id];
                                         const isActive = statPeriod === sp.id;
@@ -600,16 +600,16 @@ const LedgerDetailPage = () => {
                                               <SelectPrimitive.Trigger asChild>
                                                 <button
                                                   onClick={() => { setStatPeriod("month"); setChartCategory(null); }}
-                                                  className={`stat-pill min-w-[80px] text-center outline-none ${isActive ? 'stat-pill-active' : ''}`}
+                                                  className={`stat-pill w-full min-w-0 !px-1 sm:!px-2.5 py-1.5 sm:py-2 text-center outline-none ${isActive ? 'stat-pill-active' : ''}`}
                                                 >
-                                                  <p className="text-[10px] font-bold uppercase tracking-wider mb-1">
+                                                  <p className="text-[10.5px] sm:text-[11px] font-bold uppercase tracking-wider mb-0.5 sm:mb-1 h-[14px] flex items-center justify-center truncate">
                                                     {isActive ? getMonthYearLabel(dashboardMonth).split(' ')[0] : sp.label}
                                                   </p>
-                                                  <div className="flex items-center justify-center gap-2">
-                                                    <span className="text-[10px]" style={{ color: 'var(--income-text-soft)' }}>
+                                                  <div className="flex items-center justify-center gap-1 sm:gap-1.5">
+                                                    <span className="text-[9px] sm:text-[10px] whitespace-nowrap" style={{ color: 'var(--income-text-soft)' }}>
                                                       +{(stats.income / 1000).toFixed(stats.income >= 1000 ? 0 : 1)}k
                                                     </span>
-                                                    <span className="text-[10px]" style={{ color: 'var(--expense-text-soft)' }}>
+                                                    <span className="text-[9px] sm:text-[10px] whitespace-nowrap" style={{ color: 'var(--expense-text-soft)' }}>
                                                       -{(stats.expense / 1000).toFixed(stats.expense >= 1000 ? 0 : 1)}k
                                                     </span>
                                                   </div>
@@ -628,14 +628,14 @@ const LedgerDetailPage = () => {
                                           <button
                                             key={sp.id}
                                             onClick={() => { setStatPeriod(sp.id); setChartCategory(null); }}
-                                            className={`stat-pill min-w-[80px] text-center ${isActive ? 'stat-pill-active' : ''}`}
+                                            className={`stat-pill w-full min-w-0 !px-1 sm:!px-2.5 py-1.5 sm:py-2 text-center ${isActive ? 'stat-pill-active' : ''}`}
                                           >
-                                            <p className="text-[10px] font-bold uppercase tracking-wider mb-1 h-[14px] flex items-center justify-center">{sp.label}</p>
-                                            <div className="flex items-center justify-center gap-2">
-                                              <span className="text-[10px]" style={{ color: 'var(--income-text-soft)' }}>
+                                            <p className="text-[10.5px] sm:text-[11px] font-bold uppercase tracking-wider mb-0.5 sm:mb-1 h-[14px] flex items-center justify-center truncate">{sp.label}</p>
+                                            <div className="flex items-center justify-center gap-1 sm:gap-1.5">
+                                              <span className="text-[9px] sm:text-[10px] whitespace-nowrap" style={{ color: 'var(--income-text-soft)' }}>
                                                 +{(stats.income / 1000).toFixed(stats.income >= 1000 ? 0 : 1)}k
                                               </span>
-                                              <span className="text-[10px]" style={{ color: 'var(--expense-text-soft)' }}>
+                                              <span className="text-[9px] sm:text-[10px] whitespace-nowrap" style={{ color: 'var(--expense-text-soft)' }}>
                                                 -{(stats.expense / 1000).toFixed(stats.expense >= 1000 ? 0 : 1)}k
                                               </span>
                                             </div>

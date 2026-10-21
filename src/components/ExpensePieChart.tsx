@@ -75,12 +75,14 @@ const ExpensePieChart = ({ transactions, totalBalance = 0, onCategorySelect, sel
   };
 
   return (
-    <div className="bg-white dark:bg-[#172033] rounded-[16px] lg:rounded-[18px] p-[16px] lg:p-[20px] border border-[#E8EAF2] dark:border-[rgba(255,255,255,0.08)] shadow-[0_4px_16px_rgba(16,24,40,0.06)] dark:shadow-none">
+    <div className="bg-white dark:bg-[#172033] rounded-[16px] lg:rounded-[18px] p-[16px] lg:p-[20px] border border-[#E8EAF2] dark:border-[rgba(255,255,255,0.08)] shadow-[0_4px_16px_rgba(16,24,40,0.06)] dark:shadow-none overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-[18px] lg:text-[20px] font-semibold text-[#172033] dark:text-[#F8FAFC]">খরচের বিশ্লেষণ</h3>
+      <div className="flex flex-col gap-3 mb-5">
+        <div className="flex items-center justify-between">
+          <h3 className="text-[17px] sm:text-[18px] lg:text-[20px] font-semibold text-[#172033] dark:text-[#F8FAFC]">খরচের বিশ্লেষণ</h3>
+        </div>
         {periodSelector && (
-          <div className="h-[36px] lg:h-[40px] flex items-center">
+          <div className="w-full min-w-0">
             {periodSelector}
           </div>
         )}
