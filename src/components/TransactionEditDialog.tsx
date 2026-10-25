@@ -2,15 +2,12 @@ import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { collection, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
 import { db } from "@/integrations/firebase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { BottomSheet, BottomSheetContent } from "@/components/ui/bottom-sheet";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { TrendingUp, TrendingDown, Trash2, Plus, X, Calendar, Clock, Wallet, FileText, Check, ChevronDown, Calculator } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, Search, Plus, X, Wallet, Receipt, Zap, Trash2 } from "lucide-react";
 import CalculatorInput from "./CalculatorInput";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { getCategoryConfig } from "@/lib/categoryColors";
 
 interface Transaction {
   id: string;
@@ -36,6 +33,35 @@ interface Props {
   onSuccess?: () => void;
 }
 
+const formatBnDate = (dateStr: string): string => {
+  if (!dateStr) return "";
+  const parts = dateStr.split("-").map(Number);
+  if (parts.length !== 3) return dateStr;
+  const [y, m, d] = parts;
+  const months = [
+    "জানু", "ফেব্রু", "মার্চ", "এপ্রিল", "মে", "জুন",
+    "জুলাই", "আগস্ট", "সেপ্টে", "অক্টো", "নভে", "ডিসে"
+  ];
+  const bnDigits = "০১২৩৪৫৬৭৮৯";
+  const toBn = (n: number | string) =>
+    String(n).replace(/[0-9]/g, (digit) => bnDigits[parseInt(digit, 10)]);
+
+  const dayBn = toBn(d);
+  const monthBn = months[m - 1] || "";
+  const yearBn = toBn(y);
+  return `${dayBn} ${monthBn}, ${yearBn}`;
+};
+
+const formatBnTime = (timeStr: string): string => {
+  if (!timeStr) return "";
+  const [hStr, mStr] = timeStr.split(":");
+  let h = parseInt(hStr, 10);
+  const m = mStr || "00";
+  const period = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  return `${h}:${m} ${period}`;
+};
+
 const TransactionEditDialog = ({
   transaction,
   open,
@@ -59,9 +85,8 @@ const TransactionEditDialog = ({
   const [time, setTime] = useState("");
   const [note, setNote] = useState("");
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [showNewCategory, setShowNewCategory] = useState(false);
+  const [showCategorySearch, setShowCategorySearch] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
-  const [isAccountExpanded, setIsAccountExpanded] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -87,14 +112,16 @@ const TransactionEditDialog = ({
         setTime(new Date().toTimeString().slice(0, 5));
         setNote("");
       }
-      setShowNewCategory(false);
+      setShowCategorySearch(false);
       setNewCategoryName("");
-      setIsAccountExpanded(false);
     }
   }, [open, transaction, defaultType, ledgerId, accounts]);
 
   const filteredCategories = categories.filter((c) => c.type === txType);
   const isIncome = txType === "income";
+
+  const parsedAmount = parseFloat(amount);
+  const hasValidAmount = !isNaN(parsedAmount) && parsedAmount > 0;
 
   const triggerSuccessAnimation = () => {
     try {
@@ -127,7 +154,7 @@ const TransactionEditDialog = ({
       queryClient.invalidateQueries({ queryKey: ["categories", ledgerId] });
       setCategoryId(data.id);
       setNewCategoryName("");
-      setShowNewCategory(false);
+      setShowCategorySearch(false);
       toast.success("ক্যাটাগরি যোগ হয়েছে!");
     },
     onError: (e: Error) => toast.error(e.message),
@@ -135,8 +162,7 @@ const TransactionEditDialog = ({
 
   const submitMutation = useMutation({
     mutationFn: async () => {
-      const parsedAmount = parseFloat(amount);
-      if (!parsedAmount || isNaN(parsedAmount) || parsedAmount <= 0) {
+      if (!hasValidAmount) {
         throw new Error("সঠিক পরিমাণ দিন");
       }
 
@@ -203,65 +229,122 @@ const TransactionEditDialog = ({
     <>
       <BottomSheet open={open} onOpenChange={onOpenChange}>
         <BottomSheetContent
-          className="p-0 overflow-hidden border border-border/10
-          md:!w-[740px] md:!max-w-[calc(100vw-48px)] md:!h-[670px] md:max-h-[calc(100vh-32px)] 
-          md:bg-background/95 md:backdrop-blur-xl flex flex-col justify-between"
+          className="p-0 border-0 md:border md:rounded-[24px] 
+          inset-0 md:inset-auto md:top-[50%] md:left-[50%] md:-translate-x-1/2 md:-translate-y-1/2 
+          w-full md:w-[540px] md:max-w-[calc(100vw-32px)] 
+          h-full md:h-auto md:max-h-[calc(100vh-48px)] 
+          bg-background flex flex-col shadow-2xl rounded-none md:rounded-[24px]"
         >
-          {/* Header */}
-          <div className="flex items-center px-6 py-4 border-b border-border/40 relative shrink-0">
-            <div
-              className={`w-11 h-11 rounded-xl flex items-center justify-center mr-3.5 shrink-0 ${
-                isIncome
-                  ? "bg-[#DCFCE7] text-[#22C55E] dark:bg-[#22C55E]/10"
-                  : "bg-[#FEE2E2] text-[#EF4444] dark:bg-[#EF4444]/10"
-              }`}
-            >
-              {isIncome ? (
-                <TrendingUp className="w-5 h-5" strokeWidth={2.5} />
-              ) : (
-                <TrendingDown className="w-5 h-5" strokeWidth={2.5} />
-              )}
-            </div>
-            <div>
-              <h2 className="text-[18px] font-bold text-foreground leading-tight">
-                {isEdit ? "লেনদেন এডিট" : "নতুন লেনদেন"}
-              </h2>
-              <p className="text-[12px] text-muted-foreground mt-0.5 leading-tight">
-                {isEdit ? "লেনদেনের তথ্য পরিবর্তন করুন" : "দ্রুত আয় বা খরচ যোগ করুন"}
-              </p>
-            </div>
+          {/* 1. Header */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border/30 shrink-0 bg-background">
             <button
               type="button"
               onClick={() => onOpenChange(false)}
-              className="absolute top-4 right-6 w-9 h-9 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:bg-muted/50 transition-colors"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-foreground hover:bg-muted/60 transition-colors"
+              title="ফিরে যান"
             >
-              <X className="w-4 h-4" />
+              <ArrowLeft className="w-5 h-5" />
             </button>
+
+            <h2 className="text-[18px] font-bold text-foreground">
+              {isEdit ? "লেনদেন এডিট" : "নতুন"}
+            </h2>
+
+            <div className="flex items-center gap-1">
+              {isEdit && (
+                <button
+                  type="button"
+                  onClick={() => setDeleteOpen(true)}
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-destructive hover:bg-destructive/10 transition-colors"
+                  title="মুছে ফেলুন"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  const input = document.querySelector<HTMLInputElement>("input[inputmode='decimal']");
+                  if (input) input.focus();
+                }}
+                className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                title="পরিমাণ লিখুন"
+              >
+                <Zap className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setDate(new Date().toISOString().split("T")[0]);
+                  setTime(new Date().toTimeString().slice(0, 5));
+                  toast.success("বর্তমান সময় সেট করা হয়েছে");
+                }}
+                className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                title="বর্তমান সময়"
+              >
+                <Clock className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
-          {/* Form */}
+          {/* 2. Scrollable Form */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              submitMutation.mutate();
+              if (hasValidAmount) {
+                submitMutation.mutate();
+              } else {
+                toast.error("সঠিক পরিমাণ দিন");
+              }
             }}
-            className="flex-1 px-6 py-4 space-y-3.5 sm:space-y-4 overflow-y-auto no-scrollbar flex flex-col justify-between"
+            className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-3.5 sm:space-y-4"
           >
-            {/* 1. Segment Toggle */}
-            <div className="flex h-[44px] bg-muted/40 border border-border rounded-xl p-1 gap-1">
+            {/* Row 1: Date & Time Pills */}
+            <div className="grid grid-cols-2 gap-2.5">
+              {/* Date Pill */}
+              <div className="relative h-11 rounded-2xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/40 flex items-center justify-center gap-2 cursor-pointer hover:bg-blue-100/60 dark:hover:bg-blue-900/40 transition-colors">
+                <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 pointer-events-none" />
+                <span className="text-[13.5px] font-semibold text-blue-600 dark:text-blue-400 select-none">
+                  {formatBnDate(date)}
+                </span>
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
+                />
+              </div>
+
+              {/* Time Pill */}
+              <div className="relative h-11 rounded-2xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/40 flex items-center justify-center gap-2 cursor-pointer hover:bg-blue-100/60 dark:hover:bg-blue-900/40 transition-colors">
+                <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 pointer-events-none" />
+                <span className="text-[13.5px] font-semibold text-blue-600 dark:text-blue-400 select-none">
+                  {formatBnTime(time)}
+                </span>
+                <input
+                  type="time"
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                  className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
+                />
+              </div>
+            </div>
+
+            {/* Row 2: Type Toggle (আয় / ব্যয়) */}
+            <div className="grid grid-cols-2 gap-2.5">
               <button
                 type="button"
                 onClick={() => {
                   setTxType("income");
                   setCategoryId("");
                 }}
-                className={`flex-1 flex items-center justify-center gap-1.5 rounded-[9px] text-[14px] font-semibold transition-all ${
+                className={`h-12 rounded-2xl text-[16px] font-bold transition-all duration-200 flex items-center justify-center ${
                   isIncome
-                    ? "bg-[#DCFCE7] text-[#16B981] border border-[#22C55E]/30 dark:bg-[#16B981]/20 dark:text-[#4ADE80] dark:border-[#4ADE80]/30 shadow-xs"
-                    : "text-muted-foreground hover:bg-muted/50 border border-transparent"
+                    ? "bg-[#10B981] text-white shadow-sm"
+                    : "bg-muted/50 dark:bg-muted/30 text-muted-foreground hover:bg-muted/70"
                 }`}
               >
-                <TrendingUp className="w-4 h-4" /> আয়
+                আয়
               </button>
               <button
                 type="button"
@@ -269,74 +352,156 @@ const TransactionEditDialog = ({
                   setTxType("expense");
                   setCategoryId("");
                 }}
-                className={`flex-1 flex items-center justify-center gap-1.5 rounded-[9px] text-[14px] font-semibold transition-all ${
+                className={`h-12 rounded-2xl text-[16px] font-bold transition-all duration-200 flex items-center justify-center ${
                   !isIncome
-                    ? "bg-[#FEE2E2] text-[#EF4444] border border-[#EF4444]/30 dark:bg-[#EF4444]/20 dark:text-[#F87171] dark:border-[#F87171]/30 shadow-xs"
-                    : "text-muted-foreground hover:bg-muted/50 border border-transparent"
+                    ? "bg-[#EF4444] text-white shadow-sm"
+                    : "bg-muted/50 dark:bg-muted/30 text-muted-foreground hover:bg-muted/70"
                 }`}
               >
-                <TrendingDown className="w-4 h-4" /> খরচ
+                ব্যয়
               </button>
             </div>
 
-            {/* 2. Amount */}
-            <div className="space-y-1.5">
-              <div className="flex justify-between items-center">
-                <label className="text-[12.5px] font-semibold text-foreground">পরিমাণ</label>
-                <span className="text-[11.5px] text-muted-foreground font-medium">BDT</span>
-              </div>
-              <div
-                className={`h-[64px] flex items-center px-4 border-2 rounded-xl transition-all ${
-                  isIncome
-                    ? "bg-green-50/50 border-green-500/40 dark:bg-[#1C2538] dark:border-green-500/30"
-                    : "bg-[#FFF7F7] border-[#EF4444]/40 dark:bg-[#1C2538] dark:border-[#EF4444]/40"
-                }`}
-              >
-                <span
-                  className={`text-[36px] sm:text-[40px] font-extrabold mr-3 select-none leading-none ${
-                    isIncome ? "text-[#10B981]" : "text-[#EF4444]"
+            {/* Row 3: Category Chips */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                {/* Search / Add Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowCategorySearch(!showCategorySearch)}
+                  className={`w-9 h-9 rounded-full border flex items-center justify-center shrink-0 transition-colors ${
+                    showCategorySearch
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "border-border/80 text-muted-foreground hover:text-foreground hover:bg-muted/50"
                   }`}
+                  title="ক্যাটাগরি খুঁজুন বা যোগ করুন"
                 >
-                  ৳
-                </span>
+                  <Search className="w-4 h-4" />
+                </button>
+
+                {/* Category Pills */}
+                {filteredCategories.map((c) => {
+                  const selected = categoryId === c.id;
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => setCategoryId(selected ? "" : c.id)}
+                      className={`h-9 px-4 rounded-full border text-[13px] font-medium shrink-0 flex items-center gap-1.5 transition-all ${
+                        selected
+                          ? isIncome
+                            ? "bg-[#10B981] border-[#10B981] text-white font-semibold shadow-xs"
+                            : "bg-[#EF4444] border-[#EF4444] text-white font-semibold shadow-xs"
+                          : "bg-card border-border/80 text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                      }`}
+                    >
+                      <span>{c.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Inline Add / Search Category if toggled */}
+              {showCategorySearch && (
+                <div className="flex items-center gap-2 p-2 bg-muted/30 border border-border/50 rounded-2xl animate-in fade-in-50">
+                  <input
+                    type="text"
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    placeholder="নতুন ক্যাটাগরি নাম..."
+                    className="flex-1 h-9 px-3 text-[13px] bg-background border border-border/70 rounded-xl outline-none focus:border-primary"
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    disabled={!newCategoryName.trim() || addCategory.isPending}
+                    onClick={() => addCategory.mutate()}
+                    className="h-9 px-3.5 rounded-xl bg-primary text-primary-foreground text-[12.5px] font-semibold flex items-center gap-1 disabled:opacity-50"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> যোগ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCategorySearch(false);
+                      setNewCategoryName("");
+                    }}
+                    className="w-9 h-9 rounded-xl flex items-center justify-center text-muted-foreground hover:bg-muted/60"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Row 4: Account Selector */}
+            {accounts && accounts.length > 0 && (
+              <div className="flex items-center gap-2 px-0.5">
+                <div className="flex items-center gap-1 text-[12px] font-semibold text-muted-foreground shrink-0">
+                  <Wallet className="w-3.5 h-3.5 text-primary" />
+                  <span>অ্যাকাউন্ট:</span>
+                </div>
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+                  {accounts.map((a) => {
+                    const selected = accountId === a.id;
+                    return (
+                      <button
+                        key={a.id}
+                        type="button"
+                        onClick={() => setAccountId(a.id)}
+                        className={`h-7 px-3 rounded-full text-[12px] font-medium shrink-0 border transition-all ${
+                          selected
+                            ? "bg-primary/10 border-primary text-primary font-semibold shadow-2xs"
+                            : "bg-card border-border/60 text-muted-foreground hover:bg-muted/40"
+                        }`}
+                      >
+                        {a.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Row 5: Amount Input */}
+            <div className="space-y-1">
+              <div className="h-[54px] sm:h-[58px] rounded-2xl border-2 border-border/70 bg-card flex items-center px-4 gap-3 focus-within:border-primary/60 transition-all shadow-2xs">
+                <div className="w-8 h-8 rounded-full bg-muted/60 dark:bg-muted/40 flex items-center justify-center shrink-0">
+                  <span className="text-[17px] font-bold text-foreground leading-none">৳</span>
+                </div>
                 <CalculatorInput
                   value={amount}
                   onChange={setAmount}
                   required
-                  placeholder="০"
-                  className="text-[34px] sm:text-[38px] font-extrabold text-foreground placeholder:text-muted-foreground/25 leading-none"
+                  placeholder="টাকার পরিমাণ"
+                  className="text-[19px] sm:text-[21px] font-bold text-foreground placeholder:text-muted-foreground/40 leading-none"
                 />
-                <div className="ml-auto pl-3 flex items-center shrink-0 pointer-events-none">
-                  <div className="w-8 h-8 rounded-lg bg-muted/60 dark:bg-muted/30 flex items-center justify-center text-muted-foreground">
-                    <Calculator className="w-4 h-4 text-muted-foreground" />
-                  </div>
-                </div>
               </div>
             </div>
 
-            {/* 3. Note - Directly under Amount */}
+            {/* Row 6: Description / Note Input */}
             <div className="space-y-1.5">
-              <label className="text-[12.5px] font-semibold text-foreground">নোট</label>
-              <div className="h-[46px] border-2 border-[#CBD5E1] dark:border-[rgba(255,255,255,0.18)] rounded-xl bg-card flex items-center px-3.5 gap-2.5 shadow-2xs hover:border-primary/50 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-                <div className="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-500/15 flex items-center justify-center shrink-0">
-                  <FileText className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
+              <div className="h-[54px] sm:h-[58px] rounded-2xl border-2 border-border/70 bg-card flex items-center px-4 gap-3 focus-within:border-primary/60 transition-all shadow-2xs">
+                <div className="w-8 h-8 rounded-full bg-muted/60 dark:bg-muted/40 flex items-center justify-center shrink-0">
+                  <Receipt className="w-4 h-4 text-muted-foreground" />
                 </div>
                 <input
                   type="text"
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  placeholder="কিসের জন্য খরচ বা আয় করা হলো..."
-                  className="flex-1 bg-transparent border-none text-[14px] font-medium text-foreground placeholder:text-muted-foreground/60 focus:ring-0 p-0 outline-none"
+                  onFocus={(e) => e.currentTarget.scrollIntoView({ behavior: "smooth", block: "nearest" })}
+                  placeholder="বিবরণ (অপশনাল)"
+                  className="flex-1 bg-transparent border-none text-[14.5px] sm:text-[15px] font-medium text-foreground placeholder:text-muted-foreground/40 focus:ring-0 p-0 outline-none"
                 />
               </div>
               {noteSuggestions && noteSuggestions.length > 0 && !note && (
-                <div className="flex flex-wrap gap-1 pt-0.5">
+                <div className="flex flex-wrap gap-1.5 pt-0.5 px-0.5">
                   {noteSuggestions.slice(0, 4).map((sugg) => (
                     <button
                       key={sugg}
                       type="button"
                       onClick={() => setNote(sugg)}
-                      className="text-[11px] px-2.5 py-0.5 rounded-full bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                      className="text-[11px] px-2.5 py-0.5 rounded-full bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                     >
                       {sugg}
                     </button>
@@ -345,193 +510,27 @@ const TransactionEditDialog = ({
               )}
             </div>
 
-            {/* 4. Category - Compact size, all shown */}
-            <div className="space-y-1.5">
-              <div className="flex justify-between items-center">
-                <label className="text-[12.5px] font-semibold text-foreground">
-                  ক্যাটাগরি <span className="text-[11.5px] text-muted-foreground font-normal">({filteredCategories.length}টি)</span>
-                </label>
-              </div>
-
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 gap-2">
-                {filteredCategories.map((c) => {
-                  const selected = categoryId === c.id;
-                  const config = getCategoryConfig(c.name, txType);
-                  const Icon = config.icon;
-                  return (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => setCategoryId(selected ? "" : c.id)}
-                      className={`h-[38px] px-2.5 rounded-[10px] flex items-center gap-2 border transition-all text-left ${
-                        selected
-                          ? isIncome
-                            ? "bg-[#DCFCE7] border-[#22C55E] text-[#16B981] dark:bg-[#16B981]/15 font-semibold shadow-xs"
-                            : "bg-[#FEE2E2] border-[#EF4444] text-[#EF4444] dark:bg-[#EF4444]/15 font-semibold shadow-xs"
-                          : "bg-card border-border/80 hover:bg-muted/40 text-foreground"
-                      }`}
-                    >
-                      <Icon
-                        className="w-4 h-4 shrink-0"
-                        style={{ color: selected ? undefined : config.text }}
-                      />
-                      <span className="text-[12px] font-medium truncate leading-none">{c.name}</span>
-                    </button>
-                  );
-                })}
-
-                {/* Add new category button / input */}
-                {showNewCategory ? (
-                  <div className="flex items-center gap-1.5 col-span-2">
-                    <Input
-                      value={newCategoryName}
-                      onChange={(e) => setNewCategoryName(e.target.value)}
-                      placeholder="নতুন নাম..."
-                      className="h-[38px] text-[12px] rounded-[10px] px-2.5"
-                      autoFocus
-                    />
-                    <Button
-                      type="button"
-                      size="icon"
-                      className="h-[38px] w-[38px] shrink-0 rounded-[10px]"
-                      disabled={!newCategoryName.trim() || addCategory.isPending}
-                      onClick={() => addCategory.mutate()}
-                    >
-                      <Check className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      className="h-[38px] w-[38px] shrink-0 rounded-[10px]"
-                      onClick={() => {
-                        setShowNewCategory(false);
-                        setNewCategoryName("");
-                      }}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setShowNewCategory(true)}
-                    className="h-[38px] px-2.5 rounded-[10px] flex items-center justify-center gap-1.5 border border-dashed border-primary/40 text-primary hover:bg-primary/5 transition-all text-[12px] font-medium"
-                  >
-                    <Plus className="w-4 h-4" /> নতুন
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* 5. Date & Time Row */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5 min-w-0">
-                <label className="text-[12.5px] font-semibold text-foreground">তারিখ</label>
-                <div className="h-[44px] border border-border rounded-xl bg-card flex items-center px-3.5 gap-2.5 hover:bg-muted/30 transition-colors relative">
-                  <Calendar className="w-4 h-4 text-muted-foreground shrink-0 pointer-events-none" />
-                  <input
-                    type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    required
-                    className="flex-1 bg-transparent border-none text-[13.5px] font-medium text-foreground focus:ring-0 p-0 outline-none w-full cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5 min-w-0">
-                <label className="text-[12.5px] font-semibold text-foreground">সময়</label>
-                <div className="h-[44px] border border-border rounded-xl bg-card flex items-center px-3.5 gap-2 hover:bg-muted/30 transition-colors">
-                  <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
-                  <input
-                    type="time"
-                    value={time}
-                    onChange={(e) => setTime(e.target.value)}
-                    className="flex-1 bg-transparent border-none text-[13.5px] font-medium text-foreground focus:ring-0 p-0 outline-none min-w-0"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* 6. Account - At the very bottom */}
-            <div className="space-y-1.5">
-              <label className="text-[12.5px] font-semibold text-foreground">অ্যাকাউন্ট</label>
-              <div
-                className="h-[44px] border border-border rounded-xl bg-card flex items-center justify-between px-3.5 cursor-pointer hover:bg-muted/30 transition-colors"
-                onClick={() => setIsAccountExpanded(!isAccountExpanded)}
+            {/* Row 7: Submit Button */}
+            <div className="pt-1">
+              <button
+                type="submit"
+                disabled={!hasValidAmount || submitMutation.isPending}
+                className={`w-full h-[50px] sm:h-[52px] rounded-2xl text-[16px] font-bold transition-all duration-200 flex items-center justify-center gap-2 ${
+                  !hasValidAmount
+                    ? "bg-[#E5E7EB] dark:bg-muted/50 text-[#9CA3AF] dark:text-muted-foreground/50 cursor-not-allowed"
+                    : isIncome
+                    ? "bg-[#10B981] hover:bg-[#059669] text-white shadow-md active:scale-[0.99]"
+                    : "bg-[#EF4444] hover:bg-[#DC2626] text-white shadow-md active:scale-[0.99]"
+                }`}
               >
-                <div className="flex items-center gap-2.5">
-                  <div className="w-5 h-5 rounded bg-[#22C55E]/10 flex items-center justify-center">
-                    <Wallet className="w-3.5 h-3.5 text-[#22C55E]" />
-                  </div>
-                  <span className="text-[14px] font-medium text-foreground">
-                    {accountId ? accounts.find((a) => a.id === accountId)?.name : "নগদ"}
-                  </span>
-                </div>
-                <ChevronDown
-                  className={`w-4 h-4 text-muted-foreground transition-transform ${
-                    isAccountExpanded ? "rotate-180" : ""
-                  }`}
-                />
-              </div>
-              {isAccountExpanded && (
-                <div className="flex flex-wrap gap-1.5 mt-1.5 p-2 bg-muted/20 border border-border/50 rounded-xl">
-                  {accounts.map((a) => (
-                    <button
-                      key={a.id}
-                      type="button"
-                      onClick={() => {
-                        setAccountId(a.id);
-                        setIsAccountExpanded(false);
-                      }}
-                      className={`px-3 py-1.5 rounded-lg text-[13px] font-medium border transition-colors ${
-                        accountId === a.id
-                          ? "bg-primary/10 border-primary text-primary font-semibold"
-                          : "bg-card border-border hover:bg-muted/50 text-foreground"
-                      }`}
-                    >
-                      {a.name}
-                    </button>
-                  ))}
-                </div>
-              )}
+                {submitMutation.isPending
+                  ? "যোগ হচ্ছে..."
+                  : isEdit
+                  ? "আপডেট"
+                  : "অ্যাড"}
+              </button>
             </div>
           </form>
-
-          {/* Footer Actions */}
-          <div className="px-6 py-4 flex gap-3 border-t border-border bg-background/80 backdrop-blur-md shrink-0">
-            {isEdit && (
-              <button
-                type="button"
-                onClick={() => setDeleteOpen(true)}
-                className="w-12 h-[50px] rounded-xl bg-destructive/10 text-destructive font-semibold flex items-center justify-center hover:bg-destructive/20 transition-colors shrink-0"
-                title="মুছে ফেলুন"
-              >
-                <Trash2 className="w-5 h-5" />
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={() => onOpenChange(false)}
-              className="w-32 sm:w-36 h-[50px] rounded-xl bg-[#F3F4F8] dark:bg-[#1C2538] text-[#475569] dark:text-[#94A3B8] font-semibold text-[15px] flex items-center justify-center gap-1.5 hover:bg-[#E5E7EB] dark:hover:bg-[#263449] transition-colors"
-            >
-              <X className="w-4 h-4" /> বাতিল
-            </button>
-            <button
-              type="button"
-              onClick={() => submitMutation.mutate()}
-              disabled={submitMutation.isPending}
-              className={`flex-1 h-[50px] rounded-xl font-semibold text-[15px] flex items-center justify-center gap-2 text-white transition-all shadow-[0_4px_12px_rgba(0,0,0,0.1)] ${
-                isIncome
-                  ? "bg-[#10B981] hover:bg-[#059669] hover:shadow-[0_6px_16px_rgba(16,185,129,0.3)]"
-                  : "bg-[#EF5261] hover:bg-[#E11D48] hover:shadow-[0_6px_16px_rgba(239,82,97,0.35)] dark:bg-[#EF4444] dark:hover:bg-[#DC2626]"
-              }`}
-            >
-              <Check className="w-4 h-4" strokeWidth={3} />
-              {isEdit ? "আপডেট করুন" : isIncome ? "আয় যোগ করুন" : "খরচ যোগ করুন"}
-            </button>
-          </div>
         </BottomSheetContent>
       </BottomSheet>
 

@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import AuthPage from "./pages/AuthPage";
 import LedgerListPage from "./pages/LedgerListPage";
 import LedgerDetailPage from "./pages/LedgerDetailPage";
+import { AndroidBackButtonHandler } from "@/components/AndroidBackButtonHandler";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <AndroidBackButtonHandler />
         <AuthProvider>
           <Routes>
             <Route path="/auth" element={<PublicRoute><AuthPage /></PublicRoute>} />

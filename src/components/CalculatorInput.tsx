@@ -102,6 +102,9 @@ const CalculatorInput = ({ value, onChange, placeholder = "০", className, requ
         pattern="[0-9০-৯+\-*/().%]*"
         value={raw}
         onChange={(e) => handleChange(e.target.value)}
+        onFocus={(e) => {
+          e.currentTarget.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }}
         onBlur={commitPreview}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}

@@ -1,6 +1,24 @@
+import java.lang.reflect.Field
+
 plugins {
     id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
 }
+
+// Prevent AGP AndroidLocationsException when both ANDROID_PREFS_ROOT and ANDROID_USER_HOME exist in environment
+try {
+    Class<?> pe = Class.forName("java.lang.ProcessEnvironment")
+    try {
+        Field f = pe.getDeclaredField("theCaseInsensitiveEnvironment")
+        f.setAccessible(true)
+        ((Map) f.get(null)).remove("ANDROID_PREFS_ROOT")
+    } catch (Exception ignored) {
+        Field f = pe.getDeclaredField("theEnvironment")
+        f.setAccessible(true)
+        ((Map) f.get(null)).remove("ANDROID_PREFS_ROOT")
+    }
+} catch (Exception ignored) {
+}
+
 include ':app'
 include ':capacitor-cordova-android-plugins'
 project(':capacitor-cordova-android-plugins').projectDir = new File('./capacitor-cordova-android-plugins/')

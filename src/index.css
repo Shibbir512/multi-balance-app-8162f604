@@ -248,8 +248,8 @@
 
   .glass {
     background: var(--glass-bg);
-    backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
   }
 
@@ -278,8 +278,8 @@
   .premium-card {
     @apply rounded-2xl border transition-all duration-300 ease-out;
     background: var(--glass-bg);
-    backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
     border-color: var(--glass-border);
     box-shadow: var(--shadow-card);
   }
@@ -441,7 +441,11 @@
   }
   .no-scrollbar {
     -ms-overflow-style: none;
-    scrollbar-width: none;
+  }
+  @supports (scrollbar-width: none) {
+    .no-scrollbar {
+      scrollbar-width: none;
+    }
   }
 
   /* Quick stat pill */
