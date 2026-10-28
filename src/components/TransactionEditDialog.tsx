@@ -4,7 +4,9 @@ import { collection, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestor
 import { db } from "@/integrations/firebase/client";
 import { BottomSheet, BottomSheetContent } from "@/components/ui/bottom-sheet";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Calendar, Clock, Search, Plus, X, Wallet, Receipt, Zap, Trash2 } from "lucide-react";
+import { ArrowLeft, Calendar as CalendarIcon, Clock, Search, Plus, X, Wallet, Receipt, Zap, Trash2, ChevronDown } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import CalculatorInput from "./CalculatorInput";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -33,10 +35,42 @@ interface Props {
   onSuccess?: () => void;
 }
 
+const normalizeDateStr = (rawDate: any): string => {
+  if (!rawDate) return new Date().toISOString().split("T")[0];
+  if (typeof rawDate === "string") {
+    const clean = rawDate.split("T")[0].split(" ")[0].trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(clean)) {
+      return clean;
+    }
+    const d = new Date(rawDate);
+    if (!isNaN(d.getTime())) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    }
+  }
+  return new Date().toISOString().split("T")[0];
+};
+
+const normalizeTimeStr = (rawTime: any): string => {
+  if (!rawTime) return new Date().toTimeString().slice(0, 5);
+  if (typeof rawTime === "string") {
+    const match = rawTime.match(/(\d{1,2}):(\d{2})/);
+    if (match) {
+      const h = match[1].padStart(2, "0");
+      const m = match[2];
+      return `${h}:${m}`;
+    }
+  }
+  return new Date().toTimeString().slice(0, 5);
+};
+
 const formatBnDate = (dateStr: string): string => {
   if (!dateStr) return "";
-  const parts = dateStr.split("-").map(Number);
-  if (parts.length !== 3) return dateStr;
+  const clean = dateStr.split("T")[0];
+  const parts = clean.split("-").map(Number);
+  if (parts.length !== 3 || parts.some(isNaN)) return dateStr;
   const [y, m, d] = parts;
   const months = [
     "জানু", "ফেব্রু", "মার্চ", "এপ্রিল", "মে", "জুন",
@@ -46,20 +80,33 @@ const formatBnDate = (dateStr: string): string => {
   const toBn = (n: number | string) =>
     String(n).replace(/[0-9]/g, (digit) => bnDigits[parseInt(digit, 10)]);
 
+  const todayStr = new Date().toISOString().split("T")[0];
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toISOString().split("T")[0];
+
+  let prefix = "";
+  if (clean === todayStr) prefix = "আজ, ";
+  else if (clean === yesterdayStr) prefix = "গতকাল, ";
+
   const dayBn = toBn(d);
   const monthBn = months[m - 1] || "";
   const yearBn = toBn(y);
-  return `${dayBn} ${monthBn}, ${yearBn}`;
+  return `${prefix}${dayBn} ${monthBn}, ${yearBn}`;
 };
 
 const formatBnTime = (timeStr: string): string => {
   if (!timeStr) return "";
   const [hStr, mStr] = timeStr.split(":");
   let h = parseInt(hStr, 10);
+  if (isNaN(h)) return timeStr;
   const m = mStr || "00";
   const period = h >= 12 ? "PM" : "AM";
   h = h % 12 || 12;
-  return `${h}:${m} ${period}`;
+  const bnDigits = "০১২৩৪৫৬৭৮৯";
+  const toBn = (n: number | string) =>
+    String(n).replace(/[0-9]/g, (digit) => bnDigits[parseInt(digit, 10)]);
+  return `${toBn(h)}:${toBn(m)} ${period}`;
 };
 
 const TransactionEditDialog = ({
@@ -87,6 +134,8 @@ const TransactionEditDialog = ({
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [showCategorySearch, setShowCategorySearch] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
+  const [datePopoverOpen, setDatePopoverOpen] = useState(false);
+  const [timePopoverOpen, setTimePopoverOpen] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -95,8 +144,8 @@ const TransactionEditDialog = ({
         setAmount(transaction.amount ? transaction.amount.toString() : "");
         setCategoryId(transaction.category_id || "");
         setAccountId(transaction.account_id || "");
-        setDate(transaction.date || new Date().toISOString().split("T")[0]);
-        setTime(transaction.time || new Date().toTimeString().slice(0, 5));
+        setDate(normalizeDateStr(transaction.date));
+        setTime(normalizeTimeStr(transaction.time));
         setNote(transaction.note || "");
       } else {
         setTxType(defaultType || "expense");
@@ -108,14 +157,33 @@ const TransactionEditDialog = ({
           accounts.find((a) => a.name.includes("নগদ") || a.name.toLowerCase().includes("nagad")) ||
           accounts[0];
         setAccountId(defaultAcc?.id || "");
-        setDate(new Date().toISOString().split("T")[0]);
-        setTime(new Date().toTimeString().slice(0, 5));
+        setDate(normalizeDateStr(null));
+        setTime(normalizeTimeStr(null));
         setNote("");
       }
       setShowCategorySearch(false);
       setNewCategoryName("");
+      setDatePopoverOpen(false);
+      setTimePopoverOpen(false);
     }
   }, [open, transaction, defaultType, ledgerId, accounts]);
+
+  const setQuickDate = (offsetDays: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() - offsetDays);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    setDate(`${y}-${m}-${day}`);
+    setDatePopoverOpen(false);
+    toast.success(offsetDays === 0 ? "আজকের তারিখ সেট করা হয়েছে" : offsetDays === 1 ? "গতকালের তারিখ সেট করা হয়েছে" : "তারিখ সেট করা হয়েছে");
+  };
+
+  const setQuickTime = (timeStr: string) => {
+    setTime(timeStr);
+    setTimePopoverOpen(false);
+    toast.success("সময় সেট করা হয়েছে");
+  };
 
   const filteredCategories = categories.filter((c) => c.type === txType);
   const isIncome = txType === "income";
@@ -299,34 +367,217 @@ const TransactionEditDialog = ({
             }}
             className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-3.5 sm:space-y-4"
           >
-            {/* Row 1: Date & Time Pills */}
-            <div className="grid grid-cols-2 gap-2.5">
-              {/* Date Pill */}
-              <div className="relative h-11 rounded-2xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/40 flex items-center justify-center gap-2 cursor-pointer hover:bg-blue-100/60 dark:hover:bg-blue-900/40 transition-colors">
-                <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 pointer-events-none" />
-                <span className="text-[13.5px] font-semibold text-blue-600 dark:text-blue-400 select-none">
-                  {formatBnDate(date)}
-                </span>
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
-                />
+            {/* Row 1: Date & Time Selectors */}
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-2.5">
+                {/* Date Popover */}
+                <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className="relative h-11 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-800/60 flex items-center justify-between px-3 cursor-pointer hover:bg-blue-100/70 dark:hover:bg-blue-900/50 transition-colors group w-full text-left"
+                    >
+                      <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                        <CalendarIcon className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                        <span className="text-[12.5px] sm:text-[13.5px] font-semibold text-blue-600 dark:text-blue-400 truncate">
+                          {formatBnDate(date)}
+                        </span>
+                      </div>
+                      <ChevronDown className="w-3.5 h-3.5 text-blue-500/70 shrink-0 group-hover:translate-y-0.5 transition-transform" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    align="start"
+                    side="bottom"
+                    className="w-auto p-3 z-[150] shadow-2xl rounded-2xl bg-popover border border-border"
+                  >
+                    <div className="space-y-2.5">
+                      {/* Quick date chips */}
+                      <div className="flex items-center gap-1.5 pb-2 border-b border-border/50">
+                        <button
+                          type="button"
+                          onClick={() => setQuickDate(0)}
+                          className="px-2.5 py-1 text-xs rounded-lg font-medium bg-muted hover:bg-primary hover:text-primary-foreground transition-colors"
+                        >
+                          আজ
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setQuickDate(1)}
+                          className="px-2.5 py-1 text-xs rounded-lg font-medium bg-muted hover:bg-primary hover:text-primary-foreground transition-colors"
+                        >
+                          গতকাল
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setQuickDate(2)}
+                          className="px-2.5 py-1 text-xs rounded-lg font-medium bg-muted hover:bg-primary hover:text-primary-foreground transition-colors"
+                        >
+                          গত পরশু
+                        </button>
+                      </div>
+
+                      {/* Visual Interactive Calendar */}
+                      <Calendar
+                        mode="single"
+                        selected={date ? new Date(date + "T00:00:00") : new Date()}
+                        onSelect={(newDate) => {
+                          if (newDate) {
+                            const y = newDate.getFullYear();
+                            const m = String(newDate.getMonth() + 1).padStart(2, "0");
+                            const d = String(newDate.getDate()).padStart(2, "0");
+                            setDate(`${y}-${m}-${d}`);
+                            setDatePopoverOpen(false);
+                          }
+                        }}
+                        className="rounded-xl border border-border/40 p-2 mx-auto"
+                      />
+
+                      {/* Direct Date Input Fallback */}
+                      <div className="pt-2 border-t border-border/50 flex items-center justify-between gap-2">
+                        <span className="text-[11px] text-muted-foreground font-medium">ক্যালেন্ডার ইনপুট:</span>
+                        <input
+                          type="date"
+                          value={date}
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              setDate(e.target.value);
+                              setDatePopoverOpen(false);
+                            }
+                          }}
+                          className="h-8 text-xs px-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                        />
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+
+                {/* Time Popover */}
+                <Popover open={timePopoverOpen} onOpenChange={setTimePopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className="relative h-11 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-800/60 flex items-center justify-between px-3 cursor-pointer hover:bg-blue-100/70 dark:hover:bg-blue-900/50 transition-colors group w-full text-left"
+                    >
+                      <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                        <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                        <span className="text-[12.5px] sm:text-[13.5px] font-semibold text-blue-600 dark:text-blue-400 truncate">
+                          {formatBnTime(time)}
+                        </span>
+                      </div>
+                      <ChevronDown className="w-3.5 h-3.5 text-blue-500/70 shrink-0 group-hover:translate-y-0.5 transition-transform" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    align="end"
+                    side="bottom"
+                    className="w-72 p-3.5 z-[150] shadow-2xl rounded-2xl bg-popover border border-border"
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold text-foreground">লেনদেনের সময়</span>
+                        <button
+                          type="button"
+                          onClick={() => setQuickTime(new Date().toTimeString().slice(0, 5))}
+                          className="text-[11px] font-medium text-primary hover:underline"
+                        >
+                          এখনকার সময়
+                        </button>
+                      </div>
+
+                      {/* Direct Time Input */}
+                      <div className="flex justify-center">
+                        <input
+                          type="time"
+                          value={time}
+                          onChange={(e) => setTime(e.target.value)}
+                          className="w-full h-11 text-center text-lg font-bold rounded-xl border border-border bg-background tracking-wider focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                      </div>
+
+                      {/* Quick Time Presets */}
+                      <div className="grid grid-cols-2 gap-1.5 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setQuickTime("09:00")}
+                          className="px-2 py-1.5 text-xs rounded-lg border bg-muted/30 hover:bg-muted font-medium text-center"
+                        >
+                          সকাল ০৯:০০
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setQuickTime("13:00")}
+                          className="px-2 py-1.5 text-xs rounded-lg border bg-muted/30 hover:bg-muted font-medium text-center"
+                        >
+                          দুপুর ০১:০০
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setQuickTime("17:30")}
+                          className="px-2 py-1.5 text-xs rounded-lg border bg-muted/30 hover:bg-muted font-medium text-center"
+                        >
+                          বিকাল ০৫:৩০
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setQuickTime("21:00")}
+                          className="px-2 py-1.5 text-xs rounded-lg border bg-muted/30 hover:bg-muted font-medium text-center"
+                        >
+                          রাত ০৯:০০
+                        </button>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setTimePopoverOpen(false)}
+                        className="w-full h-9 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors"
+                      >
+                        ঠিক আছে
+                      </button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
 
-              {/* Time Pill */}
-              <div className="relative h-11 rounded-2xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/40 flex items-center justify-center gap-2 cursor-pointer hover:bg-blue-100/60 dark:hover:bg-blue-900/40 transition-colors">
-                <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 pointer-events-none" />
-                <span className="text-[13.5px] font-semibold text-blue-600 dark:text-blue-400 select-none">
-                  {formatBnTime(time)}
-                </span>
-                <input
-                  type="time"
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
-                  className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
-                />
+              {/* Quick shortcut chips directly on the form */}
+              <div className="flex items-center gap-1.5 px-0.5 overflow-x-auto no-scrollbar text-xs">
+                <span className="text-[11px] text-muted-foreground mr-0.5 shrink-0">দ্রুত বাছুন:</span>
+                <button
+                  type="button"
+                  onClick={() => setQuickDate(0)}
+                  className={`px-2.5 py-1 rounded-full border text-[11px] font-medium transition-colors shrink-0 ${
+                    date === new Date().toISOString().split("T")[0]
+                      ? "bg-primary/10 border-primary/30 text-primary font-semibold"
+                      : "bg-muted/30 border-border/60 text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  আজ
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuickDate(1)}
+                  className={`px-2.5 py-1 rounded-full border text-[11px] font-medium transition-colors shrink-0 ${
+                    (() => {
+                      const y = new Date();
+                      y.setDate(y.getDate() - 1);
+                      return date === y.toISOString().split("T")[0];
+                    })()
+                      ? "bg-primary/10 border-primary/30 text-primary font-semibold"
+                      : "bg-muted/30 border-border/60 text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  গতকাল
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTime(new Date().toTimeString().slice(0, 5));
+                    toast.success("বর্তমান সময় সেট করা হয়েছে");
+                  }}
+                  className="px-2.5 py-1 rounded-full border border-border/60 bg-muted/30 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors shrink-0 flex items-center gap-1"
+                >
+                  <Clock className="w-3 h-3" /> এখন
+                </button>
               </div>
             </div>
 

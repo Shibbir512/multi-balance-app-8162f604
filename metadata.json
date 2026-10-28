@@ -1,0 +1,7 @@
+{
+  "name": "জমা খরচ",
+  "description": "আপনার ব্যক্তিগত আয়-ব্যয় হিসাব রাখুন সহজে",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
