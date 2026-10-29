@@ -13,6 +13,7 @@ import { Plus, Wallet, LogOut, BookOpen, Trash2, Layers, BarChart3, PieChart, Se
 import ThemeToggle from "@/components/ThemeToggle";
 import { toast } from "sonner";
 import { LedgerCard } from "@/components/LedgerCard";
+import AdvancedExport from "@/components/AdvancedExport";
 
 const LedgerListPage = () => {
   const { user, signOut } = useAuth();
@@ -22,6 +23,33 @@ const LedgerListPage = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [exportTargetLedger, setExportTargetLedger] = useState<Ledger | null>(null);
+
+  const { data: exportTransactions } = useQuery({
+    queryKey: ["export-transactions", exportTargetLedger?.id],
+    queryFn: async () => {
+      if (!exportTargetLedger) return [];
+      const q = query(collection(db, "transactions"), where("ledger_id", "==", exportTargetLedger.id));
+      const snap = await getDocs(q);
+      const accSnap = await getDocs(query(collection(db, "accounts"), where("ledger_id", "==", exportTargetLedger.id)));
+      const catSnap = await getDocs(query(collection(db, "categories"), where("ledger_id", "==", exportTargetLedger.id)));
+      const accMap: Record<string, string> = {};
+      accSnap.forEach(d => accMap[d.id] = d.data().name);
+      const catMap: Record<string, string> = {};
+      catSnap.forEach(d => catMap[d.id] = d.data().name);
+
+      return snap.docs.map(d => {
+        const data = d.data();
+        return {
+          id: d.id,
+          ...data,
+          categories: data.category_id ? { name: catMap[data.category_id] || "অন্যান্য" } : null,
+          accounts: data.account_id ? { name: accMap[data.account_id] || "নগদ" } : null,
+        } as any;
+      });
+    },
+    enabled: !!exportTargetLedger,
+  });
 
   const { data: ledgers, isLoading } = useQuery({
     queryKey: ["ledgers"],
@@ -284,6 +312,7 @@ const LedgerListPage = () => {
                     transactionCount={stats.count}
                     lastTransactionDate={stats.lastDate}
                     onDelete={(id, name) => setDeleteTarget({ id, name })}
+                    onExport={(l) => setExportTargetLedger(l)}
                   />
                 );
               })}
@@ -464,6 +493,17 @@ const LedgerListPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* ─── LEDGER BACKUP & EXPORT MODAL ─── */}
+      {exportTargetLedger && (
+        <AdvancedExport
+          open={!!exportTargetLedger}
+          onOpenChange={(o) => !o && setExportTargetLedger(null)}
+          ledgerName={exportTargetLedger.name}
+          transactions={exportTransactions || []}
+          categories={[]}
+        />
+      )}
     </div>
   );
 };

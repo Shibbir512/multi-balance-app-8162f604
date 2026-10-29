@@ -14,7 +14,28 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Inter", "Noto Sans Bengali", "system-ui", "sans-serif"],
+        sans: [
+          "'Plus Jakarta Sans'",
+          "'Hind Siliguri'",
+          "Inter",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "system-ui",
+          "sans-serif",
+        ],
+        display: ["'Plus Jakarta Sans'", "'Hind Siliguri'", "sans-serif"],
+        bengali: ["'Hind Siliguri'", "'Noto Sans Bengali'", "sans-serif"],
+        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"],
+      },
+      letterSpacing: {
+        tighter: "-0.04em",
+        tight: "-0.025em",
+        snug: "-0.015em",
+        normal: "-0.005em",
+        relaxed: "0.01em",
+        wide: "0.025em",
+        wider: "0.05em",
+        widest: "0.1em",
       },
       colors: {
         border: "hsl(var(--border))",

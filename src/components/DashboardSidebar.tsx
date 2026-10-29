@@ -4,7 +4,7 @@ import {
   Home, CreditCard, Plus, Tag, BarChart3,
   Calculator, Wallet, Settings,
   HelpCircle, X, ChevronDown, Target, ArrowDownCircle, ArrowUpCircle,
-  ChevronRight
+  ChevronRight, Download
 } from "lucide-react";
 
 interface NavItem {
@@ -26,6 +26,7 @@ interface DashboardSidebarProps {
   allLedgers?: any[];
   currentLedgerId?: string;
   user?: any;
+  onExport?: () => void;
 }
 
 const tabToSidebarMap: Record<string, string> = {
@@ -51,6 +52,7 @@ const DashboardSidebar = ({
   allLedgers,
   currentLedgerId,
   user,
+  onExport,
 }: DashboardSidebarProps) => {
   const navigate = useNavigate();
   const [ledgerDropdownOpen, setLedgerDropdownOpen] = useState(false);
@@ -71,6 +73,7 @@ const DashboardSidebar = ({
     { sidebarId: "categories", tabId: "categories", label: "ক্যাটাগরি", icon: Tag },
     { sidebarId: "budget", tabId: "budget", label: "বাজেট", icon: Target },
     { sidebarId: "reports", tabId: "reports", label: "রিপোর্ট", icon: BarChart3 },
+    ...(onExport ? [{ sidebarId: "export", label: "ব্যাকআপ ও এক্সপোর্ট (CSV / PDF)", icon: Download, action: onExport }] : []),
     { sidebarId: "zakat", tabId: "zakat", label: "যাকাত ক্যালকুলেটর", icon: Calculator },
     { sidebarId: "savings", tabId: "savings", label: "লক্ষ্য ও সঞ্চয়", icon: Wallet },
   ];
@@ -112,25 +115,25 @@ const DashboardSidebar = ({
           onClick={() => handleClick(item)}
           className={`
             w-full flex items-center gap-[10px] h-[42px] px-[10px] rounded-[10px]
-            text-[13.5px] font-medium transition-all duration-150 outline-none group
+            text-[13.5px] font-medium transition-all duration-150 outline-none group cursor-pointer
             ${isExpense
-              ? "text-[#64748B] dark:text-[#94A3B8] hover:bg-[#FFF0F1] dark:hover:bg-[rgba(239,68,68,0.08)] hover:text-[#E5484D] dark:hover:text-[#F87171]"
+              ? "text-[#64748B] dark:text-[#94A3B8] hover:bg-rose-50/80 dark:hover:bg-rose-950/30 hover:text-[#DC2626] dark:hover:text-[#F87171]"
               : "text-[#64748B] dark:text-[#94A3B8] hover:bg-[#ECFDF5] dark:hover:bg-[rgba(22,163,74,0.08)] hover:text-[#16A34A] dark:hover:text-[#4ADE80]"
             }
           `}
         >
           {/* Colored icon pill */}
           <span
-            className={`w-[30px] h-[30px] rounded-[9px] flex items-center justify-center shrink-0 ${
+            className={`w-[30px] h-[30px] rounded-[9px] flex items-center justify-center shrink-0 border transition-all ${
               isExpense
-                ? "bg-[#FEE2E2] dark:bg-[rgba(239,68,68,0.12)]"
-                : "bg-[#DCFCE7] dark:bg-[rgba(22,163,74,0.12)]"
+                ? "bg-[#FEF2F2] dark:bg-[rgba(220,38,38,0.12)] border-rose-200/60 dark:border-rose-900/40"
+                : "bg-[#DCFCE7] dark:bg-[rgba(22,163,74,0.12)] border-emerald-200/60 dark:border-emerald-900/40"
             }`}
           >
             <Icon
               size={15}
               strokeWidth={2}
-              className={isExpense ? "text-[#E5484D] dark:text-[#F87171]" : "text-[#16A34A] dark:text-[#4ADE80]"}
+              className={isExpense ? "text-[#DC2626] dark:text-[#F87171]" : "text-[#16A34A] dark:text-[#4ADE80]"}
             />
           </span>
           <span className="truncate">{item.label}</span>

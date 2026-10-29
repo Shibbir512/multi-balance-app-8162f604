@@ -95,7 +95,7 @@ export const ReportsView = ({
 
   // Years list for filter
   const years = useMemo(() => {
-    const currYear = now.getFullYear();
+    const currYear = new Date().getFullYear();
     return Array.from({ length: 5 }, (_, i) => String(currYear - i));
   }, []);
 

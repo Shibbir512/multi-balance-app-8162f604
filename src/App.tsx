@@ -37,6 +37,7 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<PublicRoute><AuthPage /></PublicRoute>} />
             <Route path="/" element={<ProtectedRoute><LedgerListPage /></ProtectedRoute>} />
+            <Route path="/ledgers" element={<ProtectedRoute><LedgerListPage /></ProtectedRoute>} />
             <Route path="/ledger/:ledgerId" element={<ProtectedRoute><LedgerDetailPage /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>

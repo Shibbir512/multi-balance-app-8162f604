@@ -40,15 +40,15 @@ const FinancialSummaryCards = ({
 
       {/* Expense Card */}
       <div className={baseCardClass}>
-        <div className="absolute top-0 left-0 w-full h-[3px] bg-[#E5484D] dark:bg-[#F87171] opacity-80" />
+        <div className="absolute top-0 left-0 w-full h-[3px] bg-[#DC2626] dark:bg-[#F87171] opacity-80" />
         <div className="flex flex-col h-full justify-center gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-[44px] h-[44px] rounded-[12px] flex items-center justify-center bg-[#FFF0F1] dark:bg-[rgba(239,68,68,0.14)] shrink-0">
-              <TrendingDown className="w-[20px] h-[20px] text-[#E5484D] dark:text-[#F87171]" strokeWidth={2} />
+            <div className="w-[44px] h-[44px] rounded-[12px] flex items-center justify-center bg-[#FEF2F2] dark:bg-[rgba(220,38,38,0.14)] shrink-0">
+              <TrendingDown className="w-[20px] h-[20px] text-[#DC2626] dark:text-[#F87171]" strokeWidth={2} />
             </div>
             <span className="text-[13px] font-semibold text-[#475467] dark:text-[#94A3B8]">মোট খরচ</span>
           </div>
-          <p className="text-[28px] lg:text-[30px] font-bold text-[#E5484D] dark:text-[#F87171] leading-none truncate">
+          <p className="text-[28px] lg:text-[30px] font-bold text-[#DC2626] dark:text-[#F87171] leading-none truncate">
             ৳{totalExpense.toLocaleString("bn-BD")}
           </p>
         </div>

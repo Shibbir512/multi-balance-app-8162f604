@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,400..800;1,400..800&family=Inter:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -64,10 +64,10 @@
     --income-border: rgba(5, 150, 105, 0.15);
     --income-text: #047857;
     --income-text-soft: #059669;
-    --expense-bg: rgba(220, 38, 38, 0.08);
-    --expense-border: rgba(220, 38, 38, 0.15);
-    --expense-text: #B91C1C;
-    --expense-text-soft: #DC2626;
+    --expense-bg: rgba(225, 29, 72, 0.08);
+    --expense-border: rgba(225, 29, 72, 0.22);
+    --expense-text: #BE123C;
+    --expense-text-soft: #E11D48;
     --action-btn-bg: rgba(0, 0, 0, 0.02);
     --action-btn-border: rgba(0, 0, 0, 0.08);
     --action-btn-hover: rgba(0, 0, 0, 0.05);
@@ -147,11 +147,10 @@
     --income-bg: rgba(16, 185, 129, 0.1);
     --income-border: rgba(16, 185, 129, 0.18);
     --income-text: #6EE7B7;
-    --income-text-soft: #34D399;
-    --expense-bg: rgba(239, 68, 68, 0.18);
-    --expense-border: rgba(239, 68, 68, 0.3);
-    --expense-text: #FF6B6B;
-    --expense-text-soft: #FF4444;
+    --expense-bg: rgba(225, 29, 72, 0.18);
+    --expense-border: rgba(244, 63, 94, 0.35);
+    --expense-text: #FB7185;
+    --expense-text-soft: #F43F5E;
     --action-btn-bg: rgba(255, 255, 255, 0.04);
     --action-btn-border: rgba(255, 255, 255, 0.08);
     --action-btn-hover: rgba(255, 255, 255, 0.07);
@@ -181,11 +180,82 @@
     @apply border-border;
   }
 
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+  }
+
   html, body {
-    @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', 'Noto Sans Bengali', system-ui, sans-serif;
+    @apply bg-background text-foreground font-sans;
+    font-family: 'Plus Jakarta Sans', 'Hind Siliguri', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    letter-spacing: -0.011em;
     overflow-x: hidden;
     max-width: 100vw;
+  }
+
+  /* Refined, Modern Heading Hierarchy */
+  h1, .h1 {
+    font-family: 'Plus Jakarta Sans', 'Hind Siliguri', 'Inter', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.028em;
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+
+  h2, .h2 {
+    font-family: 'Plus Jakarta Sans', 'Hind Siliguri', 'Inter', sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.022em;
+    line-height: 1.25;
+    text-wrap: balance;
+  }
+
+  h3, .h3 {
+    font-family: 'Plus Jakarta Sans', 'Hind Siliguri', 'Inter', sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.018em;
+    line-height: 1.3;
+  }
+
+  h4, .h4 {
+    font-family: 'Plus Jakarta Sans', 'Hind Siliguri', 'Inter', sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.012em;
+    line-height: 1.35;
+  }
+
+  p {
+    line-height: 1.6;
+    letter-spacing: -0.008em;
+  }
+
+  /* Micro copy and small labels */
+  small, .text-caption {
+    font-size: 11.5px;
+    line-height: 1.4;
+    letter-spacing: 0.01em;
+  }
+
+  /* Form & Interactive Elements */
+  button, input, optgroup, select, textarea {
+    font-family: inherit;
+    letter-spacing: inherit;
+  }
+
+  /* Financial Numbers, Amounts, and Currencies (Tabular numbers for aligned figures) */
+  .tnum,
+  .tabular-nums,
+  [data-amount],
+  .font-numeric {
+    font-variant-numeric: tabular-nums lining-nums;
+    font-feature-settings: "tnum" 1, "lnum" 1;
+    letter-spacing: -0.02em;
   }
 }
 
@@ -471,4 +541,52 @@
   .ledger-switcher:hover {
     background: rgba(255, 255, 255, 0.15);
   }
+
+  /* ── Modern Premium Typography Utilities ── */
+  .font-bengali {
+    font-family: 'Hind Siliguri', 'Noto Sans Bengali', sans-serif;
+  }
+
+  .font-display {
+    font-family: 'Plus Jakarta Sans', 'Hind Siliguri', sans-serif;
+    letter-spacing: -0.025em;
+  }
+
+  .font-num {
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    font-variant-numeric: tabular-nums lining-nums;
+    font-feature-settings: "tnum" on, "lnum" on;
+  }
+
+  .heading-hero {
+    font-family: 'Plus Jakarta Sans', 'Hind Siliguri', 'Inter', sans-serif;
+    font-size: clamp(1.75rem, 4vw, 2.35rem);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+
+  .heading-section {
+    font-family: 'Plus Jakarta Sans', 'Hind Siliguri', 'Inter', sans-serif;
+    font-size: clamp(1.15rem, 2.5vw, 1.45rem);
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  .text-metric {
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    font-size: clamp(1.5rem, 3vw, 1.85rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  .text-balance-header {
+    text-wrap: balance;
+  }
 }
+
