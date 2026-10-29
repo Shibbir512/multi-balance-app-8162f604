@@ -36,6 +36,7 @@ export interface Transaction {
   amount: number;
   date: string;
   note: string | null;
+  time?: string | null;
   transfer_to_account_id: string | null;
   created_at: string;
   updated_at: string;

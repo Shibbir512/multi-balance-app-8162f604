@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { collection, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
 import { db } from "@/integrations/firebase/client";
@@ -88,8 +88,15 @@ const TransactionEditDialog = ({
   const [showCategorySearch, setShowCategorySearch] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
 
+  const initializedTxRef = useRef<string | null | undefined>(undefined);
+
   useEffect(() => {
     if (open) {
+      // Only initialize form when dialog first opens or when editing a different transaction
+      const currentTxId = transaction?.id || null;
+      if (initializedTxRef.current === currentTxId) return;
+      initializedTxRef.current = currentTxId;
+
       if (transaction) {
         setTxType(transaction.type as "income" | "expense");
         setAmount(transaction.amount ? transaction.amount.toString() : "");
@@ -114,6 +121,9 @@ const TransactionEditDialog = ({
       }
       setShowCategorySearch(false);
       setNewCategoryName("");
+    } else {
+      // Reset the ref when dialog closes so it re-initializes next time
+      initializedTxRef.current = undefined;
     }
   }, [open, transaction, defaultType, ledgerId, accounts]);
 
