@@ -49,52 +49,49 @@ const PdfExport = ({ ledgerName, transactions }: PdfExportProps) => {
 
     const fmt = (n: number) => n.toLocaleString("bn-BD");
 
-    const A4_WIDTH_PX = 794;
-    const A4_HEIGHT_PX = 1123;
-    const MAX_CONTENT_HEIGHT = 1010;
+    const tableHeaderHtml = `
+      <thead>
+        <tr style="background:linear-gradient(135deg,#6366f1,#4f46e5);color:#ffffff;">
+          <th style="padding:7px 8px;font-size:11px;font-weight:700;text-align:left;width:12%;">তারিখ</th>
+          <th style="padding:7px 8px;font-size:11px;font-weight:700;text-align:left;width:9%;">ধরন</th>
+          <th style="padding:7px 8px;font-size:11px;font-weight:700;text-align:left;width:18%;">ক্যাটাগরি</th>
+          <th style="padding:7px 8px;font-size:11px;font-weight:700;text-align:left;width:17%;">অ্যাকাউন্ট</th>
+          <th style="padding:7px 8px;font-size:11px;font-weight:700;text-align:right;width:16%;">পরিমাণ</th>
+          <th style="padding:7px 8px;font-size:11px;font-weight:700;text-align:left;width:28%;">নোট</th>
+        </tr>
+      </thead>
+    `;
 
-    const container = document.createElement("div");
-    container.style.position = "fixed";
-    container.style.left = "-10000px";
-    container.style.top = "0";
-    container.style.width = `${A4_WIDTH_PX}px`;
-    container.style.zIndex = "-1000";
-    document.body.appendChild(container);
+    const generateRowsHtml = (chunkRows: typeof sorted) => {
+      return chunkRows
+        .map(
+          (t, i) => `
+        <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f8fafc"};">
+          <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;font-size:10.5px;white-space:nowrap;">${t.date}</td>
+          <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;font-size:10.5px;color:${t.type === "income" ? "#059669" : "#dc2626"};font-weight:700;">${t.type === "income" ? "জমা" : "খরচ"}</td>
+          <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;font-size:10.5px;">${(t.categories as { name: string })?.name || "-"}</td>
+          <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;font-size:10.5px;">${(t.accounts as { name: string })?.name || "-"}</td>
+          <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;font-size:10.5px;text-align:right;font-weight:700;">৳${fmt(t.amount)}</td>
+          <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;font-size:10px;color:#64748b;word-break:break-word;">${(t.note || "").replace(/</g, "&lt;")}</td>
+        </tr>
+      `,
+        )
+        .join("");
+    };
 
-    const createPage = (isFirstPage: boolean) => {
-      const pageEl = document.createElement("div");
-      pageEl.style.width = `${A4_WIDTH_PX}px`;
-      pageEl.style.height = `${A4_HEIGHT_PX}px`;
-      pageEl.style.minHeight = `${A4_HEIGHT_PX}px`;
-      pageEl.style.maxHeight = `${A4_HEIGHT_PX}px`;
-      pageEl.style.boxSizing = "border-box";
-      pageEl.style.padding = "24px 28px";
-      pageEl.style.background = "#ffffff";
-      pageEl.style.fontFamily = "'Hind Siliguri', 'Noto Sans Bengali', system-ui, sans-serif";
-      pageEl.style.color = "#0f172a";
-      pageEl.style.display = "flex";
-      pageEl.style.flexDirection = "column";
-      pageEl.style.justifyContent = "space-between";
-      pageEl.style.overflow = "hidden";
-
-      const contentDiv = document.createElement("div");
-      contentDiv.style.flex = "1";
-      contentDiv.style.display = "flex";
-      contentDiv.style.flexDirection = "column";
-
-      if (isFirstPage) {
-        const headerDiv = document.createElement("div");
-        headerDiv.innerHTML = `
-          <div style="text-align:center;border-bottom:3px solid #6366f1;padding-bottom:12px;margin-bottom:12px;">
+    const getPage1Html = (rowsHtml: string, pageNum: number, totalPages: number) => `
+      <div style="width:794px;height:1123px;box-sizing:border-box;padding:26px 28px;background:#ffffff;font-family:'Hind Siliguri','Noto Sans Bengali',system-ui,sans-serif;color:#0f172a;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="text-align:center;border-bottom:3px solid #6366f1;padding-bottom:10px;margin-bottom:10px;">
             <h1 style="margin:0;font-size:22px;font-weight:800;color:#1e293b;">${ledgerName || "হিসাব খাতা"}</h1>
             <p style="margin:4px 0 0;font-size:12px;color:#64748b;font-weight:600;">${label}</p>
           </div>
 
-          <div style="background:#f1f5f9;padding:7px 12px;border-radius:8px;margin-bottom:12px;font-size:11px;color:#475569;text-align:center;">
+          <div style="background:#f1f5f9;padding:6px 12px;border-radius:8px;margin-bottom:10px;font-size:11px;color:#475569;text-align:center;">
             <b>সময়কাল:</b> ${periodText} · <b>মোট লেনদেন:</b> ${fmt(sorted.length)}টি
           </div>
 
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;">
             <div style="background:linear-gradient(135deg,#dcfce7,#bbf7d0);padding:10px 12px;border-radius:10px;border:1px solid #86efac;">
               <div style="font-size:10.5px;color:#166534;font-weight:600;">মোট জমা</div>
               <div style="font-size:16px;color:#15803d;font-weight:800;margin-top:2px;">৳${fmt(totalIncome)}</div>
@@ -108,11 +105,23 @@ const PdfExport = ({ ledgerName, transactions }: PdfExportProps) => {
               <div style="font-size:16px;color:#1d4ed8;font-weight:800;margin-top:2px;">৳${fmt(balance)}</div>
             </div>
           </div>
-        `;
-        contentDiv.appendChild(headerDiv);
-      } else {
-        const miniHeaderDiv = document.createElement("div");
-        miniHeaderDiv.innerHTML = `
+
+          <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
+            ${tableHeaderHtml}
+            <tbody>${rowsHtml}</tbody>
+          </table>
+        </div>
+
+        <div style="border-top:1px solid #e2e8f0;padding-top:6px;display:flex;justify-content:space-between;align-items:center;font-size:10px;color:#94a3b8;">
+          <div>${new Date().toLocaleString("bn-BD")} এ তৈরি · জমা খরচ (Joma Khoroch)</div>
+          <div style="font-weight:600;color:#64748b;">পৃষ্ঠা ${fmt(pageNum)} এর ${fmt(totalPages)}</div>
+        </div>
+      </div>
+    `;
+
+    const getSubsequentPageHtml = (rowsHtml: string, pageNum: number, totalPages: number) => `
+      <div style="width:794px;height:1123px;box-sizing:border-box;padding:26px 28px;background:#ffffff;font-family:'Hind Siliguri','Noto Sans Bengali',system-ui,sans-serif;color:#0f172a;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
           <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #6366f1;padding-bottom:6px;margin-bottom:10px;">
             <div>
               <span style="font-size:14px;font-weight:800;color:#1e293b;">${ledgerName || "হিসাব খাতা"}</span>
@@ -120,114 +129,78 @@ const PdfExport = ({ ledgerName, transactions }: PdfExportProps) => {
             </div>
             <div style="font-size:10.5px;color:#64748b;">${periodText}</div>
           </div>
-        `;
-        contentDiv.appendChild(miniHeaderDiv);
+
+          <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
+            ${tableHeaderHtml}
+            <tbody>${rowsHtml}</tbody>
+          </table>
+        </div>
+
+        <div style="border-top:1px solid #e2e8f0;padding-top:6px;display:flex;justify-content:space-between;align-items:center;font-size:10px;color:#94a3b8;">
+          <div>${new Date().toLocaleString("bn-BD")} এ তৈরি · জমা খরচ (Joma Khoroch)</div>
+          <div style="font-weight:600;color:#64748b;">পৃষ্ঠা ${fmt(pageNum)} এর ${fmt(totalPages)}</div>
+        </div>
+      </div>
+    `;
+
+    const firstPageLimit = 18;
+    const subsequentLimit = 22;
+
+    const chunks: (typeof sorted)[] = [];
+    if (sorted.length <= firstPageLimit) {
+      chunks.push(sorted);
+    } else {
+      chunks.push(sorted.slice(0, firstPageLimit));
+      let offset = firstPageLimit;
+      while (offset < sorted.length) {
+        chunks.push(sorted.slice(offset, offset + subsequentLimit));
+        offset += subsequentLimit;
       }
+    }
 
-      const tableWrapper = document.createElement("div");
-      tableWrapper.style.width = "100%";
-      tableWrapper.innerHTML = `
-        <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
-          <thead>
-            <tr style="background:linear-gradient(135deg,#6366f1,#4f46e5);color:#ffffff;">
-              <th style="padding:7px 8px;font-size:11px;font-weight:700;text-align:left;width:12%;">তারিখ</th>
-              <th style="padding:7px 8px;font-size:11px;font-weight:700;text-align:left;width:9%;">ধরন</th>
-              <th style="padding:7px 8px;font-size:11px;font-weight:700;text-align:left;width:18%;">ক্যাটাগরি</th>
-              <th style="padding:7px 8px;font-size:11px;font-weight:700;text-align:left;width:17%;">অ্যাকাউন্ট</th>
-              <th style="padding:7px 8px;font-size:11px;font-weight:700;text-align:right;width:16%;">পরিমাণ</th>
-              <th style="padding:7px 8px;font-size:11px;font-weight:700;text-align:left;width:28%;">নোট</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      `;
-      contentDiv.appendChild(tableWrapper);
-      pageEl.appendChild(contentDiv);
+    const totalPages = chunks.length;
 
-      const footerDiv = document.createElement("div");
-      footerDiv.style.borderTop = "1px solid #e2e8f0";
-      footerDiv.style.paddingTop = "6px";
-      footerDiv.style.display = "flex";
-      footerDiv.style.justifyContent = "space-between";
-      footerDiv.style.alignItems = "center";
-      footerDiv.style.fontSize = "10px";
-      footerDiv.style.color = "#94a3b8";
-      footerDiv.innerHTML = `
-        <div>${new Date().toLocaleString("bn-BD")} এ তৈরি · জমা খরচ (Joma Khoroch)</div>
-        <div class="page-num" style="font-weight:600;color:#64748b;"></div>
-      `;
-      pageEl.appendChild(footerDiv);
-
-      return {
-        pageEl,
-        contentDiv,
-        tbody: tableWrapper.querySelector("tbody") as HTMLTableSectionElement,
-      };
-    };
+    const container = document.createElement("div");
+    container.style.position = "fixed";
+    container.style.left = "-10000px";
+    container.style.top = "0";
+    container.style.width = "794px";
+    container.style.zIndex = "-1000";
+    document.body.appendChild(container);
 
     try {
-      const pages: HTMLElement[] = [];
-      let currentPage = createPage(true);
-      pages.push(currentPage.pageEl);
-      container.appendChild(currentPage.pageEl);
-
-      sorted.forEach((t, i) => {
-        const tr = document.createElement("tr");
-        tr.style.background = i % 2 === 0 ? "#ffffff" : "#f8fafc";
-        tr.innerHTML = `
-          <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;font-size:10.5px;white-space:nowrap;">${t.date}</td>
-          <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;font-size:10.5px;color:${t.type === "income" ? "#059669" : "#dc2626"};font-weight:700;">${t.type === "income" ? "জমা" : "খরচ"}</td>
-          <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;font-size:10.5px;">${(t.categories as { name: string })?.name || "-"}</td>
-          <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;font-size:10.5px;">${(t.accounts as { name: string })?.name || "-"}</td>
-          <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;font-size:10.5px;text-align:right;font-weight:700;">৳${fmt(t.amount)}</td>
-          <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;font-size:10px;color:#64748b;word-break:break-word;">${(t.note || "").replace(/</g, "&lt;")}</td>
-        `;
-
-        currentPage.tbody.appendChild(tr);
-
-        if (currentPage.contentDiv.offsetHeight > MAX_CONTENT_HEIGHT && currentPage.tbody.children.length > 1) {
-          currentPage.tbody.removeChild(tr);
-
-          currentPage = createPage(false);
-          pages.push(currentPage.pageEl);
-          container.appendChild(currentPage.pageEl);
-
-          currentPage.tbody.appendChild(tr);
-        }
-      });
-
-      const totalPages = pages.length;
-      pages.forEach((p, idx) => {
-        const pageNumEl = p.querySelector(".page-num");
-        if (pageNumEl) {
-          pageNumEl.textContent = `পৃষ্ঠা ${fmt(idx + 1)} এর ${fmt(totalPages)}`;
-        }
-      });
-
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
       const pageW = pdf.internal.pageSize.getWidth();
       const pageH = pdf.internal.pageSize.getHeight();
 
-      for (let i = 0; i < pages.length; i++) {
-        if (i > 0) {
-          pdf.addPage();
-        }
-        const canvas = await html2canvas(pages[i], {
+      for (let i = 0; i < chunks.length; i++) {
+        const isFirst = i === 0;
+        const rowsHtml = generateRowsHtml(chunks[i]);
+        const pageHtml = isFirst
+          ? getPage1Html(rowsHtml, i + 1, totalPages)
+          : getSubsequentPageHtml(rowsHtml, i + 1, totalPages);
+
+        container.innerHTML = pageHtml;
+
+        const pageEl = container.firstElementChild as HTMLElement;
+        const canvas = await html2canvas(pageEl, {
           scale: 2,
           backgroundColor: "#ffffff",
           useCORS: true,
           logging: false,
         });
+
         const imgData = canvas.toDataURL("image/jpeg", 0.95);
+        if (i > 0) pdf.addPage();
         pdf.addImage(imgData, "JPEG", 0, 0, pageW, pageH, undefined, "FAST");
       }
 
       pdf.save(`${ledgerName || "ledger"}-report.pdf`);
       setOpen(false);
       toast.success("PDF ডাউনলোড হয়েছে!");
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      toast.error("PDF তৈরি করতে সমস্যা হয়েছে");
+      toast.error("PDF তৈরি করতে সমস্যা হয়েছে: " + (e?.message || ""));
     } finally {
       if (document.body.contains(container)) {
         document.body.removeChild(container);
