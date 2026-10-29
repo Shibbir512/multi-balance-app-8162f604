@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetTitle, BottomSheetDescription } from "@/components/ui/bottom-sheet";
-import { ArrowLeft, Plus, TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, Pencil, ShoppingCart, Calculator, CreditCard, Tag, Trash2, X, ChevronDown, BarChart3, Calendar, Search, Clock, FileText, Check, Database, Coins } from "lucide-react";
+import { ArrowLeft, Plus, TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, Pencil, ShoppingCart, Calculator, CreditCard, Tag, Trash2, X, ChevronDown, BarChart3, Calendar, Search, Clock, FileText, Check, Database, Coins, Home, Receipt, Menu } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import { toast } from "sonner";
 import GroceryModule from "@/components/GroceryModule";
@@ -87,19 +87,27 @@ const getMonthYearLabel = (yyyyMm: string) => {
 };
 
 const getLast24Months = () => {
-  const dates = [];
-  const d = new Date();
+  const dates: string[] = [];
+  const now = new Date();
   for (let i = 0; i < 24; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, "0");
     dates.push(`${y}-${m}`);
-    d.setMonth(d.getMonth() - 1);
   }
-  return dates;
+  return Array.from(new Set(dates));
 };
 const RECENT_MONTHS = getLast24Months();
 
 type StatPeriod = "today" | "month" | "year" | "all";
+
+const TABS = [
+  { id: "transactions", label: "লেনদেন", icon: CreditCard },
+  { id: "grocery", label: "বাজার", icon: ShoppingCart },
+  { id: "zakat", label: "যাকাত", icon: Calculator },
+  { id: "reports", label: "রিপোর্ট", icon: BarChart3 },
+  { id: "categories", label: "ক্যাটাগরি", icon: Tag },
+];
 
 const LedgerDetailPage = () => {
   const { ledgerId } = useParams<{ ledgerId: string }>();
@@ -145,6 +153,47 @@ const LedgerDetailPage = () => {
   const [chartCategory, setChartCategory] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+
+  // Collapsible Header State & Scroll Logic
+  const mainScrollRef = useRef<HTMLElement | null>(null);
+  const lastScrollY = useRef(0);
+  const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
+  const [isHeaderHidden, setIsHeaderHidden] = useState(false);
+
+  const handleMainScroll = (e: React.UIEvent<HTMLElement>) => {
+    const currentScrollY = e.currentTarget.scrollTop;
+    const delta = currentScrollY - lastScrollY.current;
+
+    // When near top (<= 25px), expand header fully
+    if (currentScrollY <= 25) {
+      setIsHeaderCollapsed(false);
+      setIsHeaderHidden(false);
+    } else {
+      // Past 25px, collapse desktop header to compact mode
+      setIsHeaderCollapsed(true);
+
+      // On mobile, hide when scrolling down past 60px, reveal when scrolling up
+      if (currentScrollY > 60) {
+        if (delta > 6) {
+          setIsHeaderHidden(true);
+        } else if (delta < -6) {
+          setIsHeaderHidden(false);
+        }
+      } else {
+        setIsHeaderHidden(false);
+      }
+    }
+
+    lastScrollY.current = currentScrollY;
+  };
+
+  useEffect(() => {
+    setIsHeaderHidden(false);
+    if (mainScrollRef.current) {
+      mainScrollRef.current.scrollTop = 0;
+    }
+  }, [activeTab]);
 
   const { data: ledger } = useQuery({
     queryKey: ["ledger", ledgerId],
@@ -493,18 +542,10 @@ const LedgerDetailPage = () => {
     setTxDialogOpen(true);
   };
 
-  const tabs = [
-    { id: "transactions", label: "লেনদেন", icon: CreditCard },
-    { id: "grocery", label: "বাজার", icon: ShoppingCart },
-    { id: "zakat", label: "যাকাত", icon: Calculator },
-    { id: "reports", label: "রিপোর্ট", icon: BarChart3 },
-    { id: "categories", label: "ক্যাটাগরি", icon: Tag },
-  ];
-
   // Update sliding indicator position when active tab changes or layout changes
   useEffect(() => {
     const updateIndicator = () => {
-      const idx = tabs.findIndex((t) => t.id === activeTab);
+      const idx = TABS.findIndex((t) => t.id === activeTab);
       const btn = tabRefs.current[idx];
       const strip = tabStripRef.current;
       if (!btn || !strip) return;
@@ -555,13 +596,22 @@ const LedgerDetailPage = () => {
         allLedgers={allLedgers}
         currentLedgerId={ledgerId}
         user={user}
+        onExport={() => setExportDialogOpen(true)}
       />
       <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
         <DashboardHeader
           onMenuClick={() => setSidebarOpen(true)}
+          isCollapsed={isHeaderCollapsed}
+          isHidden={isHeaderHidden}
+          onToggleCollapse={() => setIsHeaderCollapsed(prev => !prev)}
+          ledgerName={ledger?.name}
         />
-        <main className="flex-1 overflow-y-auto overflow-x-hidden">
-      <div className="w-full px-4 lg:px-6 xl:px-8 py-6">
+        <main
+          ref={mainScrollRef}
+          onScroll={handleMainScroll}
+          className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth"
+        >
+      <div className="w-full px-3.5 sm:px-4 lg:px-6 xl:px-8 pt-3 pb-24 md:py-6">
         {reminders && reminders.length > 0 && activeTab === "transactions" && (
           <div className="mb-3">
             <GroceryReminders reminders={reminders} compact />
@@ -662,6 +712,7 @@ const LedgerDetailPage = () => {
                   onDelete={(id) => setDeleteTxId(id)}
                   searchQuery={searchQuery}
                   setSearchQuery={setSearchQuery}
+                  onExport={() => setExportDialogOpen(true)}
                   monthSelector={
                     <Select value={dashboardMonth} onValueChange={(v: string) => { setDashboardMonth(v); setStatPeriod("month"); setChartCategory(null); }}>
                       <SelectPrimitive.Trigger asChild>
@@ -815,7 +866,14 @@ const LedgerDetailPage = () => {
           </div>
         )}
         {activeTab === "profile" && <ProfileTab user={user} />}
-        {activeTab === "settings" && <SettingsTab />}
+        {activeTab === "settings" && (
+          <SettingsTab
+            ledgerName={ledger?.name}
+            transactions={transactions ?? []}
+            categories={categories ?? []}
+            onExport={() => setExportDialogOpen(true)}
+          />
+        )}
         {activeTab === "help" && <HelpTab />}
         {activeTab === "budget" && <BudgetTab />}
         {activeTab === "savings" && <SavingsTab />}
@@ -845,19 +903,28 @@ const LedgerDetailPage = () => {
         ledgerId={ledgerId!}
       />
 
-      {/* ─── EXPANDABLE FAB ─── */}
+      {/* ─── ADVANCED EXPORT & BACKUP MODAL (CSV & PDF) ─── */}
+      <AdvancedExport
+        open={exportDialogOpen}
+        onOpenChange={setExportDialogOpen}
+        ledgerName={ledger?.name || "খাতা"}
+        transactions={transactions ?? []}
+        categories={categories ?? []}
+      />
+
+      {/* ─── EXPANDABLE FAB (Desktop) ─── */}
       {fabOpen && (
         <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-40 transition-opacity duration-200"
+          className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-40 transition-opacity duration-200 hidden md:block"
           onClick={() => setFabOpen(false)}
         />
       )}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+      <div className="hidden md:flex fixed bottom-6 right-6 z-50 flex-col items-end gap-3">
         {fabOpen && (
           <>
             <button
               onClick={() => { setFabOpen(false); openTxDialog("income"); }}
-              className="flex items-center gap-2 animate-fade-in"
+              className="flex items-center gap-2 animate-fade-in cursor-pointer"
               style={{ animationDuration: '0.15s' }}
             >
               <span className="text-xs font-semibold text-foreground bg-popover/90 backdrop-blur-sm px-3 py-1.5 rounded-xl shadow-md">জমা</span>
@@ -867,11 +934,11 @@ const LedgerDetailPage = () => {
             </button>
             <button
               onClick={() => { setFabOpen(false); openTxDialog("expense"); }}
-              className="flex items-center gap-2 animate-fade-in"
+              className="flex items-center gap-2 animate-fade-in cursor-pointer group"
               style={{ animationDuration: '0.2s' }}
             >
-              <span className="text-xs font-semibold text-foreground bg-popover/90 backdrop-blur-sm px-3 py-1.5 rounded-xl shadow-md">খরচ</span>
-              <div className="w-11 h-11 rounded-full shadow-lg flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-transform" style={{ background: 'var(--expense-text-soft)' }}>
+              <span className="text-xs font-semibold text-foreground bg-popover/90 backdrop-blur-sm px-3 py-1.5 rounded-xl shadow-md border border-border/50">খরচ</span>
+              <div className="w-11 h-11 rounded-full shadow-lg flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-transform bg-rose-600 hover:bg-rose-700">
                 <ArrowDownRight className="w-5 h-5" />
               </div>
             </button>
@@ -879,13 +946,77 @@ const LedgerDetailPage = () => {
         )}
         <button
           onClick={() => setFabOpen((v) => !v)}
-          className="w-14 h-14 rounded-full fab-button flex items-center justify-center text-white shadow-xl transition-transform duration-200"
+          className="w-14 h-14 rounded-full fab-button flex items-center justify-center text-white shadow-xl transition-transform duration-200 cursor-pointer"
           style={{ transform: fabOpen ? 'rotate(45deg)' : 'rotate(0deg)' }}
           aria-label="Add transaction"
         >
           <Plus className="w-6 h-6" />
         </button>
       </div>
+
+      {/* ─── MOBILE BOTTOM NAVIGATION BAR (Thumb Zone) ─── */}
+      <nav className="mobile-bottom-nav md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#0E1526]/95 backdrop-blur-xl border-t border-slate-200/80 dark:border-white/10 shadow-[0_-4px_24px_rgba(0,0,0,0.06)] flex items-center justify-around px-2 h-16 pb-[env(safe-area-inset-bottom,0px)]">
+        {/* 1. খাতা তালিকা */}
+        <button
+          type="button"
+          onClick={() => navigate("/")}
+          className="flex flex-col items-center justify-center gap-1 min-w-[56px] py-1 text-slate-500 dark:text-slate-400 hover:text-foreground active:scale-95 transition-all cursor-pointer"
+        >
+          <Home className="w-[20px] h-[20px] stroke-[1.8]" />
+          <span className="text-[10px] font-semibold">খাতা</span>
+        </button>
+
+        {/* 2. লেনদেন ট্যাব */}
+        <button
+          type="button"
+          onClick={() => setActiveTab("transactions")}
+          className={`flex flex-col items-center justify-center gap-1 min-w-[56px] py-1 active:scale-95 transition-all cursor-pointer ${
+            activeTab === "transactions"
+              ? "text-blue-600 dark:text-blue-400 font-bold"
+              : "text-slate-500 dark:text-slate-400 hover:text-foreground"
+          }`}
+        >
+          <Receipt className="w-[20px] h-[20px] stroke-[1.8]" />
+          <span className="text-[10px] font-semibold">লেনদেন</span>
+        </button>
+
+        {/* 3. সেন্ট্রাল কুইক এন্ট্রি বাটন (+ নতুন লেনদেন) */}
+        <button
+          type="button"
+          onClick={() => openTxDialog("expense")}
+          className="flex flex-col items-center justify-center -mt-6 cursor-pointer group active:scale-90 transition-transform"
+          aria-label="নতুন লেনদেন"
+        >
+          <div className="w-[52px] h-[52px] rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/35 border-2 border-white dark:border-[#0E1526]">
+            <Plus className="w-7 h-7 stroke-[2.5]" />
+          </div>
+          <span className="text-[10px] font-bold text-foreground mt-0.5">নতুন</span>
+        </button>
+
+        {/* 4. রিপোর্ট ট্যাব */}
+        <button
+          type="button"
+          onClick={() => setActiveTab("reports")}
+          className={`flex flex-col items-center justify-center gap-1 min-w-[56px] py-1 active:scale-95 transition-all cursor-pointer ${
+            activeTab === "reports"
+              ? "text-blue-600 dark:text-blue-400 font-bold"
+              : "text-slate-500 dark:text-slate-400 hover:text-foreground"
+          }`}
+        >
+          <BarChart3 className="w-[20px] h-[20px] stroke-[1.8]" />
+          <span className="text-[10px] font-semibold">রিপোর্ট</span>
+        </button>
+
+        {/* 5. মেনু ও অন্যান্য অপশন */}
+        <button
+          type="button"
+          onClick={() => setSidebarOpen(true)}
+          className="flex flex-col items-center justify-center gap-1 min-w-[56px] py-1 text-slate-500 dark:text-slate-400 hover:text-foreground active:scale-95 transition-all cursor-pointer"
+        >
+          <Menu className="w-[20px] h-[20px] stroke-[1.8]" />
+          <span className="text-[10px] font-semibold">মেনু</span>
+        </button>
+      </nav>
 
       {/* ─── DELETE TRANSACTION CONFIRM ─── */}
       <AlertDialog open={!!deleteTxId} onOpenChange={(o) => !o && setDeleteTxId(null)}>

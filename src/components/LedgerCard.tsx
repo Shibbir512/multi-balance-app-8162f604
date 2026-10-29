@@ -10,7 +10,16 @@ import {
   ArrowRight,
   TrendingUp,
   TrendingDown,
+  Download,
+  Trash2,
+  ArrowUpRight,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { format } from "date-fns";
 
 interface LedgerCardProps {
@@ -19,6 +28,7 @@ interface LedgerCardProps {
   transactionCount: number;
   lastTransactionDate: number | null;
   onDelete: (id: string, name: string) => void;
+  onExport?: (ledger: Ledger) => void;
 }
 
 interface SemanticConfig {
@@ -105,6 +115,7 @@ export const LedgerCard = ({
   transactionCount,
   lastTransactionDate,
   onDelete,
+  onExport,
 }: LedgerCardProps) => {
   const navigate = useNavigate();
   const config = getSemanticConfig(ledger.name);
@@ -215,19 +226,45 @@ export const LedgerCard = ({
             </div>
           </div>
 
-          {/* Three-dot menu */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(ledger.id, ledger.name);
-            }}
-            className="w-[32px] h-[32px] rounded-[9px] flex items-center justify-center shrink-0 ml-1 transition-colors hover:bg-[#F1F5F9] dark:hover:bg-[rgba(255,255,255,0.07)] group/menu"
-          >
-            <MoreVertical
-              size={18}
-              className="text-[#94A3B8] group-hover/menu:text-[#64748B] dark:group-hover/menu:text-[#CBD5E1]"
-            />
-          </button>
+          {/* Three-dot Dropdown Menu */}
+          <div onClick={(e) => e.stopPropagation()}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  title="অপশন"
+                  className="w-[32px] h-[32px] rounded-[9px] flex items-center justify-center shrink-0 ml-1 transition-colors hover:bg-[#F1F5F9] dark:hover:bg-[rgba(255,255,255,0.07)] group/menu"
+                >
+                  <MoreVertical
+                    size={18}
+                    className="text-[#94A3B8] group-hover/menu:text-[#64748B] dark:group-hover/menu:text-[#CBD5E1]"
+                  />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52 p-1.5 rounded-xl shadow-lg border border-border bg-popover">
+                <DropdownMenuItem
+                  onClick={() => navigate(`/ledger/${ledger.id}`)}
+                  className="flex items-center gap-2 text-xs font-semibold py-2 cursor-pointer rounded-lg"
+                >
+                  <ArrowUpRight className="w-4 h-4 text-primary" /> খাতা খুলুন
+                </DropdownMenuItem>
+                {onExport && (
+                  <DropdownMenuItem
+                    onClick={() => onExport(ledger)}
+                    className="flex items-center gap-2 text-xs font-semibold py-2 cursor-pointer rounded-lg"
+                  >
+                    <Download className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> ব্যাকআপ ডাউনলোড (CSV / PDF)
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem
+                  onClick={() => onDelete(ledger.id, ledger.name)}
+                  className="flex items-center gap-2 text-xs font-semibold py-2 cursor-pointer rounded-lg text-destructive focus:bg-destructive/10 focus:text-destructive"
+                >
+                  <Trash2 className="w-4 h-4" /> খাতা মুছে ফেলুন
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         {/* ── ZONE 2: Balance Panel ────────────────────────── */}

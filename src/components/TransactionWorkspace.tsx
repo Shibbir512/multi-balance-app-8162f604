@@ -1,4 +1,4 @@
-import { Search, Filter, MoreHorizontal, Pencil, Trash2, Eye, Wallet, FileText, Database, TrendingUp, ChevronLeft, ChevronRight, ShoppingCart, Zap, Car, GraduationCap, Coffee, Activity, Wifi, BookHeart, TrendingDown } from "lucide-react";
+import { Search, Filter, MoreHorizontal, Pencil, Trash2, Eye, Wallet, FileText, Database, TrendingUp, ChevronLeft, ChevronRight, ShoppingCart, Zap, Car, GraduationCap, Coffee, Activity, Wifi, BookHeart, TrendingDown, Download } from "lucide-react";
 import { format } from "date-fns";
 import { bn } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -45,6 +45,7 @@ interface TransactionWorkspaceProps {
   setSearchQuery: (q: string) => void;
   filterButton: React.ReactNode;
   monthSelector?: React.ReactNode;
+  onExport?: () => void;
 }
 
 import { getCategoryConfig } from "../lib/categoryColors";
@@ -74,6 +75,7 @@ const TransactionWorkspace = ({
   setSearchQuery,
   filterButton,
   monthSelector,
+  onExport,
 }: TransactionWorkspaceProps) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
@@ -104,14 +106,14 @@ const TransactionWorkspace = ({
     <div className="bg-white dark:bg-[#172033] rounded-[16px] lg:rounded-[18px] overflow-hidden flex flex-col h-full border border-[#E8EAF2] dark:border-[rgba(255,255,255,0.08)]">
       
       {/* Header */}
-      <div className="p-[20px] flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[#EEF0F5] dark:border-[rgba(255,255,255,0.06)]">
+      <div className="p-3.5 sm:p-[20px] flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-[#EEF0F5] dark:border-[rgba(255,255,255,0.06)]">
         <div>
-          <h3 className="text-[16px] lg:text-[18px] font-bold text-[#172033] dark:text-[#F8FAFC]">
-            সাম্প্রতিক লেনদেন <span className="text-[#667085] dark:text-[#94A3B8] font-semibold text-[14px]">({toBengaliNum(searchedTransactions.length)})</span>
+          <h3 className="text-[15px] sm:text-[16px] lg:text-[18px] font-bold text-[#172033] dark:text-[#F8FAFC]">
+            সাম্প্রতিক লেনদেন <span className="text-[#667085] dark:text-[#94A3B8] font-semibold text-[13px] sm:text-[14px]">({toBengaliNum(searchedTransactions.length)})</span>
           </h3>
         </div>
         
-        <div className="flex items-center gap-2 lg:gap-3">
+        <div className="flex flex-wrap items-center gap-2 lg:gap-3">
           {/* Month Selector */}
           {monthSelector && (
             <div className="shrink-0">
@@ -120,7 +122,7 @@ const TransactionWorkspace = ({
           )}
 
           {/* Search */}
-          <div className="relative">
+          <div className="relative flex-1 sm:flex-initial min-w-[130px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#98A2B3] dark:text-[#64748B]" />
             <input
               type="text"
@@ -130,7 +132,7 @@ const TransactionWorkspace = ({
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="h-[38px] lg:h-[40px] w-full lg:w-[260px] pl-9 pr-4 rounded-xl border border-[#E8EAF2] dark:border-[rgba(255,255,255,0.06)] bg-[#F9FAFB] dark:bg-[#1E293B] text-[13px] text-black dark:text-[#CBD5E1] focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] transition-all hover:border-[#D0D5DD] dark:hover:border-[#94A3B8]"
+              className="h-[38px] lg:h-[40px] w-full lg:w-[240px] pl-9 pr-3 rounded-xl border border-[#E8EAF2] dark:border-[rgba(255,255,255,0.06)] bg-[#F9FAFB] dark:bg-[#1E293B] text-[13px] text-black dark:text-[#CBD5E1] focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] transition-all hover:border-[#D0D5DD] dark:hover:border-[#94A3B8]"
             />
           </div>
 
@@ -147,13 +149,42 @@ const TransactionWorkspace = ({
             </PopoverContent>
           </Popover>
 
+          {/* Export / Backup button */}
+          {onExport && (
+            <button 
+              type="button"
+              onClick={onExport}
+              title="খাতার ডাটা ব্যাকআপ ও এক্সপোর্ট (CSV / PDF)"
+              className="h-[38px] lg:h-[40px] px-3 lg:px-3.5 flex items-center gap-1.5 rounded-xl border border-[#E8EAF2] dark:border-[rgba(255,255,255,0.06)] bg-white dark:bg-[#1E293B] hover:bg-[#F9FAFB] dark:hover:bg-[#263449] active:bg-[#F3F4F6] text-[#475467] dark:text-[#CBD5E1] transition-all active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED]"
+            >
+              <Download className="w-[16px] lg:w-[17px] h-[16px] lg:h-[17px] text-[#7C3AED]" />
+              <span className="text-[13px] font-medium hidden sm:inline">ব্যাকআপ</span>
+            </button>
+          )}
+
           {/* More Menu */}
-          <button 
-            title="আরও অপশন"
-            className="w-[38px] lg:w-[40px] h-[38px] lg:h-[40px] flex items-center justify-center rounded-xl border border-[#E8EAF2] dark:border-[rgba(255,255,255,0.06)] bg-white dark:bg-[#1E293B] hover:bg-[#F9FAFB] dark:hover:bg-[#263449] active:bg-[#F3F4F6] text-[#475467] dark:text-[#CBD5E1] transition-all active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] shrink-0"
-          >
-            <MoreHorizontal className="w-5 h-5" />
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button 
+                title="আরও অপশন"
+                className="w-[38px] lg:w-[40px] h-[38px] lg:h-[40px] flex items-center justify-center rounded-xl border border-[#E8EAF2] dark:border-[rgba(255,255,255,0.06)] bg-white dark:bg-[#1E293B] hover:bg-[#F9FAFB] dark:hover:bg-[#263449] active:bg-[#F3F4F6] text-[#475467] dark:text-[#CBD5E1] transition-all active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] shrink-0"
+              >
+                <MoreHorizontal className="w-5 h-5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52 p-1.5 rounded-xl shadow-lg border border-border bg-popover">
+              {onExport && (
+                <DropdownMenuItem onClick={onExport} className="flex items-center gap-2 text-xs font-semibold py-2 cursor-pointer rounded-lg">
+                  <Download className="w-4 h-4 text-primary" /> ডাটা ব্যাকআপ (CSV / PDF)
+                </DropdownMenuItem>
+              )}
+              {searchQuery && (
+                <DropdownMenuItem onClick={() => setSearchQuery("")} className="flex items-center gap-2 text-xs py-2 cursor-pointer rounded-lg text-muted-foreground">
+                  সার্চ রিসেট করুন
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -194,7 +225,7 @@ const TransactionWorkspace = ({
                 <div className="md:hidden flex items-center justify-between px-[16px] py-[14px]">
                   <div className="flex items-center gap-3 min-w-0 pr-3">
                     <div className="w-[42px] h-[42px] rounded-[12px] shrink-0 flex items-center justify-center bg-white dark:bg-[#1E293B] border border-[#E8EAF2] dark:border-[rgba(255,255,255,0.06)]">
-                      <WatermarkIcon className="w-[20px] h-[20px] opacity-70" style={{ color: tx.type === "income" ? '#16A34A' : '#E5484D' }} />
+                      <WatermarkIcon className="w-[20px] h-[20px]" style={{ color: tx.type === "income" ? '#16A34A' : '#DC2626' }} />
                     </div>
                     <div className="min-w-0">
                       <p className="text-[14px] font-semibold text-[#172033] dark:text-[#F8FAFC] truncate mb-0.5">
@@ -209,7 +240,7 @@ const TransactionWorkspace = ({
                   </div>
                   
                   <div className="flex flex-col items-end gap-1 shrink-0">
-                    <p className={`text-[15px] font-bold ${tx.type === "income" ? 'text-[#16A34A] dark:text-[#4ADE80]' : 'text-[#E5484D] dark:text-[#F8FAFC]'}`}>
+                    <p className={`text-[15px] font-bold ${tx.type === "income" ? 'text-[#16A34A] dark:text-[#4ADE80]' : 'text-[#DC2626] dark:text-[#F87171]'}`}>
                       {tx.type === "income" ? "+" : "-"}৳{tx.amount.toLocaleString("bn-BD")}
                     </p>
                     <DropdownMenu>
@@ -252,7 +283,7 @@ const TransactionWorkspace = ({
                   {/* COLUMN 3: Item Icon */}
                   <div className="flex items-center justify-center">
                     <div className="w-[34px] h-[34px] lg:w-[38px] lg:h-[38px] rounded-[10px] shrink-0 flex items-center justify-center bg-white dark:bg-[#1E293B] border border-[#E8EAF2] dark:border-[rgba(255,255,255,0.06)]">
-                      <WatermarkIcon className="w-[18px] lg:w-[20px] h-[18px] lg:h-[20px] opacity-80" style={{ color: tx.type === "income" ? '#16A34A' : '#64748B' }} />
+                      <WatermarkIcon className="w-[18px] lg:w-[20px] h-[18px] lg:h-[20px]" style={{ color: tx.type === "income" ? '#16A34A' : '#DC2626' }} />
                     </div>
                   </div>
 
@@ -278,7 +309,7 @@ const TransactionWorkspace = ({
 
                   {/* Amount */}
                   <div className="text-right">
-                    <p className={`text-[14px] lg:text-[15px] font-semibold ${tx.type === "income" ? 'text-[#16A34A] dark:text-[#4ADE80]' : 'text-[#E5484D] dark:text-[#F8FAFC]'}`}>
+                    <p className={`text-[14px] lg:text-[15px] font-bold ${tx.type === "income" ? 'text-[#16A34A] dark:text-[#4ADE80]' : 'text-[#DC2626] dark:text-[#F87171]'}`}>
                       {tx.type === "income" ? "+" : "-"}৳{tx.amount.toLocaleString("bn-BD")}
                     </p>
                   </div>
