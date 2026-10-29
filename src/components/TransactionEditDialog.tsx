@@ -4,7 +4,7 @@ import { collection, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestor
 import { db } from "@/integrations/firebase/client";
 import { BottomSheet, BottomSheetContent } from "@/components/ui/bottom-sheet";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Calendar as CalendarIcon, Clock, Search, Plus, X, Wallet, Receipt, Zap, Trash2, ChevronDown, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { ArrowLeft, Calendar as CalendarIcon, Clock, Search, Plus, X, Wallet, Receipt, Zap, Trash2, ChevronDown, CircleDollarSign } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import CalculatorInput from "./CalculatorInput";
@@ -80,19 +80,10 @@ const formatBnDate = (dateStr: string): string => {
   const toBn = (n: number | string) =>
     String(n).replace(/[0-9]/g, (digit) => bnDigits[parseInt(digit, 10)]);
 
-  const todayStr = new Date().toISOString().split("T")[0];
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toISOString().split("T")[0];
-
-  let prefix = "";
-  if (clean === todayStr) prefix = "আজ, ";
-  else if (clean === yesterdayStr) prefix = "গতকাল, ";
-
   const dayBn = toBn(d);
   const monthBn = months[m - 1] || "";
   const yearBn = toBn(y);
-  return `${prefix}${dayBn} ${monthBn}, ${yearBn}`;
+  return `${dayBn} ${monthBn}, ${yearBn}`;
 };
 
 const formatBnTime = (timeStr: string): string => {
@@ -100,13 +91,11 @@ const formatBnTime = (timeStr: string): string => {
   const [hStr, mStr] = timeStr.split(":");
   let h = parseInt(hStr, 10);
   if (isNaN(h)) return timeStr;
-  const m = mStr || "00";
+  const m = mStr ? mStr.padStart(2, "0") : "00";
   const period = h >= 12 ? "PM" : "AM";
   h = h % 12 || 12;
-  const bnDigits = "০১২৩৪৫৬৭৮৯";
-  const toBn = (n: number | string) =>
-    String(n).replace(/[0-9]/g, (digit) => bnDigits[parseInt(digit, 10)]);
-  return `${toBn(h)}:${toBn(m)} ${period}`;
+  const hPadded = String(h).padStart(2, "0");
+  return `${hPadded}:${m} ${period}`;
 };
 
 const TransactionEditDialog = ({
@@ -314,46 +303,32 @@ const TransactionEditDialog = ({
           max-h-[92dvh] md:max-h-[calc(100vh-48px)] 
           bg-background flex flex-col shadow-2xl overflow-hidden"
         >
-          {/* Top Subtle Status Line */}
-          <div className={`h-[2.5px] w-full transition-colors duration-200 shrink-0 ${
-            !isIncome ? "bg-rose-500 dark:bg-rose-500" : "bg-emerald-500 dark:bg-emerald-500"
-          }`} />
-
           {/* Mobile Handle Indicator */}
-          <div className="pt-2 pb-1 md:hidden flex justify-center shrink-0">
-            <div className="w-10 h-1 rounded-full bg-muted-foreground/20" />
+          <div className="pt-2.5 pb-1 md:hidden flex justify-center shrink-0">
+            <div className="w-10 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
           </div>
 
           {/* 1. Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border/40 shrink-0 bg-background">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800/80 shrink-0 bg-background">
             <button
               type="button"
               onClick={() => onOpenChange(false)}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               title="ফিরে যান"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-5 h-5" />
             </button>
 
-            <div className="flex items-center gap-2">
-              <h2 className="text-[17px] font-semibold text-foreground tracking-tight">
-                {isEdit ? "লেনদেন সম্পাদনা" : "নতুন এন্ট্রি"}
-              </h2>
-              <span className={`text-[11px] font-medium px-2 py-0.5 rounded-md border transition-colors ${
-                !isIncome
-                  ? "bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-900/50"
-                  : "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900/50"
-              }`}>
-                {!isIncome ? "খরচ" : "জমা"}
-              </span>
-            </div>
+            <h2 className="text-[17px] font-bold text-foreground tracking-tight">
+              {isEdit ? "সম্পাদনা" : "নতুন"}
+            </h2>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               {isEdit && (
                 <button
                   type="button"
                   onClick={() => setDeleteOpen(true)}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-destructive/80 hover:text-destructive hover:bg-destructive/10 transition-colors"
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-destructive/80 hover:text-destructive hover:bg-destructive/10 transition-colors"
                   title="মুছে ফেলুন"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -365,7 +340,7 @@ const TransactionEditDialog = ({
                   const input = document.querySelector<HTMLInputElement>("input[inputmode='decimal']");
                   if (input) input.focus();
                 }}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                className="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                 title="পরিমাণ লিখুন"
               >
                 <Zap className="w-4 h-4" />
@@ -377,7 +352,7 @@ const TransactionEditDialog = ({
                   setTime(new Date().toTimeString().slice(0, 5));
                   toast.success("বর্তমান সময় সেট করা হয়েছে");
                 }}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                className="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                 title="বর্তমান সময়"
               >
                 <Clock className="w-4 h-4" />
@@ -407,15 +382,12 @@ const TransactionEditDialog = ({
                   <PopoverTrigger asChild>
                     <button
                       type="button"
-                      className="h-10 rounded-xl bg-muted/40 hover:bg-muted/70 border border-border/80 flex items-center justify-between px-3 cursor-pointer transition-colors group w-full text-left"
+                      className="h-12 rounded-2xl bg-slate-100/90 dark:bg-slate-800/70 hover:bg-slate-200/80 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-center gap-2 px-3 cursor-pointer transition-colors group w-full text-center"
                     >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <CalendarIcon className="w-4 h-4 text-muted-foreground shrink-0 group-hover:text-foreground" />
-                        <span className="text-[13px] font-medium text-foreground truncate">
-                          {formatBnDate(date)}
-                        </span>
-                      </div>
-                      <ChevronDown className="w-3.5 h-3.5 text-muted-foreground/60 shrink-0" />
+                      <CalendarIcon className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                      <span className="text-[13.5px] font-semibold text-blue-600 dark:text-blue-400 truncate">
+                        {formatBnDate(date)}
+                      </span>
                     </button>
                   </PopoverTrigger>
                   <PopoverContent
@@ -489,15 +461,12 @@ const TransactionEditDialog = ({
                   <PopoverTrigger asChild>
                     <button
                       type="button"
-                      className="h-10 rounded-xl bg-muted/40 hover:bg-muted/70 border border-border/80 flex items-center justify-between px-3 cursor-pointer transition-colors group w-full text-left"
+                      className="h-12 rounded-2xl bg-slate-100/90 dark:bg-slate-800/70 hover:bg-slate-200/80 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-center gap-2 px-3 cursor-pointer transition-colors group w-full text-center"
                     >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <Clock className="w-4 h-4 text-muted-foreground shrink-0 group-hover:text-foreground" />
-                        <span className="text-[13px] font-medium text-foreground truncate">
-                          {formatBnTime(time)}
-                        </span>
-                      </div>
-                      <ChevronDown className="w-3.5 h-3.5 text-muted-foreground/60 shrink-0" />
+                      <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                      <span className="text-[13.5px] font-semibold text-blue-600 dark:text-blue-400 truncate">
+                        {formatBnTime(time)}
+                      </span>
                     </button>
                   </PopoverTrigger>
                   <PopoverContent
@@ -541,21 +510,20 @@ const TransactionEditDialog = ({
             </div>
 
             {/* Row 2: Type Segmented Toggle */}
-            <div className="grid grid-cols-2 p-1 rounded-xl bg-muted/60 dark:bg-muted/30 border border-border/60 gap-1">
+            <div className="grid grid-cols-2 p-1 rounded-2xl bg-slate-100/90 dark:bg-slate-800/60 gap-1">
               <button
                 type="button"
                 onClick={() => {
                   setTxType("income");
                   setCategoryId("");
                 }}
-                className={`h-10 rounded-lg text-[13.5px] font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                className={`h-12 rounded-xl text-base font-bold transition-all flex items-center justify-center cursor-pointer ${
                   isIncome
                     ? "bg-emerald-600 text-white shadow-xs"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                    : "text-slate-700 dark:text-slate-300 hover:text-foreground hover:bg-slate-200/60"
                 }`}
               >
-                <ArrowUpRight className="w-4 h-4" />
-                <span>আয় (জমা)</span>
+                আয়
               </button>
               <button
                 type="button"
@@ -563,14 +531,13 @@ const TransactionEditDialog = ({
                   setTxType("expense");
                   setCategoryId("");
                 }}
-                className={`h-10 rounded-lg text-[13.5px] font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                className={`h-12 rounded-xl text-base font-bold transition-all flex items-center justify-center cursor-pointer ${
                   !isIncome
-                    ? "bg-rose-600 text-white shadow-xs"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                    ? "bg-[#F04438] text-white shadow-xs"
+                    : "text-slate-700 dark:text-slate-300 hover:text-foreground hover:bg-slate-200/60"
                 }`}
               >
-                <ArrowDownRight className="w-4 h-4" />
-                <span>ব্যয় (খরচ)</span>
+                ব্যয়
               </button>
             </div>
 
@@ -581,14 +548,14 @@ const TransactionEditDialog = ({
                 <button
                   type="button"
                   onClick={() => setShowCategorySearch(!showCategorySearch)}
-                  className={`w-8 h-8 rounded-lg border flex items-center justify-center shrink-0 transition-colors ${
+                  className={`w-9 h-9 rounded-full border flex items-center justify-center shrink-0 transition-colors ${
                     showCategorySearch
                       ? "bg-primary text-primary-foreground border-primary"
-                      : "border-border/80 text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                      : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 hover:text-foreground hover:border-slate-300"
                   }`}
                   title="ক্যাটাগরি খুঁজুন বা যোগ করুন"
                 >
-                  <Search className="w-3.5 h-3.5" />
+                  <Search className="w-4 h-4" />
                 </button>
 
                 {/* Category Pills */}
@@ -599,12 +566,12 @@ const TransactionEditDialog = ({
                       key={c.id}
                       type="button"
                       onClick={() => setCategoryId(selected ? "" : c.id)}
-                      className={`h-8 px-3 rounded-lg border text-[12.5px] font-medium shrink-0 flex items-center gap-1.5 transition-all cursor-pointer ${
+                      className={`h-9 px-4 rounded-full border text-[13.5px] font-medium shrink-0 flex items-center justify-center transition-all cursor-pointer ${
                         selected
                           ? isIncome
-                            ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800 font-semibold"
-                            : "bg-rose-50 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border-rose-300 dark:border-rose-800 font-semibold"
-                          : "bg-background border-border/80 text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                            ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-400 dark:border-emerald-700 font-semibold shadow-xs"
+                            : "bg-rose-50 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border-rose-400 dark:border-rose-700 font-semibold shadow-xs"
+                          : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-300"
                       }`}
                     >
                       <span>{c.name}</span>
@@ -647,21 +614,15 @@ const TransactionEditDialog = ({
             </div>
 
             {/* Row 4: Amount Input */}
-            <div className="space-y-1.5">
-              <div className="h-14 rounded-xl border border-border/80 bg-background flex items-center px-4 gap-3 focus-within:border-foreground/30 focus-within:ring-2 focus-within:ring-foreground/5 transition-all shadow-xs">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border text-[15px] font-bold ${
-                  !isIncome
-                    ? "bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900/50"
-                    : "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/50"
-                }`}>
-                  ৳
-                </div>
+            <div className="space-y-1">
+              <div className="h-14 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-900/60 flex items-center px-4 gap-3 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/15 transition-all">
+                <CircleDollarSign className="w-5 h-5 text-slate-400 shrink-0" />
                 <CalculatorInput
                   value={amount}
                   onChange={setAmount}
                   required
-                  placeholder="০.০০"
-                  className="text-2xl font-bold tracking-tight text-foreground placeholder:text-muted-foreground/30 flex-1 leading-none border-none p-0 focus:ring-0"
+                  placeholder="টাকার পরিমাণ"
+                  className="text-xl font-bold tracking-tight text-foreground placeholder:text-slate-400/80 flex-1 leading-none border-none p-0 focus:ring-0 bg-transparent"
                 />
                 {parseFloat(amount) > 0 && (
                   <button
@@ -677,16 +638,16 @@ const TransactionEditDialog = ({
             </div>
 
             {/* Row 5: Description / Note Input */}
-            <div className="space-y-1.5">
-              <div className="h-11 rounded-xl border border-border/80 bg-background flex items-center px-3 gap-2.5 focus-within:border-foreground/30 transition-all shadow-2xs">
-                <Receipt className="w-4 h-4 text-muted-foreground shrink-0" />
+            <div className="space-y-1">
+              <div className="h-14 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-900/60 flex items-center px-4 gap-3 focus-within:border-blue-500 transition-all">
+                <Receipt className="w-5 h-5 text-slate-400 shrink-0" />
                 <input
                   type="text"
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   onFocus={(e) => e.currentTarget.scrollIntoView({ behavior: "smooth", block: "nearest" })}
                   placeholder="বিবরণ (অপশনাল)"
-                  className="flex-1 bg-transparent border-none text-[13.5px] font-medium text-foreground placeholder:text-muted-foreground/40 focus:ring-0 p-0 outline-none"
+                  className="flex-1 bg-transparent border-none text-[14.5px] font-medium text-foreground placeholder:text-slate-400/80 focus:ring-0 p-0 outline-none"
                 />
               </div>
               {noteSuggestions && noteSuggestions.length > 0 && !note && (
@@ -708,7 +669,7 @@ const TransactionEditDialog = ({
             {/* Row 6: Account Selector — Moved down below note & hidden/collapsible by default */}
             {accounts && accounts.length > 0 && (
               <div className="pt-0.5">
-                <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-muted/30 border border-border/50">
+                <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/70 dark:border-slate-800">
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Wallet className="w-3.5 h-3.5 text-muted-foreground/80" />
                     <span>হিসাব:</span>
@@ -719,14 +680,14 @@ const TransactionEditDialog = ({
                   <button
                     type="button"
                     onClick={() => setShowAccountPicker(!showAccountPicker)}
-                    className="text-[11.5px] font-medium text-primary hover:underline cursor-pointer"
+                    className="text-[11.5px] font-medium text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
                   >
                     {showAccountPicker ? "লুকান" : "হিসাব পরিবর্তন"}
                   </button>
                 </div>
 
                 {showAccountPicker && (
-                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1.5 px-1 mt-1.5 bg-muted/20 border border-border/60 rounded-xl animate-in fade-in-50">
+                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1.5 px-1 mt-1.5 bg-slate-50 dark:bg-slate-900/40 border border-slate-200/70 dark:border-slate-800 rounded-xl animate-in fade-in-50">
                     {accounts.map((a) => {
                       const selected = accountId === a.id;
                       return (
@@ -755,16 +716,16 @@ const TransactionEditDialog = ({
             </div>
 
             {/* Pinned Sticky Bottom Submit Bar — ALWAYS visible above keyboard */}
-            <div className="shrink-0 px-4 py-3 bg-background border-t border-border/40 shadow-[0_-4px_16px_rgba(0,0,0,0.04)] pb-[max(12px,calc(env(safe-area-inset-bottom)+8px))] z-10">
+            <div className="shrink-0 px-4 py-3 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 pb-[max(12px,calc(env(safe-area-inset-bottom)+8px))] z-10">
               <button
                 type="submit"
                 disabled={!hasValidAmount || submitMutation.isPending}
-                className={`w-full h-11 sm:h-12 rounded-xl text-[15px] font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-[0.99] ${
+                className={`w-full h-12 sm:h-13 rounded-2xl text-[16px] font-bold transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99] ${
                   !hasValidAmount
-                    ? "bg-muted text-muted-foreground/50 border border-border/50 cursor-not-allowed"
+                    ? "bg-slate-200/80 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed"
                     : isIncome
-                    ? "bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white"
-                    : "bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white"
+                    ? "bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-md shadow-emerald-500/20"
+                    : "bg-[#F04438] hover:bg-[#E03328] active:bg-[#C92A20] text-white shadow-md shadow-rose-500/20"
                 }`}
               >
                 <span>
@@ -772,9 +733,7 @@ const TransactionEditDialog = ({
                     ? "সংরক্ষণ হচ্ছে..."
                     : isEdit
                     ? "আপডেট করুন"
-                    : isIncome
-                    ? "আয় যোগ করুন"
-                    : "খরচ যোগ করুন"}
+                    : "অ্যাড"}
                 </span>
               </button>
             </div>
