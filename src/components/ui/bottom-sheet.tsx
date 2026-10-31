@@ -31,35 +31,47 @@ const BottomSheetContent = React.forwardRef<
   }>({ bottomOffset: 0, maxHeight: null });
 
   React.useEffect(() => {
-    const handleResize = () => {
-      if (typeof window === "undefined" || window.innerWidth >= 768) {
-        setViewportState({ bottomOffset: 0, maxHeight: null });
-        return;
-      }
+    let rafId: number | null = null;
 
-      if (window.visualViewport) {
-        const vv = window.visualViewport;
-        // In browsers where the keyboard doesn't resize layout viewport (e.g. iOS Safari / some WebViews),
-        // the keyboard covers the area between visualViewport bottom and window.innerHeight.
-        const diff = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
-        const bottomOffset = diff > 40 ? diff : 0;
-        // Ensure modal never extends beyond the visible viewport (leaves 12px safe top margin)
-        const visibleMaxHeight = Math.max(220, Math.floor(vv.height - 12));
-        setViewportState({ bottomOffset, maxHeight: visibleMaxHeight });
-      } else {
-        const visibleMaxHeight = Math.max(220, Math.floor(window.innerHeight - 12));
-        setViewportState({ bottomOffset: 0, maxHeight: visibleMaxHeight });
-      }
+    const handleResize = () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        if (typeof window === "undefined" || window.innerWidth >= 768) {
+          setViewportState({ bottomOffset: 0, maxHeight: null });
+          return;
+        }
+
+        if (window.visualViewport) {
+          const vv = window.visualViewport;
+          // In browsers where the keyboard doesn't resize layout viewport (e.g. iOS Safari),
+          // window.innerHeight remains large while visualViewport.height shrinks.
+          // Note: DO NOT use vv.offsetTop as scrolling causes offsetTop to fluctuate wildly.
+          const diff = Math.max(0, Math.round(window.innerHeight - vv.height));
+          const bottomOffset = diff > 60 ? diff : 0;
+          const visibleMaxHeight = Math.max(240, Math.floor(vv.height - 8));
+
+          setViewportState((prev) => {
+            const bottomDiff = Math.abs(prev.bottomOffset - bottomOffset);
+            const heightDiff = prev.maxHeight ? Math.abs(prev.maxHeight - visibleMaxHeight) : 100;
+            if (bottomDiff < 4 && heightDiff < 4) {
+              return prev;
+            }
+            return { bottomOffset, maxHeight: visibleMaxHeight };
+          });
+        } else {
+          const visibleMaxHeight = Math.max(240, Math.floor(window.innerHeight - 8));
+          setViewportState({ bottomOffset: 0, maxHeight: visibleMaxHeight });
+        }
+      });
     };
 
     handleResize();
 
     window.visualViewport?.addEventListener("resize", handleResize);
-    window.visualViewport?.addEventListener("scroll", handleResize);
     window.addEventListener("resize", handleResize);
     return () => {
+      if (rafId) cancelAnimationFrame(rafId);
       window.visualViewport?.removeEventListener("resize", handleResize);
-      window.visualViewport?.removeEventListener("scroll", handleResize);
       window.removeEventListener("resize", handleResize);
     };
   }, []);
@@ -83,10 +95,11 @@ const BottomSheetContent = React.forwardRef<
         ref={ref}
         style={dynamicStyle}
         className={cn(
-          "fixed z-50 bg-popover shadow-xl duration-300 ease-out",
-          // Animations
+          "fixed z-50 bg-popover shadow-xl",
+          // Animations (duration ONLY during open/close transitions, not persistent layout property transitions)
           "data-[state=open]:animate-in data-[state=closed]:animate-out",
           "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+          "data-[state=open]:duration-300 data-[state=closed]:duration-200",
           // Mobile (< 768px)
           "inset-x-0 bottom-0 w-full rounded-t-[28px] border-t p-5 flex flex-col max-h-[calc(100dvh-12px)] overflow-hidden",
           "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",

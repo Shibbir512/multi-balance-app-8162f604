@@ -1,4 +1,4 @@
-import { Menu, Bell, ChevronDown, ChevronUp } from "lucide-react";
+import { Menu, Bell, ChevronDown, ChevronUp, Wallet } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 
 interface DashboardHeaderProps {
@@ -69,40 +69,33 @@ const DashboardHeader = ({
         <Menu className="w-[18px] h-[18px]" strokeWidth={2} />
       </button>
 
-      {/* ── Brand / Logo ─────────────────────────────── */}
-      <div className="flex items-center gap-[10px] shrink-0 mr-2 ml-1 sm:ml-0">
+      {/* ── Brand / Logo & Active Ledger ──────────────── */}
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0 mr-2 ml-1 sm:ml-0 min-w-0">
         {/* Logo icon */}
         <div
-          className={`rounded-full flex items-center justify-center shrink-0 select-none bg-white/15 border border-white/25 backdrop-blur-md shadow-sm transition-all duration-300 ${
-            isCollapsed ? "w-[34px] h-[34px]" : "w-[38px] h-[38px]"
+          className={`rounded-full flex items-center justify-center shrink-0 select-none bg-white/20 border border-white/30 backdrop-blur-md shadow-sm transition-all duration-300 ${
+            isCollapsed ? "w-[32px] h-[32px] sm:w-[34px] sm:h-[34px]" : "w-[36px] h-[36px] sm:w-[38px] sm:h-[38px]"
           }`}
         >
           <span
-            className="text-white font-extrabold leading-none"
-            style={{ fontSize: isCollapsed ? "16px" : "18px", letterSpacing: "-0.5px", textShadow: "0 1px 3px rgba(0,0,0,0.25)" }}
+            className="text-white font-black leading-none"
+            style={{ fontSize: isCollapsed ? "15px" : "17px", letterSpacing: "-0.5px", textShadow: "0 1px 3px rgba(0,0,0,0.3)" }}
           >
             ৳
           </span>
         </div>
 
-        {/* Name & Active Ledger */}
-        <div className="hidden sm:flex flex-col drop-shadow-sm">
-          <div className="flex items-center gap-2">
-            <span
-              className="text-white font-extrabold leading-none tracking-tight"
-              style={{ fontSize: isCollapsed ? "16px" : "17px", letterSpacing: "-0.3px", textShadow: "0 1px 3px rgba(0,0,0,0.25)" }}
-            >
-              জমাখরচ
-            </span>
-            {ledgerName && isCollapsed && (
-              <span className="hidden md:inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-white/20 text-white/95 border border-white/25 backdrop-blur-sm">
-                {ledgerName}
-              </span>
-            )}
-          </div>
+        {/* App Title (on sm+ screens) */}
+        <div className="hidden sm:flex flex-col drop-shadow-sm shrink-0">
+          <span
+            className="text-white font-extrabold leading-none tracking-tight"
+            style={{ fontSize: isCollapsed ? "15px" : "17px", letterSpacing: "-0.3px", textShadow: "0 1px 3px rgba(0,0,0,0.3)" }}
+          >
+            জমাখরচ
+          </span>
           {!isCollapsed && (
             <span
-              className="text-white/70 font-medium leading-none mt-[3px] transition-all duration-300"
+              className="text-white/80 font-medium leading-none mt-[3px]"
               style={{ fontSize: "10px", letterSpacing: "0.3px" }}
             >
               আয় বুঝে ব্যয়
@@ -110,11 +103,17 @@ const DashboardHeader = ({
           )}
         </div>
 
-        {/* Mobile Ledger Name Badge */}
+        {/* Active Ledger Pill — Highly visible, vibrant amber pill with bold text */}
         {ledgerName && (
-          <span className="sm:hidden text-white/90 font-bold text-xs truncate max-w-[130px] drop-shadow-sm ml-1">
-            {ledgerName}
-          </span>
+          <div
+            className="flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1 rounded-full bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 text-slate-950 shadow-[0_2px_12px_rgba(245,158,11,0.45)] border border-amber-200/90 shrink-0 transition-transform active:scale-95"
+            title={`চলতি লেজার: ${ledgerName}`}
+          >
+            <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950 shrink-0" strokeWidth={2.4} />
+            <span className="text-[12.5px] sm:text-[14px] font-black text-slate-950 truncate max-w-[130px] xs:max-w-[170px] sm:max-w-[240px] tracking-tight">
+              {ledgerName}
+            </span>
+          </div>
         )}
       </div>
 

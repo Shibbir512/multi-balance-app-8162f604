@@ -612,6 +612,38 @@ const LedgerDetailPage = () => {
           className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth"
         >
       <div className="w-full px-3.5 sm:px-4 lg:px-6 xl:px-8 pt-3 pb-24 md:py-6">
+        {/* Prominent Active Ledger Banner at the top of the page */}
+        {ledger?.name && (
+          <div className="mb-3.5 flex items-center justify-between gap-3 p-3 sm:p-4 rounded-2xl bg-white/95 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-sm backdrop-blur-md animate-in fade-in-50 duration-200">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-amber-500 via-amber-400 to-yellow-400 text-slate-950 flex items-center justify-center shadow-md shadow-amber-500/25 shrink-0">
+                <Wallet className="w-5 h-5 text-slate-950" strokeWidth={2.3} />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10.5px] sm:text-[11.5px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+                    চলতি লেজার
+                  </span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                </div>
+                <h1 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white leading-tight truncate tracking-tight">
+                  {ledger.name}
+                </h1>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 sm:px-3 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border border-slate-200/60 dark:border-slate-700/60 shrink-0 cursor-pointer"
+              title="সকল খাতার তালিকায় ফিরে যান"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span className="hidden xs:inline">সব খাতা</span>
+            </button>
+          </div>
+        )}
+
         {reminders && reminders.length > 0 && activeTab === "transactions" && (
           <div className="mb-3">
             <GroceryReminders reminders={reminders} compact />

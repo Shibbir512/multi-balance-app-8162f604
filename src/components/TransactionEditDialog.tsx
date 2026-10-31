@@ -2,12 +2,13 @@ import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { collection, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
 import { db } from "@/integrations/firebase/client";
-import { BottomSheet, BottomSheetContent } from "@/components/ui/bottom-sheet";
+import { BottomSheet, BottomSheetContent, BottomSheetTitle } from "@/components/ui/bottom-sheet";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Calendar as CalendarIcon, Clock, Search, Plus, X, Wallet, Receipt, Zap, Trash2, ChevronDown, CircleDollarSign } from "lucide-react";
+import { ArrowLeft, Calendar as CalendarIcon, Clock, Search, Plus, X, Wallet, Receipt, Zap, Trash2, ChevronDown, CircleDollarSign, Keyboard } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import CalculatorInput from "./CalculatorInput";
+import CalculatorInput, { CalculatorInputRef } from "./CalculatorInput";
+import CalculatorKeypad from "./CalculatorKeypad";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -126,7 +127,10 @@ const TransactionEditDialog = ({
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
   const [timePopoverOpen, setTimePopoverOpen] = useState(false);
   const [showAccountPicker, setShowAccountPicker] = useState(false);
+  const [calcPreview, setCalcPreview] = useState<{ value: number; commit: () => void } | null>(null);
+  const [showCustomKeypad, setShowCustomKeypad] = useState(true);
 
+  const calcInputRef = useRef<CalculatorInputRef>(null);
   const initializedTxRef = useRef<string | null | undefined>(undefined);
 
   useEffect(() => {
@@ -163,9 +167,13 @@ const TransactionEditDialog = ({
       setDatePopoverOpen(false);
       setTimePopoverOpen(false);
       setShowAccountPicker(false);
+      setCalcPreview(null);
+      setShowCustomKeypad(true);
     } else {
       // Reset the ref when dialog closes so it re-initializes next time
       initializedTxRef.current = undefined;
+      setCalcPreview(null);
+      setShowCustomKeypad(false);
     }
   }, [open, transaction, defaultType, ledgerId, accounts]);
 
@@ -319,9 +327,13 @@ const TransactionEditDialog = ({
               <ArrowLeft className="w-5 h-5" />
             </button>
 
-            <h2 className="text-[17px] font-bold text-foreground tracking-tight">
-              {isEdit ? "সম্পাদনা" : "নতুন"}
-            </h2>
+            {isEdit ? (
+              <h2 className="text-[17px] font-bold text-foreground tracking-tight">
+                সম্পাদনা
+              </h2>
+            ) : (
+              <BottomSheetTitle className="sr-only">নতুন লেনদেন</BottomSheetTitle>
+            )}
 
             <div className="flex items-center gap-1.5">
               {isEdit && (
@@ -614,27 +626,87 @@ const TransactionEditDialog = ({
             </div>
 
             {/* Row 4: Amount Input */}
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <div className="h-14 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-900/60 flex items-center px-4 gap-3 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/15 transition-all">
                 <CircleDollarSign className="w-5 h-5 text-slate-400 shrink-0" />
                 <CalculatorInput
+                  ref={calcInputRef}
                   value={amount}
                   onChange={setAmount}
+                  inputMode={showCustomKeypad ? "none" : "decimal"}
+                  onClick={() => setShowCustomKeypad(true)}
+                  onPreviewChange={(p, commit) => {
+                    if (p !== null) {
+                      setCalcPreview((prev) => (prev?.value === p ? prev : { value: p, commit }));
+                    } else {
+                      setCalcPreview((prev) => (prev === null ? prev : null));
+                    }
+                  }}
                   required
                   placeholder="টাকার পরিমাণ"
-                  className="text-xl font-bold tracking-tight text-foreground placeholder:text-slate-400/80 flex-1 leading-none border-none p-0 focus:ring-0 bg-transparent"
+                  className="flex-1 leading-none border-none p-0 focus:ring-0 bg-transparent placeholder:text-slate-400/80"
                 />
-                {parseFloat(amount) > 0 && (
+
+                <div className="flex items-center gap-1 shrink-0">
+                  {/* Keyboard Mode Toggle (Switch between Custom Calculator Keypad and Phone Keyboard) */}
                   <button
                     type="button"
-                    onClick={() => setAmount("")}
-                    className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded-md hover:bg-muted transition-colors cursor-pointer shrink-0"
-                    title="ক্লিয়ার"
+                    onClick={() => {
+                      const next = !showCustomKeypad;
+                      setShowCustomKeypad(next);
+                      if (!next) {
+                        setTimeout(() => calcInputRef.current?.focus(), 50);
+                      }
+                    }}
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+                      showCustomKeypad
+                        ? "bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400"
+                        : "text-muted-foreground hover:bg-muted"
+                    }`}
+                    title={showCustomKeypad ? "ফোন কীবোর্ড ব্যবহার করুন" : "ক্যালকুলেটর কীবোর্ড দেখান"}
                   >
-                    মুছুন
+                    <Keyboard className="w-4 h-4" />
                   </button>
-                )}
+
+                  {amount && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        calcInputRef.current?.clear();
+                        setAmount("");
+                        setCalcPreview(null);
+                      }}
+                      className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded-md hover:bg-muted transition-colors cursor-pointer"
+                      title="ক্লিয়ার"
+                    >
+                      মুছুন
+                    </button>
+                  )}
+                </div>
               </div>
+
+              {/* Dedicated Live Calculation Result Banner — Placed cleanly below input so it NEVER covers digits */}
+              {calcPreview && (
+                <div className="flex items-center justify-between px-2 pt-0.5 animate-in fade-in-50 duration-150">
+                  <div className="flex items-center gap-1.5 text-xs">
+                    <span className="text-slate-500 dark:text-slate-400 font-medium">যোগফল:</span>
+                    <button
+                      type="button"
+                      onClick={() => calcPreview.commit()}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/70 transition-all cursor-pointer shadow-2xs active:scale-95"
+                      title="যোগফল ইনপুটে বসাতে ট্যাপ করুন"
+                    >
+                      <span className="text-[13px]">৳ {calcPreview.value.toLocaleString("bn-BD")}</span>
+                      <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 underline">
+                        (বসিয়ে দিন)
+                      </span>
+                    </button>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground">
+                    ট্যাপ করলে যোগফল বসবে
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Row 5: Description / Note Input */}
@@ -645,7 +717,7 @@ const TransactionEditDialog = ({
                   type="text"
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  onFocus={(e) => e.currentTarget.scrollIntoView({ behavior: "smooth", block: "nearest" })}
+                  onFocus={() => setShowCustomKeypad(false)}
                   placeholder="বিবরণ (অপশনাল)"
                   className="flex-1 bg-transparent border-none text-[14.5px] font-medium text-foreground placeholder:text-slate-400/80 focus:ring-0 p-0 outline-none"
                 />
@@ -715,7 +787,26 @@ const TransactionEditDialog = ({
 
             </div>
 
-            {/* Pinned Sticky Bottom Submit Bar — ALWAYS visible above keyboard */}
+            {/* In-app Calculator Keypad with math operators on the two sides */}
+            {showCustomKeypad && (
+              <div className="shrink-0 animate-in slide-in-from-bottom-2 duration-150">
+                <CalculatorKeypad
+                  onInsert={(char) => calcInputRef.current?.insert(char)}
+                  onBackspace={() => calcInputRef.current?.backspace()}
+                  onClear={() => {
+                    calcInputRef.current?.clear();
+                    setAmount("");
+                    setCalcPreview(null);
+                  }}
+                  onEquals={() => {
+                    calcInputRef.current?.commit();
+                  }}
+                  onClose={() => setShowCustomKeypad(false)}
+                />
+              </div>
+            )}
+
+            {/* Pinned Sticky Bottom Submit Bar — ALWAYS visible */}
             <div className="shrink-0 px-4 py-3 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 pb-[max(12px,calc(env(safe-area-inset-bottom)+8px))] z-10">
               <button
                 type="submit"

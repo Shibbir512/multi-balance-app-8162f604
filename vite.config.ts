@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => ({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.png', 'favicon.ico', 'robots.txt'],
       workbox: {
-        maximumFileSizeToCacheInBytes: 5000000 // 5MB
+        maximumFileSizeToCacheInBytes: 15 * 1024 * 1024 // 15MB
       },
       manifest: {
         name: 'জমাখরচ',
