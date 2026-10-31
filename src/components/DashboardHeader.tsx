@@ -1,4 +1,4 @@
-import { Menu, Bell, ChevronDown, ChevronUp, Wallet } from "lucide-react";
+import { Menu, Bell, ChevronDown, ChevronUp } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 
 interface DashboardHeaderProps {
@@ -16,7 +16,6 @@ const DashboardHeader = ({
   isCollapsed = false,
   isHidden = false,
   onToggleCollapse,
-  ledgerName,
 }: DashboardHeaderProps) => {
   return (
     <header
@@ -69,7 +68,7 @@ const DashboardHeader = ({
         <Menu className="w-[18px] h-[18px]" strokeWidth={2} />
       </button>
 
-      {/* ── Brand / Logo & Active Ledger ──────────────── */}
+      {/* ── Brand / Logo ─────────────────────────────── */}
       <div className="flex items-center gap-2 sm:gap-3 shrink-0 mr-2 ml-1 sm:ml-0 min-w-0">
         {/* Logo icon */}
         <div
@@ -85,8 +84,8 @@ const DashboardHeader = ({
           </span>
         </div>
 
-        {/* App Title (on sm+ screens) */}
-        <div className="hidden sm:flex flex-col drop-shadow-sm shrink-0">
+        {/* App Title */}
+        <div className="flex flex-col drop-shadow-sm shrink-0">
           <span
             className="text-white font-extrabold leading-none tracking-tight"
             style={{ fontSize: isCollapsed ? "15px" : "17px", letterSpacing: "-0.3px", textShadow: "0 1px 3px rgba(0,0,0,0.3)" }}
@@ -102,19 +101,6 @@ const DashboardHeader = ({
             </span>
           )}
         </div>
-
-        {/* Active Ledger Pill — Highly visible, vibrant amber pill with bold text */}
-        {ledgerName && (
-          <div
-            className="flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1 rounded-full bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 text-slate-950 shadow-[0_2px_12px_rgba(245,158,11,0.45)] border border-amber-200/90 shrink-0 transition-transform active:scale-95"
-            title={`চলতি লেজার: ${ledgerName}`}
-          >
-            <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950 shrink-0" strokeWidth={2.4} />
-            <span className="text-[12.5px] sm:text-[14px] font-black text-slate-950 truncate max-w-[130px] xs:max-w-[170px] sm:max-w-[240px] tracking-tight">
-              {ledgerName}
-            </span>
-          </div>
-        )}
       </div>
 
       <div className="flex-1" />
